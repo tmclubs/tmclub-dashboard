@@ -1,0 +1,2818 @@
+{
+  "info": {
+    "name": "TMC API (Toyota Manufacturers Club) - Complete Collection",
+    "description": "Complete API documentation for Toyota Manufacturers Club backend system.\n\n## Authentication\nMost endpoints require authentication. Include the token in the Authorization header:\n```\nAuthorization: Token <your-token>\n```\n\n## Response Format\nAll responses follow this standard format:\n```json\n{\n  \"status\": \"success/error\",\n  \"code\": \"response_code\",\n  \"message\": {\n    \"en\": \"English message\",\n    \"id\": \"Pesan dalam bahasa Indonesia\"\n  },\n  \"data\": {},\n  \"meta\": {}\n}\n```\n\n## Version History\n- v1.0.0: Initial collection\n- v1.1.0: Added missing endpoints and extended functionality",
+    "version": "1.1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:1338",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints",
+      "item": [
+        {
+          "name": "OAuth Login/Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uid\": \"google_user_id_123\",\n  \"email\": \"user@example.com\",\n  \"name\": \"John Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/authenticate/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "authenticate",
+                ""
+              ]
+            },
+            "description": "Login or register user using OAuth (Google) credentials"
+          },
+          "response": [
+            {
+              "name": "Successful Login",
+              "originalRequest": {
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"uid\": \"google_user_id_123\",\n  \"email\": \"user@example.com\",\n  \"name\": \"John Doe\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/authenticate/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "authenticate",
+                    ""
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000102\",\n  \"message\": {\n    \"en\": \"Successfully authenticated!\",\n    \"id\": \"Login sukses!\"\n  },\n  \"data\": {\n    \"uid\": \"google_user_id_123\",\n    \"token\": \"abc123def456...\",\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"role\": \"member\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Google Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"access_token\": \"google_access_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/google-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "google-token"
+              ]
+            },
+            "description": "Authenticate using Google access token"
+          }
+        },
+        {
+          "name": "Register (Manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securepassword123\",\n  \"first_name\": \"John\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "register",
+                ""
+              ]
+            },
+            "description": "Manual user registration with username and password"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securepassword123\",\n  \"first_name\": \"John\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/register/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "register",
+                    ""
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000101\",\n  \"message\": {\n    \"en\": \"User registered successfully!\",\n    \"id\": \"Registrasi berhasil!\"\n  },\n  \"data\": {\n    \"id\": 123,\n    \"username\": \"johndoe\",\n    \"email\": \"john@example.com\",\n    \"first_name\": \"John\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login (Manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login",
+                ""
+              ]
+            },
+            "description": "Manual user login with username/email and password"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"securepassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/login/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "login",
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000102\",\n  \"message\": {\n    \"en\": \"Login successful!\",\n    \"id\": \"Login berhasil!\"\n  },\n  \"data\": {\n    \"token\": \"abc123def456...\",\n    \"user\": {\n      \"id\": 123,\n      \"username\": \"johndoe\",\n      \"email\": \"john@example.com\",\n      \"first_name\": \"John\",\n      \"role\": \"member\"\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Account Management",
+      "description": "User account management endpoints",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/account/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "me",
+                ""
+              ]
+            },
+            "description": "Get current user profile information"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Token {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/account/me/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "account",
+                    "me",
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000104\",\n  \"message\": {\n    \"en\": \"Profile retrieved successfully!\",\n    \"id\": \"Profil berhasil diambil!\"\n  },\n  \"data\": {\n    \"id\": 123,\n    \"username\": \"johndoe\",\n    \"email\": \"john@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"phone_number\": \"+628123456789\",\n    \"role\": \"member\",\n    \"company\": {\n      \"id\": 1,\n      \"name\": \"PT Example Company\",\n      \"is_pic\": false\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"phone_number\": \"+628123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/account/update-me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "update-me",
+                ""
+              ]
+            },
+            "description": "Update current user profile"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Token {{auth_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Updated\",\n  \"phone_number\": \"+628123456789\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/account/update-me/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "account",
+                    "update-me",
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000103\",\n  \"message\": {\n    \"en\": \"Profile updated successfully!\",\n    \"id\": \"Profil berhasil diperbarui!\"\n  },\n  \"data\": {\n    \"id\": 123,\n    \"username\": \"johndoe\",\n    \"email\": \"john@example.com\",\n    \"first_name\": \"John Updated\",\n    \"last_name\": \"\",\n    \"phone_number\": \"+628123456789\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Invite Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/account/invite-admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "invite-admin",
+                ""
+              ]
+            },
+            "description": "Invite user as admin"
+          }
+        },
+        {
+          "name": "Invite Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newadmin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/account/invite-admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "invite-admin",
+                ""
+              ]
+            },
+            "description": "Invite user as system admin"
+          }
+        },
+        {
+          "name": "Delete Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/account/delete-admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "delete-admin",
+                ""
+              ]
+            },
+            "description": "Remove admin privileges from user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "description": "Event management endpoints - create, manage, and register for events",
+      "item": [
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                ""
+              ]
+            },
+            "description": "Get list of all upcoming events"
+          },
+          "response": [
+            {
+              "name": "Event List Response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/event/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "event",
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000100\",\n  \"message\": {\n    \"en\": \"Events retrieved successfully\",\n    \"id\": \"Event berhasil diambil\"\n  },\n  \"data\": [\n    {\n      \"pk\": 1,\n      \"title\": \"Toyota Manufacturing Excellence Workshop\",\n      \"date\": \"2024-02-15T09:00:00Z\",\n      \"venue\": \"Jakarta Convention Center\",\n      \"main_image_url\": \"http://localhost:1338/media/events/workshop.jpg\",\n      \"description\": \"Workshop tentang excellence dalam manufacturing\",\n      \"is_free\": false\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Event Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                ""
+              ]
+            },
+            "description": "Get detailed information about a specific event"
+          }
+        },
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Toyota Workshop\",\n  \"date\": \"2024-03-15T09:00:00Z\",\n  \"venue\": \"Surabaya Convention Center\",\n  \"main_image\": \"1\",\n  \"description\": \"Workshop manufacturing terbaru\",\n  \"is_free\": true,\n  \"is_registration_close\": false,\n  \"is_list_attendees\": true,\n  \"price\": null,\n  \"billing_deadline\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                ""
+              ]
+            },
+            "description": "Create a new event"
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Workshop Title\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                ""
+              ]
+            },
+            "description": "Update event information"
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                ""
+              ]
+            },
+            "description": "Delete an event"
+          }
+        },
+        {
+          "name": "Register to Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/registration/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "registration",
+                ""
+              ]
+            },
+            "description": "Register current user to an event"
+          }
+        },
+        {
+          "name": "Get Event QR Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/qrcode/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "qrcode",
+                ""
+              ]
+            },
+            "description": "Get QR code for event attendance (event owner only)"
+          }
+        },
+        {
+          "name": "Get Registrant List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/register-list/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "register-list",
+                ""
+              ]
+            },
+            "description": "Get list of event registrants"
+          }
+        },
+        {
+          "name": "My Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/myevent/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "myevent",
+                ""
+              ]
+            },
+            "description": "Get events created by current user"
+          }
+        },
+        {
+          "name": "My Registered Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/my-registered-event/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "my-registered-event",
+                ""
+              ]
+            },
+            "description": "Get events where current user is registered"
+          }
+        },
+        {
+          "name": "Upload Event Media",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"files\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/upload-media/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "upload-media",
+                ""
+              ]
+            },
+            "description": "Upload media files to event"
+          }
+        },
+        {
+          "name": "Download Certificate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/download-certificate/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "download-certificate",
+                ""
+              ]
+            },
+            "description": "Download event attendance certificate"
+          }
+        },
+        {
+          "name": "Set Event Survey",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"surveys\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/survey-set/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "survey-set",
+                ""
+              ]
+            },
+            "description": "Attach surveys to event"
+          }
+        },
+        {
+          "name": "Export Registrants",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/export-registrant/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "export-registrant",
+                ""
+              ]
+            },
+            "description": "Export event registrants to Excel (Admin only)"
+          }
+        },
+        {
+          "name": "Create Event Reference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Toyota Manufacturing Guide\",\n  \"url\": \"https://toyota.com/manufacturing-guide\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/event-reference-create/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "event-reference-create",
+                ""
+              ]
+            },
+            "description": "Create reference link for event"
+          }
+        },
+        {
+          "name": "List Event References",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/event-reference-list/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "event-reference-list",
+                ""
+              ]
+            },
+            "description": "Get list of event references"
+          }
+        },
+        {
+          "name": "Update Event Reference",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Updated Reference Name\",\n  \"url\": \"https://updated-url.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/event-reference-update/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "event-reference-update",
+                ""
+              ]
+            },
+            "description": "Update event reference"
+          }
+        },
+        {
+          "name": "Delete Event Reference",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{reference_id}}/event-reference-delete/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{reference_id}}",
+                "event-reference-delete",
+                ""
+              ]
+            },
+            "description": "Delete event reference by reference ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Attendance",
+      "description": "Event attendance tracking endpoints",
+      "item": [
+        {
+          "name": "Mark Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nonce\": \"event_nonce_from_qr\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/attend/{{event_nonce}}/participant/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "attend",
+                "{{event_nonce}}",
+                "participant",
+                ""
+              ]
+            },
+            "description": "Mark attendance by scanning QR code"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "description": "Company management endpoints",
+      "item": [
+        {
+          "name": "List Companies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/company/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                ""
+              ]
+            },
+            "description": "Get list of all companies"
+          }
+        },
+        {
+          "name": "Get Company Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                ""
+              ]
+            },
+            "description": "Get detailed company information"
+          }
+        },
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"PT Toyota Manufacturing Indonesia\",\n  \"address\": \"Jl. Industri No. 123, Jakarta\",\n  \"main_image\": \"1\",\n  \"description\": \"Leading automotive manufacturer\",\n  \"contact\": \"+62-21-1234567\",\n  \"email\": \"info@toyota.co.id\",\n  \"city\": \"Jakarta\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                ""
+              ]
+            },
+            "description": "Create a new company"
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Updated Company Name\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                ""
+              ]
+            },
+            "description": "Update company information"
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                ""
+              ]
+            },
+            "description": "Delete company"
+          }
+        },
+        {
+          "name": "Invite Company Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"member@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/invite/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                "invite",
+                ""
+              ]
+            },
+            "description": "Invite user as company member"
+          }
+        },
+        {
+          "name": "Invite Company PIC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"pic@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/invite-pic/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                "invite-pic",
+                ""
+              ]
+            },
+            "description": "Invite user as Person In Charge (PIC)"
+          }
+        },
+        {
+          "name": "Set VA Number",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_number\": \"VA12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/set-va/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                "set-va",
+                ""
+              ]
+            },
+            "description": "Set Virtual Account number for company"
+          }
+        },
+        {
+          "name": "Remove Company Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"member@company.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/remove-member/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                "remove-member",
+                ""
+              ]
+            },
+            "description": "Remove member from company"
+          }
+        },
+        {
+          "name": "Remove Company PIC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"pic@company.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/{{company_id}}/remove-pic/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "{{company_id}}",
+                "remove-pic",
+                ""
+              ]
+            },
+            "description": "Remove PIC (Person In Charge) from company"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Surveys",
+      "description": "Survey and form builder endpoints",
+      "item": [
+        {
+          "name": "List Surveys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                ""
+              ]
+            },
+            "description": "Get list of all surveys"
+          }
+        },
+        {
+          "name": "Get Survey Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{survey_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{survey_id}}",
+                ""
+              ]
+            },
+            "description": "Get detailed survey information with questions"
+          }
+        },
+        {
+          "name": "Create Survey",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Event Satisfaction Survey\",\n  \"description\": \"Survey untuk mengukur kepuasan peserta event\",\n  \"questions\": [\n    {\n      \"question_text\": \"Bagaimana penilaian Anda terhadap event ini?\",\n      \"question_type\": \"multiple_choice\",\n      \"is_required\": true,\n      \"options\": [\n        {\"display_name\": \"Sangat Baik\"},\n        {\"display_name\": \"Baik\"},\n        {\"display_name\": \"Cukup\"},\n        {\"display_name\": \"Kurang\"}\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/survey/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                ""
+              ]
+            },
+            "description": "Create a new survey with questions"
+          }
+        },
+        {
+          "name": "Submit Survey Response",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"responses\": [\n    {\n      \"question_id\": 1,\n      \"answer\": \"Sangat Baik\"\n    },\n    {\n      \"question_id\": 2,\n      \"answer\": \"Event sangat bermanfaat dan informatif\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/survey/{{survey_id}}/response/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{survey_id}}",
+                "response",
+                ""
+              ]
+            },
+            "description": "Submit response to a survey"
+          }
+        },
+        {
+          "name": "Get Survey Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{survey_id}}/result/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{survey_id}}",
+                "result",
+                ""
+              ]
+            },
+            "description": "Get survey results and analytics"
+          }
+        },
+        {
+          "name": "Export Survey Results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{survey_id}}/result-export/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{survey_id}}",
+                "result-export",
+                ""
+              ]
+            },
+            "description": "Export survey results to Excel"
+          }
+        },
+        {
+          "name": "Get Event Surveys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{event_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{event_id}}",
+                ""
+              ]
+            },
+            "description": "Get all surveys for specific event"
+          }
+        },
+        {
+          "name": "Create Event Survey",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Event Feedback Survey\",\n  \"description\": \"Survey feedback untuk event\",\n  \"questions\": [\n    {\n      \"question_text\": \"Bagaimana penilaian Anda?\",\n      \"question_type\": \"multiple_choice\",\n      \"options\": [{\"display_name\": \"Baik\"}, {\"display_name\": \"Cukup\"}]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/survey/{{event_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{event_id}}",
+                ""
+              ]
+            },
+            "description": "Create survey for specific event"
+          }
+        },
+        {
+          "name": "Get Event Survey Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{event_id}}/{{survey_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{event_id}}",
+                "{{survey_id}}",
+                ""
+              ]
+            },
+            "description": "Get specific survey detail for event"
+          }
+        },
+        {
+          "name": "Submit Event Survey Response",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"responses\": [\n    {\n      \"question_id\": 1,\n      \"answer\": \"Sangat Baik\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/survey/{{event_id}}/{{survey_id}}/response/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{event_id}}",
+                "{{survey_id}}",
+                "response",
+                ""
+              ]
+            },
+            "description": "Submit response to event survey"
+          }
+        },
+        {
+          "name": "Get Event Survey Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{event_id}}/{{survey_id}}/result/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{event_id}}",
+                "{{survey_id}}",
+                "result",
+                ""
+              ]
+            },
+            "description": "Get results for event survey"
+          }
+        },
+        {
+          "name": "Export Event Survey Results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{event_id}}/{{survey_id}}/result-export/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{event_id}}",
+                "{{survey_id}}",
+                "result-export",
+                ""
+              ]
+            },
+            "description": "Export event survey results to Excel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blog",
+      "description": "Blog and content management endpoints",
+      "item": [
+        {
+          "name": "List Blog Posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/blog/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blog",
+                ""
+              ]
+            },
+            "description": "Get list of all blog posts"
+          }
+        },
+        {
+          "name": "Get Blog Post Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/blog/{{post_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blog",
+                "{{post_id}}",
+                ""
+              ]
+            },
+            "description": "Get detailed blog post information"
+          }
+        },
+        {
+          "name": "Create Blog Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Toyota Manufacturing Best Practices\",\n  \"summary\": \"Artikel tentang best practices di manufacturing Toyota\",\n  \"main_image\": \"1\",\n  \"content\": \"<p>Konten artikel lengkap...</p>\",\n  \"youtube_id\": \"dQw4w9WgXcQ\",\n  \"albums\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blog/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blog",
+                ""
+              ]
+            },
+            "description": "Create a new blog post"
+          }
+        },
+        {
+          "name": "Update Blog Post",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Blog Title\",\n  \"content\": \"<p>Updated content...</p>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blog/{{post_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blog",
+                "{{post_id}}",
+                ""
+              ]
+            },
+            "description": "Update blog post"
+          }
+        },
+        {
+          "name": "Delete Blog Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/blog/{{post_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blog",
+                "{{post_id}}",
+                ""
+              ]
+            },
+            "description": "Delete blog post"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification management endpoints",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notification/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notification",
+                ""
+              ]
+            },
+            "description": "Get list of user notifications"
+          }
+        },
+        {
+          "name": "Get Notification Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notification/{{notification_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notification",
+                "{{notification_id}}",
+                ""
+              ]
+            },
+            "description": "Get notification detail"
+          }
+        },
+        {
+          "name": "Get Notification Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notification/count/?status=unread",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notification",
+                "count",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "unread"
+                }
+              ]
+            },
+            "description": "Get count of notifications by status"
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notification/mark-read-all/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notification",
+                "mark-read-all",
+                ""
+              ]
+            },
+            "description": "Mark all notifications as read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "description": "Invoice and payment management endpoints",
+      "item": [
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaction/invoice/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaction",
+                "invoice",
+                ""
+              ]
+            },
+            "description": "Get list of user invoices"
+          }
+        },
+        {
+          "name": "Get Invoice Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaction/invoice/{{invoice_number}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaction",
+                "invoice",
+                "{{invoice_number}}",
+                ""
+              ]
+            },
+            "description": "Get invoice detail by number"
+          }
+        },
+        {
+          "name": "Set Payment Method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method\": \"bank_transfer\",\n  \"bank_code\": \"014\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/transaction/invoice/{{invoice_number}}/payment-method/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaction",
+                "invoice",
+                "{{invoice_number}}",
+                "payment-method",
+                ""
+              ]
+            },
+            "description": "Set payment method for invoice"
+          }
+        },
+        {
+          "name": "Cancel Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaction/invoice/{{invoice_number}}/cancle/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaction",
+                "invoice",
+                "{{invoice_number}}",
+                "cancle",
+                ""
+              ]
+            },
+            "description": "Cancel invoice"
+          }
+        }
+      ]
+    },
+    {
+      "name": "File Management",
+      "description": "File upload and management endpoints",
+      "item": [
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "display_name",
+                  "value": "Sample Image",
+                  "type": "text"
+                },
+                {
+                  "key": "caption",
+                  "value": "Image caption",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/common/upload-file/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "common",
+                "upload-file",
+                ""
+              ]
+            },
+            "description": "Upload file/image to server"
+          }
+        },
+        {
+          "name": "Get File Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/common/upload-file/{{file_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "common",
+                "upload-file",
+                "{{file_id}}",
+                ""
+              ]
+            },
+            "description": "Get file information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "References",
+      "description": "Reference data endpoints",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reference/list-user/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reference",
+                "list-user",
+                ""
+              ]
+            },
+            "description": "Get list of users for reference"
+          }
+        },
+        {
+          "name": "Question Types",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reference/question-type/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reference",
+                "question-type",
+                ""
+              ]
+            },
+            "description": "Get available question types for surveys"
+          }
+        },
+        {
+          "name": "Payment Methods",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reference/payment-method/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reference",
+                "payment-method",
+                ""
+              ]
+            },
+            "description": "Get available payment methods"
+          }
+        },
+        {
+          "name": "Invoice Statuses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reference/status-invoice/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reference",
+                "status-invoice",
+                ""
+              ]
+            },
+            "description": "Get available invoice statuses"
+          }
+        }
+      ]
+    },
+    {
+      "name": "About",
+      "description": "Organization information endpoints",
+      "item": [
+        {
+          "name": "Get About Info",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/about/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "about",
+                ""
+              ]
+            },
+            "description": "Get organization information"
+          }
+        },
+        {
+          "name": "Update About Info",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"md\": \"# About TMC\\n\\nToyota Manufacturers Club adalah...\",\n  \"description\": \"Deskripsi organisasi\",\n  \"organizations\": [1, 2],\n  \"annual_directories\": [1]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/about/{{about_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "about",
+                "{{about_id}}",
+                ""
+              ]
+            },
+            "description": "Update organization information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Panel",
+      "description": "Django admin panel access",
+      "item": [
+        {
+          "name": "Admin Login Page",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                ""
+              ]
+            },
+            "description": "Access Django admin panel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API Documentation",
+      "description": "API documentation endpoints",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/swagger/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "swagger",
+                ""
+              ]
+            },
+            "description": "Access Swagger API documentation"
+          }
+        },
+        {
+          "name": "ReDoc",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/redoc/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "redoc",
+                ""
+              ]
+            },
+            "description": "Access ReDoc API documentation"
+          }
+        },
+        {
+          "name": "OpenAPI Schema JSON",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/swagger.json",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "swagger.json"
+              ]
+            },
+            "description": "Get OpenAPI schema in JSON format"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Registration Management",
+      "description": "Advanced event registration management",
+      "item": [
+        {
+          "name": "Get Registrants by PIC",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/register-list-by-pic/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "register-list-by-pic",
+                ""
+              ]
+            },
+            "description": "Get list of registrants managed by PIC"
+          }
+        },
+        {
+          "name": "Register PIC to Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"pic@company.com\",\n  \"company_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/registration-pic/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "registration-pic",
+                ""
+              ]
+            },
+            "description": "Register PIC (Person In Charge) to event"
+          }
+        },
+        {
+          "name": "Delete Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/registration-delete/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "registration-delete",
+                ""
+              ]
+            },
+            "description": "Delete user registration from event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Survey Integration",
+      "description": "Survey integration with events",
+      "item": [
+        {
+          "name": "Get Event Surveys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/survey-list/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "survey-list",
+                ""
+              ]
+            },
+            "description": "Get list of surveys attached to event"
+          }
+        },
+        {
+          "name": "Get Surveys Needing Response",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/survey-need-response/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "survey-need-response",
+                ""
+              ]
+            },
+            "description": "Get surveys that current user hasn't responded to"
+          }
+        },
+        {
+          "name": "Submit Event Survey Response",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"survey_id\": 1,\n  \"responses\": [\n    {\n      \"question_id\": 1,\n      \"answer\": \"Sangat Baik\"\n    },\n    {\n      \"question_id\": 2,\n      \"answer\": \"Event sangat bermanfaat\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/survey/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "survey",
+                ""
+              ]
+            },
+            "description": "Submit survey response for event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Survey Additional Actions",
+      "description": "Additional survey management actions",
+      "item": [
+        {
+          "name": "Send Survey Invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emails\": [\"user1@example.com\", \"user2@example.com\"],\n  \"message\": \"Please fill out this survey\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/survey/{{survey_id}}/send/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{survey_id}}",
+                "send",
+                ""
+              ]
+            },
+            "description": "Send survey invitation to users"
+          }
+        },
+        {
+          "name": "Delete Survey",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/survey/{{survey_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "survey",
+                "{{survey_id}}",
+                ""
+              ]
+            },
+            "description": "Delete survey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Faspay Payment Gateway",
+      "description": "Faspay payment integration endpoints",
+      "item": [
+        {
+          "name": "Faspay Inquiry",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/faspay/{{va_number}}/{{signature}}/?amount={{amount}}&trx_uid={{trx_uid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "faspay",
+                "{{va_number}}",
+                "{{signature}}",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "{{amount}}"
+                },
+                {
+                  "key": "trx_uid",
+                  "value": "{{trx_uid}}"
+                }
+              ]
+            },
+            "description": "Faspay payment inquiry/verification"
+          },
+          "response": [
+            {
+              "name": "Successful Inquiry",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/faspay/1234567890/abc123/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "faspay",
+                    "1234567890",
+                    "abc123",
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"response\": \"VA Static Response\",\n  \"va_number\": \"1234567890\",\n  \"amount\": \"100000\",\n  \"cust_name\": \"John Doe\",\n  \"response_code\": \"00\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Faspay Payment Callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trx_id\": \"TXN123456789\",\n  \"merchant_id\": \"MERCHANT123\",\n  \"merchant\": \"TMC Store\",\n  \"bill_no\": \"BILL123456\",\n  \"payment_status_code\": \"2\",\n  \"payment_status_desc\": \"Success\",\n  \"payment_channel_uid\": \"014\",\n  \"payment_channel\": \"BCA Virtual Account\",\n  \"payment_date\": \"2024-01-15 10:30:00\",\n  \"signature\": \"abc123def456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/faspay/callback/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "faspay",
+                "callback",
+                ""
+              ]
+            },
+            "description": "Faspay payment callback notification"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Activity Management",
+      "description": "Admin activity management for events",
+      "item": [
+        {
+          "name": "List Admin Activities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/admin-activity/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "admin-activity",
+                ""
+              ]
+            },
+            "description": "Get list of admin activities"
+          }
+        },
+        {
+          "name": "Get Activity Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/admin-activity/{{activity_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "admin-activity",
+                "{{activity_id}}",
+                ""
+              ]
+            },
+            "description": "Get admin activity detail"
+          }
+        },
+        {
+          "name": "Update Activity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Activity Title\",\n  \"caption\": \"Updated activity caption\",\n  \"description\": \"Updated description\",\n  \"is_attendance\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/admin-activity/{{activity_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "admin-activity",
+                "{{activity_id}}",
+                ""
+              ]
+            },
+            "description": "Update admin activity"
+          }
+        },
+        {
+          "name": "Delete Activity",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event/admin-activity/{{activity_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "admin-activity",
+                "{{activity_id}}",
+                ""
+              ]
+            },
+            "description": "Delete admin activity"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Additional Management",
+      "description": "Additional event management endpoints",
+      "item": [
+        {
+          "name": "Mark Event as Done",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_done\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/event/{{event_id}}/set-done/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event",
+                "{{event_id}}",
+                "set-done",
+                ""
+              ]
+            },
+            "description": "Mark event as completed (Admin only)"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set base URL based on environment",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:1338');",
+          "}",
+          "",
+          "// Log current request for debugging",
+          "console.log('Request URL:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set auth token from login response",
+          "if (pm.request.url.toString().includes('/authenticate/')) {",
+          "    if (pm.response.code === 201) {",
+          "        const response = pm.response.json();",
+          "        if (response.data && response.data.token) {",
+          "            pm.environment.set('auth_token', response.data.token);",
+          "            console.log('Auth token saved:', response.data.token);",
+          "        }",
+          "    }",
+          "}",
+          "",
+          "// Log response for debugging",
+          "console.log('Response Status:', pm.response.code);",
+          "console.log('Response Body:', pm.response.text());"
+        ]
+      }
+    }
+  ]
+}
