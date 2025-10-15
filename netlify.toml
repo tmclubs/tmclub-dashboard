@@ -4,11 +4,11 @@
   
   # Directory to publish (output directory)
   publish = "dist"
-  
-  # Node.js version
-  environment = { NODE_VERSION = "18" }
 
 [build.environment]
+  # Node.js version
+  NODE_VERSION = "18"
+  
   # Production environment variables
   NODE_ENV = "production"
   # Add your environment variables here
