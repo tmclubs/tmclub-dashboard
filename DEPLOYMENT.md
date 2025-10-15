@@ -1,4 +1,13 @@
-# TMC Frontend - Vercel Deployment Guide
+# TMC Frontend - Deployment Guide
+
+## Supported Platforms
+
+- **Vercel** ⭐ (Recommended)
+- **Netlify** ⭐ (Alternative)
+
+---
+
+# Vercel Deployment Guide
 
 ## Prerequisites
 
@@ -25,6 +34,12 @@ Vercel will automatically detect the configuration from `vercel.json`:
 - **Output Directory**: `dist`
 
 ### 3. Environment Variables
+
+**📁 Environment Files Available:**
+- `.env.example`: Development template
+- `.env.production`: Production template ⭐
+
+**Quick Setup:** Copy values from `.env.production` to your deployment platform dashboard.
 
 Set the following environment variables in Vercel Dashboard:
 
@@ -79,6 +94,102 @@ VITE_ALLOWED_FILE_TYPES=jpg,jpeg,png,pdf,doc,docx
 1. Go to Project Settings → Domains
 2. Add your custom domain
 3. Configure DNS records as instructed by Vercel
+
+---
+
+# Netlify Deployment Guide
+
+## Prerequisites
+
+1. **Netlify Account**: Sign up at [netlify.com](https://netlify.com)
+2. **GitHub Repository**: Your code should be in a GitHub repository
+3. **Environment Variables**: Prepare values from `.env.production`
+
+## Deployment Steps
+
+### 1. Connect Repository to Netlify
+
+1. Go to [Netlify Dashboard](https://app.netlify.com)
+2. Click "New site from Git"
+3. Choose GitHub and authorize Netlify
+4. Select your repository: `tmclub.id/tmc_frontend`
+
+### 2. Configure Build Settings
+
+Netlify will use the configuration from `netlify.toml`:
+
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
+- **Node Version**: 18
+
+### 3. Environment Variables
+
+**📁 Use `.env.production` template for quick setup.**
+
+Go to Site settings → Environment variables and add:
+
+#### Required Variables:
+```bash
+VITE_API_URL=https://api.tmclub.id
+VITE_API_VERSION=v1
+VITE_APP_URL=https://your-netlify-site.netlify.app
+VITE_API_TIMEOUT=10000
+VITE_GOOGLE_CLIENT_ID=your-google-client-id-production
+VITE_GOOGLE_CLIENT_SECRET=your-google-client-secret-production
+VITE_GOOGLE_REDIRECT_URI=https://your-netlify-site.netlify.app/auth/callback
+VITE_FASPAY_API_URL=https://api.faspay.id
+VITE_FASPAY_MERCHANT_ID=your-faspay-merchant-id-production
+VITE_FASPAY_MERCHANT_SECRET=your-faspay-secret-production
+VITE_FASPAY_ENVIRONMENT=production
+VITE_APP_NAME=TMC Web App
+VITE_APP_DESCRIPTION=Toyota Manufacturers Club - Community Management Platform
+VITE_APP_VERSION=1.0.0
+VITE_APP_SUPPORT_EMAIL=support@tmclub.id
+VITE_ENABLE_GOOGLE_AUTH=true
+VITE_ENABLE_ANALYTICS=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_PAYMENT=true
+VITE_ENABLE_QR_SCANNER=true
+VITE_DEV_TOOLS=false
+VITE_LOG_LEVEL=error
+VITE_MAX_FILE_SIZE=10485760
+VITE_ALLOWED_FILE_TYPES=jpg,jpeg,png,pdf,doc,docx
+```
+
+### 4. Deploy
+
+1. Click "Deploy site" in Netlify Dashboard
+2. Wait for the build to complete
+3. Your app will be available at `https://your-site-name.netlify.app`
+
+## Netlify Features Configured
+
+- **SPA Routing**: Configured via `_redirects` file
+- **HTTPS Redirect**: Automatic HTTP to HTTPS redirect
+- **Security Headers**: CSP, HSTS, and other security headers
+- **Cache Optimization**: Static assets cached for 1 year, HTML for 1 hour
+- **API Proxy**: `/api/*` routes proxied to backend
+- **Build Optimization**: Node.js 18, npm caching enabled
+
+## Custom Domain (Optional)
+
+1. Go to Site settings → Domain management
+2. Add your custom domain
+3. Configure DNS records as instructed by Netlify
+4. Update `VITE_APP_URL` and `VITE_GOOGLE_REDIRECT_URI` environment variables
+
+## Netlify CLI (Optional)
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
+
+# Deploy from local
+netlify deploy --prod
+```
 
 ## Automatic Deployments
 
