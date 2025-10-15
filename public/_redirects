@@ -1,0 +1,23 @@
+# SPA redirect - all routes should serve index.html
+/*    /index.html   200
+
+# API redirects (if you need to proxy API calls)
+# /api/*  https://your-backend-api.com/:splat  200
+
+# Specific redirects for known routes (optional - for better SEO)
+/login    /index.html   200
+/register /index.html   200
+/dashboard/* /index.html   200
+/profile/* /index.html   200
+/events/* /index.html   200
+/companies/* /index.html   200
+/blogs/* /index.html   200
+/surveys/* /index.html   200
+/notifications/* /index.html   200
+
+# Force HTTPS redirect
+http://tmclub.netlify.app/* https://tmclub.netlify.app/:splat 301!
+http://www.tmclub.netlify.app/* https://tmclub.netlify.app/:splat 301!
+
+# 404 fallback
+/404      /index.html   404
