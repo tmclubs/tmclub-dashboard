@@ -2,6 +2,7 @@ import { TMCResponse } from '@/types/api';
 import { ApiError } from '@/lib/error-handler';
 import { env } from '@/lib/config/env';
 import { getAuthErrorMessage, isErrorCode } from '@/lib/auth/error-codes';
+import { getTokenManager, isAuthenticationValid, clearTokens } from '@/lib/auth/token-manager';
 
 const API_BASE_URL = env.apiUrl;
 
@@ -36,10 +37,8 @@ const getAuthToken = async (): Promise<string | null> => {
 
 // Get auth token synchronously (for immediate use)
 const getAuthTokenSync = (): string | null => {
-  // For sync access, we need to use a different approach
-  // Import synchronously using require for this specific case
+  // For sync access, use the imported token manager
   try {
-    const { getTokenManager } = eval('require')('@/lib/auth/token-manager');
     const manager = getTokenManager();
     return manager.getAccessToken();
   } catch (error) {
@@ -249,7 +248,6 @@ export const handleApiError = (error: unknown): string => {
 // Check if user is authenticated
 export const isAuthenticated = (): boolean => {
   try {
-    const { isAuthenticationValid } = eval('require')('@/lib/auth/token-manager');
     return isAuthenticationValid();
   } catch (error) {
     console.warn('Failed to check authentication:', error);
@@ -260,7 +258,6 @@ export const isAuthenticated = (): boolean => {
 // Logout utility
 export const logout = (): void => {
   try {
-    const { clearTokens } = eval('require')('@/lib/auth/token-manager');
     clearTokens();
   } catch (error) {
     console.warn('Failed to clear tokens:', error);
