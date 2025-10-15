@@ -7,11 +7,7 @@ export const filesApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    return apiClient.post('/file/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return apiClient.upload('/file/upload/', formData);
   },
 
   // Upload multiple files
@@ -21,11 +17,7 @@ export const filesApi = {
       formData.append(`file_${index}`, file);
     });
 
-    return apiClient.post('/file/upload/multiple/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return apiClient.upload('/file/upload/multiple/', formData);
   },
 
   // Get file by ID

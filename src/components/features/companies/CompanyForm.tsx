@@ -1,89 +1,41 @@
 import React, { useState } from 'react';
-import { Building2, Upload, X, Mail, Phone, MapPin, User, Globe, Briefcase, Shield, Check } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, Textarea } from '@/components/ui';
-import { cn } from '@/lib/utils/cn';
-
-export interface CompanyFormData {
-  name: string;
-  description: string;
-  logo?: string;
-  industry: string;
-  location: string;
-  website?: string;
-  email: string;
-  phone?: string;
-  contactPerson: {
-    name: string;
-    email: string;
-    phone?: string;
-  };
-  status: 'active' | 'inactive' | 'pending';
-}
+import { Upload, X, Building, MapPin, Phone, Mail, Shield, Check } from 'lucide-react';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, Textarea } from '@/components/ui';
+import { CompanyFormData, Company } from '@/types/api';
 
 export interface CompanyFormProps {
-  company?: Partial<CompanyFormData>;
-  onSubmit: (data: CompanyFormData) => void;
+  company?: Partial<Company>;
+  onSubmit: (data: CompanyFormData) => void | Promise<void>;
   loading?: boolean;
   onCancel?: () => void;
   title?: string;
 }
-
-const industries = [
-  'Automotive',
-  'Technology',
-  'Finance',
-  'Healthcare',
-  'Education',
-  'Manufacturing',
-  'Retail',
-  'Real Estate',
-  'Consulting',
-  'Other'
-];
 
 export const CompanyForm: React.FC<CompanyFormProps> = ({
   company,
   onSubmit,
   loading = false,
   onCancel,
-  title = company ? 'Edit Company' : 'Create New Company'
 }) => {
   const [formData, setFormData] = useState<CompanyFormData>({
-    name: company?.name || '',
+    display_name: company?.display_name || '',
     description: company?.description || '',
-    logo: company?.logo || '',
-    industry: company?.industry || '',
-    location: company?.location || '',
-    website: company?.website || '',
+    main_image: company?.main_image || '',
+    address: company?.address || '',
+    contact: company?.contact || '',
     email: company?.email || '',
-    phone: company?.phone || '',
-    contactPerson: {
-      name: company?.contactPerson?.name || '',
-      email: company?.contactPerson?.email || '',
-      phone: company?.contactPerson?.phone || '',
-    },
-    status: company?.status || 'active',
+    city: company?.city || '',
   });
 
-  const [logoPreview, setLogoPreview] = useState<string>(company?.logo || '');
+  const [logoPreview, setLogoPreview] = useState<string>(company?.main_image || '');
 
-  const handleInputChange = (field: keyof CompanyFormData | keyof CompanyFormData['contactPerson']) => (
+  const handleInputChange = (field: keyof CompanyFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    if (field in formData.contactPerson) {
-      setFormData(prev => ({
-        ...prev,
-        contactPerson: {
-          ...prev.contactPerson,
-          [field]: e.target.value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: e.target.value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +45,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setLogoPreview(result);
-        setFormData(prev => ({ ...prev, logo: result }));
+        setFormData(prev => ({ ...prev, main_image: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -101,37 +53,12 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
   const removeLogo = () => {
     setLogoPreview('');
-    setFormData(prev => ({ ...prev, logo: '' }));
+    setFormData(prev => ({ ...prev, main_image: '' }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-  };
-
-  const getIndustryColor = (industry: string) => {
-    const colors: { [key: string]: string } = {
-      'Automotive': 'bg-blue-100 text-blue-800 border-blue-200',
-      'Technology': 'bg-purple-100 text-purple-800 border-purple-200',
-      'Finance': 'bg-green-100 text-green-800 border-green-200',
-      'Healthcare': 'bg-red-100 text-red-800 border-red-200',
-      'Education': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-      'Manufacturing': 'bg-orange-100 text-orange-800 border-orange-200',
-      'Retail': 'bg-pink-100 text-pink-800 border-pink-200',
-      'Real Estate': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'Consulting': 'bg-cyan-100 text-cyan-800 border-cyan-200',
-      'Other': 'bg-gray-100 text-gray-800 border-gray-200',
-    };
-    return colors[industry] || 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
   };
 
   return (
@@ -145,10 +72,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
               Company Name
             </label>
             <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                value={formData.name}
-                onChange={handleInputChange('name')}
+                value={formData.display_name}
+                onChange={handleInputChange('display_name')}
                 placeholder="Enter company name"
                 className="pl-10"
                 required
@@ -171,41 +98,34 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             />
           </div>
 
-          {/* Industry & Location */}
+          {/* Address & City */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Industry
-              </label>
-              <select
-                value={formData.industry}
-                onChange={handleInputChange('industry')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                required
-              >
-                <option value="">Select industry</option>
-                {industries.map(industry => (
-                  <option key={industry} value={industry}>{industry}</option>
-                ))}
-              </select>
-              {formData.industry && (
-                <Badge className={cn("mt-2", getIndustryColor(formData.industry))}>
-                  <Briefcase className="w-3 h-3 mr-1" />
-                  {formData.industry}
-                </Badge>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
+                Address
               </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  value={formData.location}
-                  onChange={handleInputChange('location')}
-                  placeholder="City, Country"
+                  value={formData.address}
+                  onChange={handleInputChange('address')}
+                  placeholder="Company address"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                City
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  value={formData.city}
+                  onChange={handleInputChange('city')}
+                  placeholder="City"
                   className="pl-10"
                   required
                 />
@@ -213,136 +133,43 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             </div>
           </div>
 
-          {/* Website & Status */}
+          {/* Contact & Email */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Website
-              </label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  type="url"
-                  value={formData.website}
-                  onChange={handleInputChange('website')}
-                  placeholder="https://example.com"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={handleInputChange('status')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
-              </select>
-              <Badge className={cn("mt-2", getStatusColor(formData.status))}>
-                {formData.status}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Contact Information */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-900 flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Contact Information
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange('email')}
-                    placeholder="company@example.com"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Phone
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange('phone')}
-                    placeholder="+62 21 1234 5678"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Person Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    value={formData.contactPerson.name}
-                    onChange={handleInputChange('name')}
-                    placeholder="John Doe"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Person Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    type="email"
-                    value={formData.contactPerson.email}
-                    onChange={handleInputChange('email')}
-                    placeholder="john@example.com"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Person Phone
+                Contact
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  type="tel"
-                  value={formData.contactPerson.phone}
-                  onChange={handleInputChange('phone')}
-                  placeholder="+62 812 3456 7890"
+                  value={formData.contact}
+                  onChange={handleInputChange('contact')}
+                  placeholder="Contact number"
                   className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange('email')}
+                  placeholder="company@example.com"
+                  className="pl-10"
+                  required
                 />
               </div>
             </div>
           </div>
+
+
         </div>
 
         {/* Sidebar - 1 column on desktop, full width on mobile */}
@@ -404,35 +231,33 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Industry</span>
-                {formData.industry && (
-                  <Badge className={cn("text-xs", getIndustryColor(formData.industry))}>
-                    {formData.industry}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Status</span>
-                <Badge className={cn("text-xs", getStatusColor(formData.status))}>
-                  {formData.status}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Location</span>
+                <span className="text-sm text-gray-600">Company Name</span>
                 <span className="text-xs font-medium text-gray-900 line-clamp-1">
-                  {formData.location || '-'}
+                  {formData.display_name || '-'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Website</span>
+                <span className="text-sm text-gray-600">Address</span>
+                <span className="text-xs font-medium text-gray-900 line-clamp-1">
+                  {formData.address || '-'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">City</span>
+                <span className="text-xs font-medium text-gray-900 line-clamp-1">
+                  {formData.city || '-'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Contact</span>
+                <span className="text-xs font-medium text-gray-900 line-clamp-1">
+                  {formData.contact || '-'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Email</span>
                 <span className="text-xs font-medium text-blue-600 line-clamp-1">
-                  {formData.website ? '✓ Added' : '-'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Contact Person</span>
-                <span className="text-xs font-medium text-gray-900 line-clamp-1">
-                  {formData.contactPerson.name || '-'}
+                  {formData.email || '-'}
                 </span>
               </div>
             </CardContent>
@@ -447,16 +272,16 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {formData.name && (
+              {formData.display_name && (
                 <div className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-600" />
                   <span className="text-gray-700">Company name</span>
                 </div>
               )}
-              {formData.industry && (
+              {formData.description && (
                 <div className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Industry</span>
+                  <span className="text-gray-700">Description</span>
                 </div>
               )}
               {formData.email && (
@@ -465,10 +290,16 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                   <span className="text-gray-700">Company email</span>
                 </div>
               )}
-              {formData.contactPerson.name && formData.contactPerson.email && (
+              {formData.contact && (
                 <div className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Contact person</span>
+                  <span className="text-gray-700">Contact information</span>
+                </div>
+              )}
+              {formData.address && formData.city && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span className="text-gray-700">Address information</span>
                 </div>
               )}
             </CardContent>

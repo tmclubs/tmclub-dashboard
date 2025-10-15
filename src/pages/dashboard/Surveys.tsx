@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { SurveyBuilder, SurveyList, type Survey, type SurveyQuestion } from '@/components/features/surveys';
-import { Button, ConfirmDialog } from '@/components/ui';
+import { SurveyBuilder, SurveyList, type Survey, type SurveyQuestion } from '../../components/features/surveys';
+import { Button, ConfirmDialog } from '../../components/ui';
 
 export const SurveysPage: React.FC = () => {
   const [view, setView] = useState<'list' | 'builder'>('list');
@@ -12,14 +12,14 @@ export const SurveysPage: React.FC = () => {
 
   // Mock questions for demo surveys
   const mockQuestions: SurveyQuestion[] = [
-    { id: '1', type: 'text', title: 'What is your name?', required: true },
-    { id: '2', type: 'single', title: 'How satisfied are you?', required: true, options: ['Very satisfied', 'Satisfied', 'Neutral', 'Unsatisfied'] },
+    { id: 1, type: 'text', title: 'What is your name?', required: true },
+    { id: 2, type: 'single', title: 'How satisfied are you?', required: true, options: ['Very satisfied', 'Satisfied', 'Neutral', 'Unsatisfied'] },
   ];
 
   // Mock data - will be replaced with API calls
-  const [surveys, setSurveys] = useState<(Survey & { responses: number })[]>([
+  const [surveys, setSurveys] = useState<Survey[]>([
     {
-      id: '1',
+      id: 1,
       title: 'Event Feedback Form 2024',
       description: 'Comprehensive feedback survey for our annual tech conference 2024',
       questions: mockQuestions,
@@ -28,7 +28,7 @@ export const SurveysPage: React.FC = () => {
       createdAt: '2024-01-15T10:00:00Z',
     },
     {
-      id: '2',
+      id: 2,
       title: 'Member Satisfaction Survey',
       description: 'Monthly survey to gauge member satisfaction with TMC services',
       questions: mockQuestions,
@@ -37,7 +37,7 @@ export const SurveysPage: React.FC = () => {
       createdAt: '2024-01-10T14:30:00Z',
     },
     {
-      id: '3',
+      id: 3,
       title: 'New Feature Request Survey',
       description: 'Gather feedback on potential new features for the TMC platform',
       questions: mockQuestions,
@@ -46,7 +46,7 @@ export const SurveysPage: React.FC = () => {
       createdAt: '2024-01-20T16:45:00Z',
     },
     {
-      id: '4',
+      id: 4,
       title: 'Workshop Interest Survey',
       description: 'Survey to determine interest in upcoming workshop topics',
       questions: mockQuestions,
@@ -211,7 +211,6 @@ export const SurveysPage: React.FC = () => {
     <div className="space-y-6">
       <SurveyList
         surveys={surveys}
-        loading={loading}
         onCreate={() => {
           setShowCreateModal(true);
           setView('builder');

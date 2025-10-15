@@ -6,14 +6,9 @@ import {
   Download,
   Calendar,
   Eye,
-  Edit,
-  Trash2,
   BookOpen,
-  Tag,
   BarChart3,
-  Users,
   Star,
-  Archive,
 } from 'lucide-react';
 import { Button, Card, CardContent, Badge, Input } from '@/components/ui';
 import { type BlogArticle } from './BlogArticleCard';
@@ -75,19 +70,7 @@ export const BlogList: React.FC<BlogListProps> = ({
     }
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'success';
-      case 'draft':
-        return 'warning';
-      case 'archived':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
+  
   const stats = [
     {
       label: 'Total Articles',

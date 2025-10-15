@@ -4,7 +4,6 @@ import {
   X,
   Eye,
   Save,
-  FileText,
   Bold,
   Italic,
   List,
@@ -12,16 +11,17 @@ import {
   Image as ImageIcon,
   Hash,
   Plus,
-  Trash2,
 } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
-import { type BlogArticle, type BlogAuthor, type BlogCategory } from './BlogArticleCard';
+import { type BlogArticle, type BlogCategory } from './BlogArticleCard';
 
 export interface BlogFormData {
   title: string;
   excerpt: string;
   content: string;
   featuredImage?: string;
+  // Add optional file for backend upload
+  featuredImageFile?: File;
   categoryId: string;
   tags: string[];
   status: 'draft' | 'published' | 'archived';
@@ -31,7 +31,6 @@ export interface BlogFormData {
 export interface BlogFormProps {
   article?: Partial<BlogArticle>;
   categories: BlogCategory[];
-  authors: BlogAuthor[];
   onSubmit: (data: BlogFormData) => void;
   onPreview?: (data: BlogFormData) => void;
   loading?: boolean;
@@ -42,7 +41,6 @@ export interface BlogFormProps {
 export const BlogForm: React.FC<BlogFormProps> = ({
   article,
   categories,
-  authors,
   onSubmit,
   onPreview,
   loading = false,
@@ -54,7 +52,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     excerpt: article?.excerpt || '',
     content: article?.content || '',
     featuredImage: article?.featuredImage || '',
-    categoryId: article?.category.id || categories[0]?.id || '',
+    categoryId: article?.category?.id || categories[0]?.id || '',
     tags: article?.tags || [],
     status: article?.status || 'draft',
     featured: article?.featured || false,
@@ -71,19 +69,22 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files[0]) {
+      const file = files[0];
+      // store raw File for backend upload in parent
+      setFormData(prev => ({ ...prev, featuredImageFile: file }));
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setImagePreview(result);
         setFormData(prev => ({ ...prev, featuredImage: result }));
       };
-      reader.readAsDataURL(files[0]);
+      reader.readAsDataURL(file);
     }
   };
 
   const removeImage = () => {
     setImagePreview('');
-    setFormData(prev => ({ ...prev, featuredImage: '' }));
+    setFormData(prev => ({ ...prev, featuredImage: '', featuredImageFile: undefined }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -227,119 +228,43 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">No featured image</p>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <ImageIcon className="w-8 h-8 text-gray-400" />
+                      <p className="text-sm text-gray-600">Upload a featured image for your article</p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="featured-image-input"
+                        />
+                        <label htmlFor="featured-image-input">
+                          <Button variant="outline" leftIcon={<Upload className="w-4 h-4" />}>Choose Image</Button>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
-
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="featured-image-upload"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    leftIcon={<Upload className="w-4 h-4" />}
-                  >
-                    {imagePreview ? 'Change Image' : 'Upload Image'}
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Recommended: 16:9 ratio, at least 1200x675px
-                  </p>
-                </div>
               </div>
             </div>
 
-            {/* Category and Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
-                </label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) => handleInputChange('categoryId', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  required
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status *
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Tags */}
+            {/* Category */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags
+                Category
               </label>
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add a tag"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                    leftIcon={<Hash className="w-4 h-4" />}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addTag}
-                    disabled={!newTag.trim()}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {formData.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.tags.map((tag, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="flex items-center gap-1 pr-1"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="ml-1 hover:text-red-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <select
+                value={formData.categoryId}
+                onChange={(e) => handleInputChange('categoryId', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Content Editor */}
@@ -347,115 +272,88 @@ export const BlogForm: React.FC<BlogFormProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Content *
               </label>
-
-              {/* Editor Toolbar */}
-              <div className="border border-gray-300 rounded-t-md bg-gray-50 p-2 flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertText('**', '**')}
-                  title="Bold"
-                >
-                  <Bold className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertText('*', '*')}
-                  title="Italic"
-                >
-                  <Italic className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertText('\n- ')}
-                  title="Bullet List"
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertText('[', '](url)')}
-                  title="Link"
-                >
-                  <Link className="w-4 h-4" />
-                </Button>
-                <div className="h-4 w-px bg-gray-300 mx-1" />
-                <span className="text-xs text-gray-500">
-                  Reading time: {calculateReadingTime(formData.content)} min
-                </span>
+              <div className="flex items-center gap-2 mb-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => insertText('**', '**')} leftIcon={<Bold className="w-4 h-4" />}>Bold</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => insertText('*', '*')} leftIcon={<Italic className="w-4 h-4" />}>Italic</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => insertText('- ')} leftIcon={<List className="w-4 h-4" />}>List</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => insertText('[text](url)')} leftIcon={<Link className="w-4 h-4" />}>Link</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => insertText('![alt](image-url)')} leftIcon={<ImageIcon className="w-4 h-4" />}>Image</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => insertText('# ')} leftIcon={<Hash className="w-4 h-4" />}>Heading</Button>
               </div>
-
-              {/* Content Textarea */}
               <textarea
                 id="content-editor"
-                placeholder="Write your article content here..."
+                placeholder="Write your article content here"
                 value={formData.content}
                 onChange={(e) => handleInputChange('content', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-b-md border-t-0 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono text-sm"
-                rows={15}
+                className="w-full h-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.content.length} characters
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Estimated reading time: {calculateReadingTime(formData.content)} mins</p>
             </div>
 
-            {/* Featured Toggle */}
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="featured"
-                checked={formData.featured}
-                onChange={(e) => handleInputChange('featured', e.target.checked)}
-                className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-              />
-              <label htmlFor="featured" className="text-sm font-medium text-gray-700">
-                Mark as featured article (will appear on homepage)
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tags
               </label>
+              <div className="flex items-center gap-2 mb-2">
+                <Input
+                  placeholder="Add a tag"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="button" onClick={addTag} leftIcon={<Plus className="w-4 h-4" />}>Add Tag</Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)} className="text-red-500 hover:text-red-600">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex gap-3 pt-6 border-t">
-              {onCancel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  disabled={loading}
+            {/* Status & Featured */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => handleInputChange('status', e.target.value as BlogFormData['status'])}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
-                  Cancel
-                </Button>
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Featured
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => handleInputChange('featured', e.target.checked)}
+                  />
+                  <span className="text-sm text-gray-600">Show article in featured section</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2">
+              {onCancel && (
+                <Button variant="outline" onClick={onCancel}>Cancel</Button>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePreview}
-                disabled={loading}
-              >
-                Preview
-              </Button>
-              <Button
-                type="submit"
-                loading={loading}
-                disabled={loading || !formData.title || !formData.excerpt || !formData.content}
-                className="flex-1"
-              >
-                {loading
-                  ? 'Saving...'
-                  : article
-                    ? 'Update Article'
-                    : formData.status === 'draft'
-                      ? 'Save Draft'
-                      : 'Publish Article'
-                }
-              </Button>
+              <Button type="submit" loading={loading} leftIcon={<Save className="w-4 h-4" />}>{loading ? 'Saving...' : article ? 'Update Article' : 'Publish Article'}</Button>
             </div>
           </form>
         </CardContent>

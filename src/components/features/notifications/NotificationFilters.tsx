@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Select } from '@/components/ui';
-import { Filter, Check, Archive, Trash2 } from 'lucide-react';
+import { Check, Archive, Trash2 } from 'lucide-react';
 
 export interface NotificationFiltersProps {
   filter: 'all' | 'unread' | 'read';

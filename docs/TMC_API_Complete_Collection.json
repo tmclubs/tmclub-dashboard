@@ -18,7 +18,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:1338",
+      "value": "http://localhost:8000",
       "type": "string"
     },
     {
@@ -125,12 +125,13 @@
               "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securepassword123\",\n  \"first_name\": \"John\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/register/",
+              "raw": "{{base_url}}/authentication/basic-register/",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "register",
+                "authentication",
+                "basic-register",
                 ""
               ]
             },
@@ -152,12 +153,13 @@
                   "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securepassword123\",\n  \"first_name\": \"John\"\n}"
                 },
                 "url": {
-                  "raw": "{{base_url}}/register/",
+                  "raw": "{{base_url}}/authentication/basic-register/",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
-                    "register",
+                    "authentication",
+                    "basic-register",
                     ""
                   ]
                 }
@@ -183,12 +185,13 @@
               "raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"securepassword123\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/login/",
+              "raw": "{{base_url}}/authentication/basic-login/",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "login",
+                "authentication",
+                "basic-login",
                 ""
               ]
             },
@@ -210,19 +213,20 @@
                   "raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"securepassword123\"\n}"
                 },
                 "url": {
-                  "raw": "{{base_url}}/login/",
+                  "raw": "{{base_url}}/authentication/basic-login/",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
-                    "login",
+                    "authentication",
+                    "basic-login",
                     ""
                   ]
                 }
               },
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000102\",\n  \"message\": {\n    \"en\": \"Login successful!\",\n    \"id\": \"Login berhasil!\"\n  },\n  \"data\": {\n    \"token\": \"abc123def456...\",\n    \"user\": {\n      \"id\": 123,\n      \"username\": \"johndoe\",\n      \"email\": \"john@example.com\",\n      \"first_name\": \"John\",\n      \"role\": \"member\"\n    }\n  }\n}"
+              "body": "{\n  \"status\": \"success\",\n  \"code\": \"2000102\",\n  \"message\": {\n    \"en\": \"Successfully authenticated!\",\n    \"id\": \"Login sukses!\"\n  },\n  \"data\": {\n    \"token\": \"abc123def456...\",\n    \"login_method\": \"email\"\n  }\n}"
             }
           ]
         }
@@ -2798,8 +2802,8 @@
         "type": "text/javascript",
         "exec": [
           "// Auto-set auth token from login response",
-          "if (pm.request.url.toString().includes('/authenticate/')) {",
-          "    if (pm.response.code === 201) {",
+          "if (pm.request.url.toString().includes('/authenticate/') || pm.request.url.toString().includes('/basic-login/')) {",
+          "    if (pm.response.code === 200 || pm.response.code === 201) {",
           "        const response = pm.response.json();",
           "        if (response.data && response.data.token) {",
           "            pm.environment.set('auth_token', response.data.token);",

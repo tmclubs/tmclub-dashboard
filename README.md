@@ -8,7 +8,7 @@ Toyota Manufacturers Club (TMC) Frontend Web Application built with React 18, Vi
 
 - **Node.js** (v18 or higher)
 - **Bun** package manager
-- **TMC Backend API** running on `http://localhost:1338`
+- **TMC Backend API** running on `http://localhost:8000`
 
 ### Installation
 

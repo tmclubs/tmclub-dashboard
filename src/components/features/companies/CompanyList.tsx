@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Plus, Building2, Users, MapPin, MoreHorizontal, Download, Filter } from 'lucide-react';
-import { Table, Badge, Button, Input } from '@/components/ui';
-import { Column } from '@/components/ui/Table';
-
-import { Company } from './CompanyCard';
+import { Search, Plus, Building2, MapPin, MoreHorizontal, Download, Filter } from 'lucide-react';
+import { Table, Button, Input } from '@/components/ui';
+import { Company } from '@/types/api';
 
 
 export interface CompanyListProps {
@@ -40,9 +38,9 @@ export const CompanyList: React.FC<CompanyListProps> = ({
   };
 
   const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    company.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    company.location.toLowerCase().includes(searchQuery.toLowerCase())
+    company.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.city?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSearch = (query: string) => {
@@ -55,32 +53,21 @@ export const CompanyList: React.FC<CompanyListProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'success';
-      case 'inactive':
-        return 'secondary';
-      case 'pending':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
+
 
   
   const columns: any[] = [
     {
-      key: 'name',
+      key: 'display_name',
       title: 'Company Name',
       sortable: true,
-      render: (_, company) => (
+      render: (_: any, company: Company) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-            {company.logo ? (
+            {company.main_image ? (
               <img
-                src={company.logo}
-                alt={company.name}
+                src={company.main_image}
+                alt={company.display_name}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -89,21 +76,18 @@ export const CompanyList: React.FC<CompanyListProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <div className="font-medium text-gray-900">{company.name}</div>
-              {company.verified && (
-                <Badge variant="success" size="sm">✓</Badge>
-              )}
+              <div className="font-medium text-gray-900">{company.display_name}</div>
             </div>
-            <div className="text-sm text-gray-500">{company.industry}</div>
+            <div className="text-sm text-gray-500">{company.description}</div>
           </div>
         </div>
       ),
       width: '300px',
     },
     {
-      key: 'location',
+      key: 'city',
       title: 'Location',
-      render: (value) => (
+      render: (value: any) => (
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-900">{value}</span>
@@ -113,63 +97,29 @@ export const CompanyList: React.FC<CompanyListProps> = ({
       width: '200px',
     },
     {
-      key: 'contactPerson',
-      title: 'Contact Person',
-      render: (_, company) => (
+      key: 'contact',
+      title: 'Contact',
+      render: (_: any, company: Company) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{company.contactPerson.name}</div>
-          <div className="text-xs text-gray-500">{company.contactPerson.email}</div>
+          <div className="text-sm font-medium text-gray-900">{company.contact}</div>
+          <div className="text-xs text-gray-500">{company.email}</div>
         </div>
       ),
       width: '200px',
     },
     {
-      key: 'memberCount',
-      title: 'Members',
-      render: (value) => (
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-900">{value}</span>
-        </div>
-      ),
-      sortable: true,
-      width: '100px',
-    },
-    {
-      key: 'eventCount',
-      title: 'Events',
-      render: (value) => (
+      key: 'address',
+      title: 'Address',
+      render: (value: any) => (
         <span className="text-sm text-gray-900">{value}</span>
       ),
       sortable: true,
-      width: '80px',
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      render: (_, company) => (
-        <Badge variant={getStatusColor(company.status)} size="sm">
-          {company.status}
-        </Badge>
-      ),
-      sortable: true,
-      width: '100px',
-    },
-    {
-      key: 'joinDate',
-      title: 'Joined',
-      render: (value) => (
-        <span className="text-sm text-gray-900">
-          {new Date(value).toLocaleDateString()}
-        </span>
-      ),
-      sortable: true,
-      width: '120px',
+      width: '200px',
     },
     {
       key: 'actions',
       title: 'Actions',
-      render: (_, company) => (
+      render: (_: any, company: Company) => (
         <div className="flex items-center gap-2">
           {onView && (
             <Button
@@ -215,19 +165,19 @@ export const CompanyList: React.FC<CompanyListProps> = ({
       color: 'text-orange-600',
     },
     {
-      label: 'Active Companies',
-      value: companies.filter(c => c.status === 'active').length,
+      label: 'With Contact',
+      value: companies.filter(c => c.contact).length,
       color: 'text-green-600',
     },
     {
-      label: 'Pending Approval',
-      value: companies.filter(c => c.status === 'pending').length,
-      color: 'text-yellow-600',
+      label: 'With Email',
+      value: companies.filter(c => c.email).length,
+      color: 'text-blue-600',
     },
     {
-      label: 'Total Members',
-      value: companies.reduce((sum, c) => sum + c.memberCount, 0).toLocaleString(),
-      color: 'text-blue-600',
+      label: 'With Address',
+      value: companies.filter(c => c.address).length,
+      color: 'text-purple-600',
     },
   ];
 
@@ -277,7 +227,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
       {/* Companies Table */}
       <div className="bg-white rounded-lg border border-gray-200">
         <Table
-          data={filteredCompanies}
+          data={filteredCompanies.map(company => ({ ...company, id: company.pk }))}
           columns={columns}
           loading={loading}
           pagination={pagination}
@@ -290,7 +240,6 @@ export const CompanyList: React.FC<CompanyListProps> = ({
               onExport: handleExport,
             },
           }}
-          selectable
           selection={{
             selectedRowKeys: selectedRows,
             onChange: handleSelectionChange,

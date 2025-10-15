@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { eventsApi } from '@/lib/api/events';
-import { Event, EventFormData, EventRegistration } from '@/types/api';
+import { EventFormData, EventRegistration } from '@/types/api';
 import { isAuthenticated } from '@/lib/api/client';
 
 // Hook for getting all events
@@ -30,7 +30,7 @@ export const useEvent = (eventId: number) => {
 export const useEventRegistrants = (eventId: number) => {
   return useQuery({
     queryKey: ['events', eventId, 'registrants'],
-    queryFn: () => eventsApi.getRegistrantList(eventId),
+    queryFn: () => eventsApi.getEventRegistrants(eventId),
     enabled: isAuthenticated() && !!eventId,
     retry: 1,
     staleTime: 30 * 1000, // 30 seconds
@@ -63,7 +63,7 @@ export const useMyRegisteredEvents = () => {
 export const useEventQRCode = (eventId: number) => {
   return useQuery({
     queryKey: ['events', eventId, 'qrcode'],
-    queryFn: () => eventsApi.getQRCode(eventId),
+    queryFn: () => eventsApi.getEventQRCode(eventId),
     enabled: isAuthenticated() && !!eventId,
     retry: 1,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -147,7 +147,7 @@ export const useUploadEventMedia = () => {
 
   return useMutation({
     mutationFn: ({ eventId, fileIds }: { eventId: number; fileIds: number[] }) =>
-      eventsApi.uploadMedia(eventId, fileIds),
+      eventsApi.uploadEventMedia(eventId, fileIds),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['events', variables.eventId] });
       toast.success('Media berhasil diupload!');
@@ -161,8 +161,16 @@ export const useUploadEventMedia = () => {
 // Hook for downloading event certificate
 export const useDownloadCertificate = () => {
   return useMutation({
-    mutationFn: (eventId: number) => eventsApi.downloadCertificate(eventId),
-    onSuccess: () => {
+    mutationFn: (eventId: number) => eventsApi.downloadEventCertificate(eventId),
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'event-certificate.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       toast.success('Sertifikat berhasil diunduh!');
     },
     onError: (error) => {
@@ -177,7 +185,7 @@ export const useSetEventSurvey = () => {
 
   return useMutation({
     mutationFn: ({ eventId, surveyIds }: { eventId: number; surveyIds: number[] }) =>
-      eventsApi.setEventSurvey(eventId, surveyIds),
+      eventsApi.setEventSurveys(eventId, surveyIds),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['events', variables.eventId] });
       toast.success('Survey berhasil ditetapkan ke event!');
@@ -191,7 +199,7 @@ export const useSetEventSurvey = () => {
 // Hook for exporting event registrants
 export const useExportRegistrants = () => {
   return useMutation({
-    mutationFn: (eventId: number) => eventsApi.exportRegistrants(eventId),
+    mutationFn: (eventId: number) => eventsApi.exportEventRegistrants(eventId),
     onSuccess: () => {
       toast.success('Daftar registrant berhasil diexport!');
     },
@@ -207,7 +215,6 @@ export const useDownloadEventCertificate = () => {
   return useMutation({
     mutationFn: (eventId: number) => eventsApi.downloadEventCertificate(eventId),
     onSuccess: (blob) => {
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -216,7 +223,6 @@ export const useDownloadEventCertificate = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-
       toast.success('Sertifikat berhasil diunduh!');
     },
     onError: (error) => {

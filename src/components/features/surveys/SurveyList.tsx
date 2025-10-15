@@ -6,18 +6,16 @@ import {
   Users,
   Calendar,
   BarChart3,
-  MoreHorizontal,
   Edit,
   Trash2,
   Eye,
   Share2
 } from 'lucide-react';
 import { Button, Card, CardContent, Badge, Input } from '@/components/ui';
-import { type Survey, type SurveyQuestion } from './SurveyBuilder';
+import { type Survey } from './SurveyBuilder';
 
 export interface SurveyListProps {
   surveys: (Survey & { responses?: number })[];
-  loading?: boolean;
   onCreate?: () => void;
   onEdit?: (survey: Survey & { responses?: number }) => void;
   onDelete?: (survey: Survey & { responses?: number }) => void;
@@ -28,7 +26,6 @@ export interface SurveyListProps {
 
 export const SurveyList: React.FC<SurveyListProps> = ({
   surveys,
-  loading = false,
   onCreate,
   onEdit,
   onDelete,
@@ -71,14 +68,14 @@ export const SurveyList: React.FC<SurveyListProps> = ({
     },
     {
       label: 'Total Responses',
-      value: surveys.reduce((sum, s) => sum + s.responses, 0).toLocaleString(),
+      value: surveys.reduce((sum, s) => sum + (s.responses || 0), 0).toLocaleString(),
       color: 'text-blue-600',
       icon: Users,
     },
     {
       label: 'Avg. Responses',
       value: surveys.length > 0
-        ? Math.round(surveys.reduce((sum, s) => sum + s.responses, 0) / surveys.length)
+        ? Math.round(surveys.reduce((sum, s) => sum + (s.responses || 0), 0) / surveys.length)
         : 0,
       color: 'text-purple-600',
       icon: BarChart3,

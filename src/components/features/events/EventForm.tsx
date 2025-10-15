@@ -313,7 +313,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Type</span>
-                <Badge variant="outline" className="capitalize">
+                <Badge variant="secondary" className="capitalize">
                   {formData.eventType}
                 </Badge>
               </div>

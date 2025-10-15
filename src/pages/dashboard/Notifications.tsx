@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, EmptyState } from '@/components/ui';
 import { NotificationItem, NotificationFilters, type NotificationItemProps } from '@/components/features/notifications';
-import { Bell, CheckCircle, Archive, Trash2, Settings } from 'lucide-react';
+import { CheckCircle, Archive, Trash2, Settings } from 'lucide-react';
 
 export const NotificationsPage: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItemProps[]>([]);
@@ -168,7 +168,7 @@ export const NotificationsPage: React.FC = () => {
           </div>
         ) : filteredNotifications.length === 0 ? (
           <EmptyState
-            icon={<Bell className="w-12 h-12 text-gray-400" />}
+            type="data"
             title="No notifications found"
             description={
               filter === 'unread'

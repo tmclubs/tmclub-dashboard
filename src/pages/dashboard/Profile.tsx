@@ -43,7 +43,7 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
+  const handlePasswordChange = async (_currentPassword: string, _newPassword: string) => {
     setLoading(true);
     try {
       // Simulate API call

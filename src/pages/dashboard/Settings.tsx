@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Card, Button, Switch, Input, Select, Modal, ConfirmDialog } from '@/components/ui';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Switch } from '../../components/ui/Switch';
+import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { ConfirmDialog } from '../../components/ui/Modal';
 import {
-  Settings,
   Globe,
-  Mail,
   Bell,
   Shield,
   Database,
   Palette,
   Users,
-  Building,
   Save,
   RefreshCw,
   Download,
@@ -69,32 +71,24 @@ export const SettingsPage: React.FC = () => {
     { id: 'system', label: 'System', icon: Database },
   ];
 
-  const handleSaveSettings = async () => {
+  const handleSaveSettings = () => {
     setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    // Simulate API call
+    setTimeout(() => {
       setUnsavedChanges(false);
       console.log('Settings saved');
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-    } finally {
       setLoading(false);
-    }
+    }, 2000);
   };
 
-  const handleResetSettings = async () => {
+  const handleResetSettings = () => {
     setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate API call
+    setTimeout(() => {
       console.log('Settings reset to defaults');
       setShowResetDialog(false);
-    } catch (error) {
-      console.error('Failed to reset settings:', error);
-    } finally {
       setLoading(false);
-    }
+    }, 1500);
   };
 
   const handleExportSettings = () => {
@@ -308,14 +302,14 @@ export const SettingsPage: React.FC = () => {
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h3>
               <div className="space-y-4">
-                {Object.entries({
-                  emailNotifications: 'Email Notifications',
-                  pushNotifications: 'Push Notifications',
-                  smsNotifications: 'SMS Notifications',
-                  eventReminders: 'Event Reminders',
-                  systemAlerts: 'System Alerts',
-                  marketingEmails: 'Marketing Emails',
-                }).map(([key, label]) => (
+                {[
+                  ['emailNotifications', 'Email Notifications'],
+                  ['pushNotifications', 'Push Notifications'],
+                  ['smsNotifications', 'SMS Notifications'],
+                  ['eventReminders', 'Event Reminders'],
+                  ['systemAlerts', 'System Alerts'],
+                  ['marketingEmails', 'Marketing Emails'],
+                ].map(([key, label]) => (
                   <div key={key} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                     <div>
                       <p className="font-medium text-gray-900">{label}</p>
@@ -346,11 +340,11 @@ export const SettingsPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h3>
               <div className="space-y-6">
                 <div className="space-y-4">
-                  {Object.entries({
-                    twoFactorAuth: 'Two-Factor Authentication',
-                    requireStrongPassword: 'Require Strong Passwords',
-                    autoLogout: 'Auto-logout on Inactivity',
-                  }).map(([key, label]) => (
+                  {[
+                    ['twoFactorAuth', 'Two-Factor Authentication'],
+                    ['requireStrongPassword', 'Require Strong Passwords'],
+                    ['autoLogout', 'Auto-logout on Inactivity'],
+                  ].map(([key, label]) => (
                     <div key={key} className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-gray-900">{label}</p>
@@ -361,7 +355,7 @@ export const SettingsPage: React.FC = () => {
                         </p>
                       </div>
                       <Switch
-                        checked={securitySettings[key as keyof typeof securitySettings]}
+                        checked={securitySettings[key as keyof typeof securitySettings] as boolean}
                         onCheckedChange={(checked) => {
                           setSecuritySettings(prev => ({ ...prev, [key]: checked }));
                           markAsUnsaved();
@@ -463,11 +457,11 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {Object.entries({
-                    compactMode: 'Compact Mode',
-                    showSidebar: 'Show Sidebar by Default',
-                    animationEnabled: 'Enable Animations',
-                  }).map(([key, label]) => (
+                  {[
+                    ['compactMode', 'Compact Mode'],
+                    ['showSidebar', 'Show Sidebar by Default'],
+                    ['animationEnabled', 'Enable Animations'],
+                  ].map(([key, label]) => (
                     <div key={key} className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-gray-900">{label}</p>
@@ -478,7 +472,7 @@ export const SettingsPage: React.FC = () => {
                         </p>
                       </div>
                       <Switch
-                        checked={appearanceSettings[key as keyof typeof appearanceSettings]}
+                        checked={appearanceSettings[key as 'compactMode' | 'showSidebar' | 'animationEnabled'] as boolean}
                         onCheckedChange={(checked) => {
                           setAppearanceSettings(prev => ({ ...prev, [key]: checked }));
                           markAsUnsaved();
@@ -513,7 +507,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-gray-900">User Registration</h4>
-                    <Switch defaultChecked />
+                    <Switch checked={true} />
                   </div>
                   <p className="text-sm text-gray-600">
                     Allow new users to register for an account. Admin approval may be required.
@@ -523,7 +517,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-gray-900">Email Verification</h4>
-                    <Switch defaultChecked />
+                    <Switch checked={true} />
                   </div>
                   <p className="text-sm text-gray-600">
                     Require users to verify their email address before accessing the system.

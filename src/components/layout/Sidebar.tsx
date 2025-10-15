@@ -13,10 +13,11 @@ import {
   BarChart3,
   X,
 } from 'lucide-react';
+import { useUIStore } from '@/lib/stores';
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const navigation = [
@@ -35,12 +36,22 @@ const secondaryNavigation = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { sidebarOpen: storeSidebarOpen, setSidebarOpen } = useUIStore();
+  const isSidebarOpen = isOpen !== undefined ? isOpen : storeSidebarOpen;
+
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setSidebarOpen(false);
+    }
+  };
   return (
     <>
       {/* Mobile sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
@@ -56,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <X className="h-6 w-6" />
@@ -70,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavLink
                   key={item.name}
                   to={item.href}
-                  onClick={onClose}
+                  onClick={handleClose}
                   className={({ isActive }) =>
                     `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${
                       isActive
@@ -99,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <NavLink
                     key={item.name}
                     to={item.href}
-                    onClick={onClose}
+                    onClick={handleClose}
                     className={({ isActive }) =>
                       `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${
                         isActive

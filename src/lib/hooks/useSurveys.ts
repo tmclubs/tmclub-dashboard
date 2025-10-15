@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { surveysApi } from '@/lib/api/surveys';
-import { Survey, SurveyFormData, SurveySubmissionData } from '@/types/api';
+import { SurveyFormData, SurveySubmissionData } from '@/types/api';
 
 // Hook for getting all surveys
 export const useSurveys = () => {

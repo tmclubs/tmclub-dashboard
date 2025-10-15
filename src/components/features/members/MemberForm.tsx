@@ -2,13 +2,11 @@ import React, { useState, useRef } from 'react';
 import {
   Upload,
   X,
-  Save,
   User,
   Mail,
   Phone,
   MapPin,
   Building2,
-  Shield,
   Plus,
   Hash,
 } from 'lucide-react';

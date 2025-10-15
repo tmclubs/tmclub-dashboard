@@ -1,7 +1,7 @@
 // API Constants
 
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:1338',
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
   TIMEOUT: 10000, // 10 seconds
 } as const;
 
@@ -10,11 +10,14 @@ export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
     LOGIN: '/authenticate/',
+    LOGIN_BASIC: '/authentication/basic-login/',
     LOGIN_GOOGLE: '/authenticate/google/',
+    LOGIN_GOOGLE_TOKEN: '/google-token',
     LOGOUT: '/authenticate/logout/',
-    REGISTER: '/authenticate/register/',
+    REGISTER: '/authentication/basic-register/',
     REFRESH: '/authenticate/refresh/',
     VERIFY: '/authenticate/verify/',
+    PROFILE: '/account/me/',
   },
 
   // Users

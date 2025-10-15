@@ -4,13 +4,18 @@ export { MetricsChart } from './MetricsChart';
 export { ActivityFeed } from './ActivityFeed';
 
 export type {
-  AnalyticsCardProps,
-  ChartContainerProps,
-  ChartDataPoint,
-  MetricsChartProps,
-  ActivityItem,
-  ActivityFeedProps
+  AnalyticsCardProps
 } from './AnalyticsCard';
-export type { ChartContainerProps } from './ChartContainer';
-export type { MetricsChartProps } from './MetricsChart';
-export type { ActivityFeedProps } from './ActivityFeed';
+
+export type {
+  ChartContainerProps
+} from './ChartContainer';
+
+export type {
+  MetricsChartProps
+} from './MetricsChart';
+
+export type {
+  ActivityFeedProps,
+  ActivityItem
+} from './ActivityFeed';

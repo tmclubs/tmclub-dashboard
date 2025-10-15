@@ -1,8 +1,8 @@
 import React from 'react';
-import { Calendar, MapPin, Users, Star, Eye, Edit, Trash2, ExternalLink, Wifi, Monitor, Map } from 'lucide-react';
+import { Calendar, MapPin, Users, Eye, Edit, Trash2, Wifi, Monitor, Map } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
-import { formatDate, formatRelativeTime } from '@/lib/utils/date';
+import { formatDate } from '@/lib/utils/date';
 
 export interface EventCardProps {
   event: {
@@ -35,7 +35,6 @@ export interface EventCardProps {
   variant?: 'default' | 'compact' | 'featured' | 'grid';
   showActions?: boolean;
   showOrganizer?: boolean;
-  showStats?: boolean;
   onView?: (event: any) => void;
   onEdit?: (event: any) => void;
   onDelete?: (event: any) => void;
@@ -48,7 +47,6 @@ export const EventCard: React.FC<EventCardProps> = ({
   variant = 'default',
   showActions = false,
   showOrganizer = false,
-  showStats = false,
   onView,
   onEdit,
   onDelete,

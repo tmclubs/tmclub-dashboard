@@ -12,11 +12,10 @@ import {
   Eye,
   Save
 } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/components/ui';
-import { cn } from '@/lib/utils/cn';
+import { Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
 
 export interface SurveyQuestion {
-  id: string;
+  id: number;
   type: 'text' | 'textarea' | 'single' | 'multiple' | 'rating' | 'dropdown';
   title: string;
   required: boolean;
@@ -26,12 +25,14 @@ export interface SurveyQuestion {
 }
 
 export interface Survey {
-  id: string;
+  id: number;
   title: string;
   description: string;
   questions: SurveyQuestion[];
   createdAt: string;
+  publishedAt?: string;
   status: 'draft' | 'published' | 'closed';
+  responses?: number;
 }
 
 export interface SurveyBuilderProps {
@@ -62,7 +63,7 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
 
   const addQuestion = (type: SurveyQuestion['type']) => {
     const newQuestion: SurveyQuestion = {
-      id: Date.now().toString(),
+      id: Date.now(),
       type,
       title: '',
       required: false,
@@ -71,17 +72,17 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
     setQuestions([...questions, newQuestion]);
   };
 
-  const updateQuestion = (id: string, updates: Partial<SurveyQuestion>) => {
+  const updateQuestion = (id: number, updates: Partial<SurveyQuestion>) => {
     setQuestions(questions.map(q =>
       q.id === id ? { ...q, ...updates } : q
     ));
   };
 
-  const removeQuestion = (id: string) => {
+  const removeQuestion = (id: number) => {
     setQuestions(questions.filter(q => q.id !== id));
   };
 
-  const addOption = (questionId: string) => {
+  const addOption = (questionId: number) => {
     setQuestions(questions.map(q =>
       q.id === questionId
         ? { ...q, options: [...(q.options || []), `Option ${(q.options?.length || 0) + 1}`] }
@@ -89,7 +90,7 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
     ));
   };
 
-  const updateOption = (questionId: string, optionIndex: number, value: string) => {
+  const updateOption = (questionId: number, optionIndex: number, value: string) => {
     setQuestions(questions.map(q =>
       q.id === questionId && q.options
         ? {
@@ -100,7 +101,7 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
     ));
   };
 
-  const removeOption = (questionId: string, optionIndex: number) => {
+  const removeOption = (questionId: number, optionIndex: number) => {
     setQuestions(questions.map(q =>
       q.id === questionId && q.options
         ? { ...q, options: q.options.filter((_, idx) => idx !== optionIndex) }
@@ -110,7 +111,7 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
 
   const handleSave = () => {
     const surveyData: Survey = {
-      id: survey?.id || Date.now().toString(),
+      id: survey?.id || Date.now(),
       title,
       description,
       questions,
@@ -122,7 +123,7 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
 
   const handlePreview = () => {
     const surveyData: Survey = {
-      id: survey?.id || Date.now().toString(),
+      id: survey?.id || Date.now(),
       title,
       description,
       questions,
@@ -242,7 +243,6 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
                     placeholder="Question Description (optional)"
                     value={question.description || ''}
                     onChange={(e) => updateQuestion(question.id, { description: e.target.value })}
-                    size="sm"
                   />
 
                   {/* Question Options */}
@@ -251,7 +251,6 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
                       placeholder="Placeholder text (optional)"
                       value={question.placeholder || ''}
                       onChange={(e) => updateQuestion(question.id, { placeholder: e.target.value })}
-                      size="sm"
                     />
                   )}
 
@@ -260,7 +259,6 @@ export const SurveyBuilder: React.FC<SurveyBuilderProps> = ({
                       placeholder="Placeholder text (optional)"
                       value={question.placeholder || ''}
                       onChange={(e) => updateQuestion(question.id, { placeholder: e.target.value })}
-                      size="sm"
                     />
                   )}
 

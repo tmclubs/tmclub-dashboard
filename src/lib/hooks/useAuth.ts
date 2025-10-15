@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { authApi, setAuthData, clearAuthData, getAuthData } from '@/lib/api/auth';
-import { AuthResponse, UserProfile } from '@/types/api';
+// import { UserProfile } from '@/types/api';
 import { useNavigate } from 'react-router-dom';
 
 // Hook for user profile
@@ -150,13 +150,14 @@ export const useLogout = () => {
 // Hook for checking authentication status
 export const useAuth = () => {
   const { token, user } = getAuthData();
-  const { data: profile, isLoading, error } = useProfile();
+  // Temporarily disable useProfile to prevent API errors
+  // const { data: profile, isLoading, error } = useProfile();
 
   return {
     isAuthenticated: !!token,
     token,
-    user: profile || user,
-    isLoading,
-    error,
+    user: user, // Use cached user data instead of fetching profile
+    isLoading: false, // Set to false since we're not fetching
+    error: null, // Set to null since we're not fetching
   };
 };

@@ -9,8 +9,10 @@ import {
   type BlogFormData,
 } from '@/components/features/blog';
 import { Button, Modal, ConfirmDialog, EmptyState, LoadingSpinner } from '@/components/ui';
-import { Plus, BookOpen } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useBlogPosts, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost } from '@/lib/hooks/useBlog';
+import { blogApi } from '@/lib/api/blog';
+import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
 
 export const BlogPage: React.FC = () => {
   const [view, setView] = useState<'list' | 'create' | 'edit' | 'preview'>('list');
@@ -58,6 +60,41 @@ export const BlogPage: React.FC = () => {
     },
   ];
 
+  // Map BlogPost (API) to BlogArticle (UI)
+  const mapPostToArticle = (post: BlogPost): BlogArticle => {
+    const author: BlogAuthor = {
+      id: String(post.owned_by?.id || '1'),
+      name: post.owned_by ? `${post.owned_by.first_name || ''} ${post.owned_by.last_name || ''}`.trim() || post.owned_by.username : 'Admin TMC',
+      avatar: '/api/placeholder/100/100',
+      role: 'Author',
+    };
+
+    const category: BlogCategory = categories.find(c => c.name === (post.category || '')) || categories[0];
+
+    return {
+      id: String(post.pk || post.slug || Math.random()),
+      pk: post.pk,
+      title: post.title,
+      excerpt: post.summary,
+      content: post.content,
+      featuredImage: typeof post.main_image === 'string' ? post.main_image : (post.main_image?.image ? post.main_image.image : undefined),
+      author,
+      category,
+      tags: post.tags || [],
+      status: post.status || 'draft',
+      publishedAt: post.published_at,
+      createdAt: post.created_at || new Date().toISOString(),
+      updatedAt: post.updated_at || new Date().toISOString(),
+      readTime: post.read_time || 0,
+      views: post.view_count || 0,
+      likes: 0,
+      comments: 0,
+      featured: false,
+    };
+  };
+
+  const articlesUI: BlogArticle[] = (blogPosts as BlogPost[]).map(mapPostToArticle);
+
   const handleCreateArticle = () => {
     setSelectedArticle(null);
     setShowCreateModal(true);
@@ -74,7 +111,7 @@ export const BlogPage: React.FC = () => {
   };
 
   const confirmDelete = () => {
-    if (selectedArticle) {
+    if (selectedArticle?.pk !== undefined) {
       deleteBlogMutation.mutate(selectedArticle.pk, {
         onSuccess: () => {
           setShowDeleteDialog(false);
@@ -89,11 +126,43 @@ export const BlogPage: React.FC = () => {
     setView('preview');
   };
 
-  const handleArticleSubmit = (data: BlogFormData) => {
-    if (selectedArticle) {
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  const toApiPayload = (data: BlogFormData): ApiBlogFormData => {
+    return {
+      title: data.title,
+      summary: data.excerpt,
+      slug: slugify(data.title),
+      main_image: data.featuredImage || '',
+      content: data.content,
+      status: data.status,
+      tags: data.tags,
+      category: categories.find(c => c.id === data.categoryId)?.name || '',
+    };
+  };
+
+  const handleArticleSubmit = async (data: BlogFormData) => {
+    let apiPayload = toApiPayload(data);
+
+    // Upload featured image first if a new file is provided
+    if (data.featuredImageFile) {
+      try {
+        const uploadRes = await blogApi.uploadBlogImage(data.featuredImageFile);
+        apiPayload.main_image = uploadRes.image;
+      } catch (err) {
+        console.error('Failed to upload featured image', err);
+      }
+    }
+
+    if (selectedArticle?.pk !== undefined) {
       // Update existing article
       updateBlogMutation.mutate(
-        { postId: selectedArticle.pk, data },
+        { postId: selectedArticle.pk, data: apiPayload },
         {
           onSuccess: () => {
             setShowEditModal(false);
@@ -104,7 +173,7 @@ export const BlogPage: React.FC = () => {
       );
     } else {
       // Create new article
-      createBlogMutation.mutate(data, {
+      createBlogMutation.mutate(apiPayload, {
         onSuccess: () => {
           setShowCreateModal(false);
           setSelectedArticle(null);
@@ -148,9 +217,9 @@ export const BlogPage: React.FC = () => {
         </div>
 
         {/* Blog List */}
-        {blogPosts.length === 0 ? (
+        {articlesUI.length === 0 ? (
           <EmptyState
-            type="blog"
+            type="articles"
             title="No articles yet"
             description="Start creating content for your community blog."
             action={{
@@ -161,7 +230,8 @@ export const BlogPage: React.FC = () => {
           />
         ) : (
           <BlogList
-            articles={blogPosts}
+            articles={articlesUI}
+            categories={categories}
             loading={isLoading}
             onView={handleViewArticle}
             onEdit={handleEditArticle}
@@ -184,7 +254,6 @@ export const BlogPage: React.FC = () => {
             loading={createBlogMutation.isPending}
             onCancel={() => setShowCreateModal(false)}
             categories={categories}
-            authors={authors}
           />
         </Modal>
 
@@ -206,7 +275,6 @@ export const BlogPage: React.FC = () => {
               setSelectedArticle(null);
             }}
             categories={categories}
-            authors={authors}
           />
         </Modal>
 
@@ -226,6 +294,33 @@ export const BlogPage: React.FC = () => {
   }
 
   if (view === 'preview' && previewData) {
+    // Build UI article for preview
+    const previewCategory = categories.find(c => c.id === previewData.categoryId) || categories[0];
+    const previewAuthor: BlogAuthor = authors[0];
+    const wordCount = (previewData.content || '').trim().split(/\s+/).length;
+    const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+    const previewArticle: BlogArticle = {
+      id: 'preview',
+      pk: 0,
+      title: previewData.title,
+      excerpt: previewData.excerpt,
+      content: previewData.content,
+      featuredImage: previewData.featuredImage,
+      author: previewAuthor,
+      category: previewCategory,
+      tags: previewData.tags,
+      status: previewData.status,
+      publishedAt: undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      readTime,
+      views: 0,
+      likes: 0,
+      comments: 0,
+      featured: previewData.featured,
+    };
+
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -247,16 +342,7 @@ export const BlogPage: React.FC = () => {
         {/* Preview Content */}
         <div className="bg-white rounded-lg border border-gray-200 p-8">
           <BlogArticleCard
-            article={{
-              pk: 0,
-              title: previewData.title,
-              summary: previewData.summary,
-              content: previewData.content,
-              main_image: null,
-              youtube_id: previewData.youtube_id,
-              albums: [],
-              created_at: new Date().toISOString(),
-            }}
+            article={previewArticle}
             variant="featured"
             showActions={false}
           />

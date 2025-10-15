@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Survey, SurveyFormData, SurveySubmissionData, SurveyResponse } from '@/types/api';
+import { Survey, SurveyFormData, SurveySubmissionData } from '@/types/api';
 
 export const surveysApi = {
   // Get all surveys

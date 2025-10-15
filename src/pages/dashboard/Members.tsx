@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, EmptyState, Modal } from '@/components/ui';
-import { MemberCard } from '@/components/features/members';
-import { MemberForm } from '@/components/features/members';
-import { MemberFilters } from '@/components/features/members';
-import { Users, Plus, Mail, Download, Search } from 'lucide-react';
+import { Card } from '../../components/ui/Card';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Modal } from '../../components/ui/Modal';
+import { MemberCard } from '../../components/features/members/MemberCard';
+import { MemberForm } from '../../components/features/members/MemberForm';
+import { MemberFilters } from '../../components/features/members/MemberFilters';
+import { Plus } from 'lucide-react';
 
 export const MembersPage: React.FC = () => {
   const [members, setMembers] = useState<any[]>([]);
@@ -315,20 +317,19 @@ export const MembersPage: React.FC = () => {
           </div>
         ) : filteredMembers.length === 0 ? (
           <EmptyState
-            icon={<Users className="w-12 h-12 text-gray-400" />}
+            type="users"
             title="No members found"
             description={
               searchTerm || companyFilter !== 'all' || roleFilter !== 'all' || statusFilter !== 'all'
                 ? 'No members match the selected filters. Try adjusting your criteria.'
                 : 'No members have been added yet. Start by adding the first member to your community.'
             }
-          >
-            <div className="mt-6">
-              <Button leftIcon={<Plus className="w-4 h-4" />} onClick={handleAddMember}>
-                Add First Member
-              </Button>
-            </div>
-          </EmptyState>
+            action={{
+              text: 'Add Member',
+              onClick: handleAddMember,
+              icon: <Plus className="w-4 h-4" />
+            }}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMembers.map((member) => (
@@ -352,7 +353,8 @@ export const MembersPage: React.FC = () => {
         size="lg"
       >
         <MemberForm
-          initialData={editingMember}
+          member={editingMember}
+          companies={[]} // Add empty array for now, should be populated with actual companies
           onSubmit={handleSaveMember}
           onCancel={() => setShowAddModal(false)}
         />

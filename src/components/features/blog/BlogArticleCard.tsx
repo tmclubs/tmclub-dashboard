@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  User,
   Calendar,
   Clock,
   Eye,
@@ -9,7 +8,6 @@ import {
   Share2,
   Edit,
   Trash2,
-  MoreHorizontal,
   BookOpen,
   Tag,
   Star,
@@ -50,6 +48,7 @@ export interface BlogArticle {
   likes: number;
   comments: number;
   featured?: boolean;
+  pk?: number; // optional backend identifier for mutations
 }
 
 export interface BlogArticleCardProps {
@@ -94,8 +93,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
 
   const isGrid = variant === 'grid';
   const isCompact = variant === 'compact';
-  const isFeatured = variant === 'featured';
-
+  
   if (isGrid) {
     return (
       <Card className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 overflow-hidden", className)}>
@@ -169,12 +167,12 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
             {article.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {article.tags.slice(0, 3).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge key={index} variant="secondary" className="text-xs">
                     #{tag}
                   </Badge>
                 ))}
                 {article.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="secondary" className="text-xs">
                     +{article.tags.length - 3}
                   </Badge>
                 )}
@@ -422,13 +420,13 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
             {article.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-4">
                 {article.tags.slice(0, 5).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge key={index} variant="secondary" className="text-xs">
                     <Tag className="w-3 h-3 mr-1" />
                     {tag}
                   </Badge>
                 ))}
                 {article.tags.length > 5 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="secondary" className="text-xs">
                     +{article.tags.length - 5} more
                   </Badge>
                 )}

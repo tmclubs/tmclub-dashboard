@@ -1,13 +1,14 @@
+
 import React, { useState } from 'react';
 import {
   AnalyticsCard,
   MetricsChart,
   ActivityFeed,
   type ActivityItem,
-  type ChartDataPoint,
 } from '@/components/features/analytics';
+import { type ChartDataPoint } from '@/components/features/analytics/MetricsChart';
 import { Button, Select } from '@/components/ui';
-import { Download, Filter, Calendar } from 'lucide-react';
+import { Download, Calendar } from 'lucide-react';
 
 export const AnalyticsPage: React.FC = () => {
   const [dateRange, setDateRange] = useState('7d');

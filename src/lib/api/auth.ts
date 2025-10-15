@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { LoginData, AuthResponse, GoogleAuthResponse, UserProfile } from '@/types/api';
+import { AuthResponse, GoogleAuthResponse, UserProfile } from '@/types/api';
 
 // Authentication API endpoints
 export const authApi = {
@@ -8,7 +8,7 @@ export const authApi = {
     return apiClient.post('/authenticate/', { uid, email, name });
   },
 
-  // Google Token authentication
+  // Google Token authentication (Fixed endpoint alignment)
   async loginWithGoogleToken(access_token: string): Promise<AuthResponse> {
     return apiClient.post('/google-token', { access_token });
   },
@@ -20,12 +20,12 @@ export const authApi = {
     password: string;
     first_name: string;
   }): Promise<AuthResponse> {
-    return apiClient.post('/register/', data);
+    return apiClient.post('/authentication/basic-register/', data);
   },
 
   // Manual login
   async login(username: string, password: string): Promise<AuthResponse> {
-    return apiClient.post('/login/', { username, password });
+    return apiClient.post('/authentication/basic-login/', { username, password });
   },
 
   // Get current user profile
@@ -52,6 +52,31 @@ export const authApi = {
   async deleteAdmin(email: string): Promise<void> {
     return apiClient.post('/account/delete-admin/', { email });
   },
+
+  // Get all admins
+  async getAdmins(): Promise<UserProfile[]> {
+    return apiClient.get('/account/admins/');
+  },
+
+  // Refresh access token
+  async refreshToken(refreshToken: string): Promise<AuthResponse> {
+    return apiClient.post('/authenticate/refresh/', { refresh_token: refreshToken });
+  },
+
+  // Verify token validity
+  async verifyToken(token: string): Promise<{ valid: boolean }> {
+    return apiClient.post('/authenticate/verify/', { token });
+  },
+
+  // Logout (revoke token)
+  async logout(): Promise<void> {
+    try {
+      await apiClient.post('/authenticate/logout/');
+    } catch (error) {
+      // Continue with local logout even if server logout fails
+      console.warn('Server logout failed:', error);
+    }
+  },
 };
 
 // Authentication utilities
@@ -73,6 +98,7 @@ export const getAuthData = (): { token: string | null; user: AuthResponse['user'
 export const clearAuthData = (): void => {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_data');
+  localStorage.removeItem('auth-storage');
 };
 
 // Check if token is valid (basic validation)

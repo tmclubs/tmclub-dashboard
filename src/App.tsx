@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { EventsPage } from './pages/dashboard/Events';
 import { CompaniesPage } from './pages/dashboard/Companies';
@@ -12,6 +13,7 @@ import { NotificationsPage } from './pages/dashboard/Notifications';
 import { MembersPage } from './pages/dashboard/Members';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
+import { OAuthCallback } from './pages/auth/OAuthCallback';
 import { NotFound } from './pages/NotFound';
 
 function App() {
@@ -20,7 +22,12 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Layout />}>
+        <Route path="/auth/callback" element={<OAuthCallback />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }>
           <Route index element={<Dashboard />} />
           <Route path="events" element={<EventsPage />} />
           <Route path="companies" element={<CompaniesPage />} />
@@ -31,7 +38,6 @@ function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="members" element={<MembersPage />} />
-          {/* Additional routes will be added here */}
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -4,7 +4,5 @@ export { MemberFilters } from './MemberFilters';
 
 export type {
   MemberCardProps,
-  MemberFormData,
-  MemberFormProps,
-  MemberFiltersProps
+  Member
 } from './MemberCard';

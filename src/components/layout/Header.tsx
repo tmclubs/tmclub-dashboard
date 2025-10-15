@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { Bell, Search, User, Menu, X } from 'lucide-react';
-import { useUnreadNotificationCount } from '@/lib/hooks';
+import { Bell, Search, User, Menu } from 'lucide-react';
+// import { useUnreadNotificationCount } from '@/lib/hooks';
+import { useUIStore } from '@/lib/stores';
 
 interface HeaderProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const { data: unreadCount } = useUnreadNotificationCount();
+  // const { data: unreadCount } = useUnreadNotificationCount();
+  const unreadCount = 0; // Temporary: disable notification count to avoid API errors
+  const { toggleSidebar } = useUIStore();
 
   const handleNotificationClick = () => {
     setShowNotifications(!showNotifications);
+  };
+
+  const handleMenuClick = () => {
+    if (onMenuClick) {
+      onMenuClick();
+    } else {
+      toggleSidebar();
+    }
   };
 
   return (
@@ -21,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="flex items-center flex-1 min-w-0">
           {/* Mobile menu button */}
           <button
-            onClick={onMenuClick}
+            onClick={handleMenuClick}
             className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
           >
             <Menu className="h-6 w-6" />

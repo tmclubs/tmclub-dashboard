@@ -1,8 +1,5 @@
 import React from 'react';
 import {
-  User,
-  Mail,
-  Phone,
   Calendar,
   MapPin,
   Building2,
@@ -14,7 +11,6 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Clock,
 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
@@ -93,7 +89,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
       case 'moderator':
         return 'secondary';
       case 'member':
-        return 'outline';
+        return 'secondary';
       default:
         return 'default';
     }
@@ -300,12 +296,12 @@ export const MemberCard: React.FC<MemberCardProps> = ({
               <h4 className="text-sm font-medium text-gray-900 mb-2">Skills</h4>
               <div className="flex flex-wrap gap-2">
                 {member.skills.slice(0, 5).map((skill, index) => (
-                  <Badge key={index} variant="outline" size="sm">
+                  <Badge key={index} variant="secondary" size="sm">
                     {skill}
                   </Badge>
                 ))}
                 {member.skills.length > 5 && (
-                  <Badge variant="outline" size="sm">
+                  <Badge variant="secondary" size="sm">
                     +{member.skills.length - 5} more
                   </Badge>
                 )}
@@ -384,12 +380,12 @@ export const MemberCard: React.FC<MemberCardProps> = ({
         {member.skills.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {member.skills.slice(0, 3).map((skill, index) => (
-              <Badge key={index} variant="outline" size="sm">
+              <Badge key={index} variant="secondary" size="sm">
                 {skill}
               </Badge>
             ))}
             {member.skills.length > 3 && (
-              <Badge variant="outline" size="sm">
+              <Badge variant="secondary" size="sm">
                 +{member.skills.length - 3}
               </Badge>
             )}
@@ -398,11 +394,11 @@ export const MemberCard: React.FC<MemberCardProps> = ({
 
         {showActions && (
           <div className="flex gap-2 pt-4 border-t">
-            <Button variant="outline" size="sm" onClick={() => onView?.(member)}>
+            <Button variant="secondary" size="sm" onClick={() => onView?.(member)}>
               View Profile
             </Button>
             {onEdit && (
-              <Button variant="outline" size="sm" onClick={() => onEdit(member)}>
+              <Button variant="secondary" size="sm" onClick={() => onEdit(member)}>
                 Edit
               </Button>
             )}

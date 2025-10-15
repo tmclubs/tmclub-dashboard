@@ -12,7 +12,7 @@ export interface MetricsChartProps {
   description?: string;
   data: ChartDataPoint[];
   type: 'line' | 'bar' | 'pie';
-  loading?: false;
+  loading?: boolean;
   className?: string;
 }
 

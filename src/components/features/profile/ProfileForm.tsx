@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input, Textarea, Select, Card } from '@/components/ui';
+import { Button, Input, Textarea, Card } from '@/components/ui';
 import { Upload, Camera, User, Mail, Phone, MapPin, Calendar, Briefcase, Link2, Save } from 'lucide-react';
 
 export interface ProfileFormData {
@@ -143,7 +143,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               size="sm"
               leftIcon={<Upload className="w-4 h-4" />}
               className="mt-2"
-              onClick={() => document.querySelector('input[type="file"]')?.click()}
+              onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
             >
               Choose File
             </Button>

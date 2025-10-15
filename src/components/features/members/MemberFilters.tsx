@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input, Select, Button } from '@/components/ui';
-import { Search, Filter, Download, UserPlus, Mail } from 'lucide-react';
+import { Search, Download, UserPlus, Mail } from 'lucide-react';
 
 export interface MemberFiltersProps {
   searchTerm: string;

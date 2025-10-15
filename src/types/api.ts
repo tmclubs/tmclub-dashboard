@@ -41,6 +41,42 @@ export interface GoogleAuthResponse {
   role: string;
 }
 
+// Google OAuth2 Types
+export interface GoogleUserProfile {
+  id: string;
+  email: string;
+  name: string;
+  picture: string;
+  given_name: string;
+  family_name: string;
+  verified_email: boolean;
+}
+
+export interface GoogleTokenInfo {
+  iss: string;
+  sub: string;
+  azp: string;
+  aud: string;
+  exp: number;
+  iat: number;
+  email: string;
+  email_verified: boolean;
+  name: string;
+  picture: string;
+  given_name: string;
+  family_name: string;
+  locale: string;
+}
+
+export interface GoogleOAuthConfig {
+  clientId: string;
+  redirectUri: string;
+  scope: string;
+  responseType: string;
+  accessType: string;
+  prompt: string;
+}
+
 // User Profile Types
 export interface UserProfile {
   id: number;
@@ -164,19 +200,73 @@ export interface BlogPost {
   pk: number;
   title: string;
   summary: string;
+  slug: string;
   content: string;
   main_image?: any;
   youtube_id?: string;
+  youtube_embeded?: string;
   albums?: any[];
+  owned_by?: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name?: string;
+    email: string;
+  };
+  published_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  status?: 'draft' | 'published' | 'archived';
+  view_count?: number;
+  read_time?: number;
+  tags?: string[];
+  category?: string;
 }
 
 export interface BlogFormData {
   title: string;
   summary: string;
+  slug: string;
   main_image: string;
   content: string;
   youtube_id?: string;
   albums?: number[];
+  published_at?: string;
+  status?: 'draft' | 'published' | 'archived';
+  tags?: string[];
+  category?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  og_image?: string;
+  og_title?: string;
+  og_description?: string;
+  canonical_url?: string;
+}
+
+// SEO Types
+export interface SEOMetadata {
+  title: string;
+  description: string;
+  keywords?: string[];
+  og_title?: string;
+  og_description?: string;
+  og_image?: string;
+  twitter_card?: 'summary' | 'summary_large_image' | 'app' | 'player';
+  canonical_url?: string;
+  robots?: 'index,follow' | 'noindex,nofollow';
+}
+
+export interface BlogAnalytics {
+  pk: number;
+  blog_post: number;
+  view_count: number;
+  unique_visitors: number;
+  average_read_time: number;
+  bounce_rate: number;
+  shares_count: number;
+  comments_count: number;
+  likes_count: number;
+  date: string;
 }
 
 // Notification Types

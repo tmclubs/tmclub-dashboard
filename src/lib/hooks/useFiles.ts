@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { filesApi } from '@/lib/api/files';
-import { FileData } from '@/types/api';
+// import { FileData } from '@/types/api';
 
 // Hook for getting file by ID
 export const useFile = (fileId: string) => {
@@ -57,7 +57,7 @@ export const useUploadMultipleFiles = () => {
 export const useDownloadFile = () => {
   return useMutation({
     mutationFn: (fileId: string) => filesApi.downloadFile(fileId),
-    onSuccess: (_, fileId) => {
+    onSuccess: (_, _fileId) => {
       toast.success('File berhasil didownload');
     },
     onError: (error) => {

@@ -3,19 +3,45 @@ import {
   CompanyCard,
   CompanyForm,
   CompanyList,
-  type Company,
-  type CompanyFormData,
+  Company as CompanyCardType,
 } from '@/components/features/companies';
 import { Button, Modal, ConfirmDialog, EmptyState, LoadingSpinner } from '@/components/ui';
 import { Plus } from 'lucide-react';
 import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/lib/hooks/useCompanies';
+import { Company as APICompany, CompanyFormData } from '@/types/api';
+
+// Adapter function to convert API Company to CompanyCard format
+const adaptCompanyForCard = (apiCompany: APICompany): CompanyCardType => ({
+  id: apiCompany.pk.toString(),
+  pk: apiCompany.pk,
+  display_name: apiCompany.display_name,
+  address: apiCompany.address,
+  main_image: apiCompany.main_image,
+  description: apiCompany.description,
+  contact: apiCompany.contact,
+  email: apiCompany.email,
+  city: apiCompany.city,
+  memberCount: 0, // Default values - these would come from additional API calls
+  eventCount: 0,
+  joinDate: new Date().toISOString(),
+  verified: true,
+  status: 'active' as const,
+  contactPerson: {
+    name: apiCompany.contact || 'Unknown',
+    email: apiCompany.email,
+  },
+  industry: 'Technology', // Default - this would come from API
+  location: apiCompany.city,
+  website: undefined,
+  logo: apiCompany.main_image,
+});
 
 export const CompaniesPage: React.FC = () => {
   const [view, setView] = useState<'list' | 'grid'>('list');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<APICompany | null>(null);
 
   // API hooks
   const { data: companies = [], isLoading, error } = useCompanies();
@@ -56,20 +82,32 @@ export const CompaniesPage: React.FC = () => {
     });
   };
 
-  const handleViewCompany = (company: Company) => {
-    setSelectedCompany(company);
-    // TODO: Navigate to company detail page or show detail modal
-    console.log('View company:', company);
+  const handleViewCompany = (company: CompanyCardType) => {
+    // Convert back to API format for state management
+    const apiCompany = companies.find(c => c.pk === company.pk);
+    if (apiCompany) {
+      setSelectedCompany(apiCompany);
+      // TODO: Navigate to company detail page or show detail modal
+      console.log('View company:', apiCompany);
+    }
   };
 
-  const handleEditCompany = (company: Company) => {
-    setSelectedCompany(company);
-    setShowEditModal(true);
+  const handleEditCompany = (company: CompanyCardType) => {
+    // Convert back to API format for state management
+    const apiCompany = companies.find(c => c.pk === company.pk);
+    if (apiCompany) {
+      setSelectedCompany(apiCompany);
+      setShowEditModal(true);
+    }
   };
 
-  const handleDeleteClick = (company: Company) => {
-    setSelectedCompany(company);
-    setShowDeleteDialog(true);
+  const handleDeleteClick = (company: CompanyCardType) => {
+    // Convert back to API format for state management
+    const apiCompany = companies.find(c => c.pk === company.pk);
+    if (apiCompany) {
+      setSelectedCompany(apiCompany);
+      setShowDeleteDialog(true);
+    }
   };
 
   const handleExport = () => {
@@ -154,9 +192,9 @@ export const CompaniesPage: React.FC = () => {
         <CompanyList
           companies={companies}
           loading={isLoading}
-          onView={handleViewCompany}
-          onEdit={handleEditCompany}
-          onDelete={handleDeleteClick}
+          onView={(company) => handleViewCompany(adaptCompanyForCard(company))}
+          onEdit={(company) => handleEditCompany(adaptCompanyForCard(company))}
+          onDelete={(company) => handleDeleteClick(adaptCompanyForCard(company))}
           onCreate={() => setShowCreateModal(true)}
           onExport={handleExport}
         />
@@ -165,7 +203,7 @@ export const CompaniesPage: React.FC = () => {
           {companies.map((company) => (
             <CompanyCard
               key={company.pk}
-              company={company}
+              company={adaptCompanyForCard(company)}
               variant="default"
               onView={handleViewCompany}
               onEdit={handleEditCompany}

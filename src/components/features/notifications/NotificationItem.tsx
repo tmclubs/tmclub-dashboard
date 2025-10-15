@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Calendar, Users, FileText, MessageSquare, Check, X, ExternalLink } from 'lucide-react';
+import { Bell, Calendar, Users, MessageSquare, Check, X, ExternalLink } from 'lucide-react';
 
 export interface NotificationItemProps {
   id: string;

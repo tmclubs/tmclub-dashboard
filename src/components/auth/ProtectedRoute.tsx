@@ -1,0 +1,141 @@
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/lib/stores/authStore';
+import { isAuthenticated } from '@/lib/api/client';
+import { usePermissions, PermissionLevel } from '@/lib/hooks/usePermissions';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  redirectTo?: string;
+  requiredPermission?: {
+    resource: string;
+    action: PermissionLevel;
+  };
+  requireAdmin?: boolean;
+  requireSuperAdmin?: boolean;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  redirectTo = '/login',
+  requiredPermission,
+  requireAdmin = false,
+  requireSuperAdmin = false,
+}) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated: isAuthStoreAuthenticated } = useAuthStore();
+  const { hasPermission, isAdmin, isSuperAdmin } = usePermissions();
+
+  // Check both Zustand store and localStorage for token
+  const isUserAuthenticated = isAuthStoreAuthenticated || isAuthenticated();
+
+  // Check role-based permissions
+  const hasRequiredPermission = requiredPermission
+    ? hasPermission(requiredPermission)
+    : true;
+
+  const hasRequiredRole = !requireAdmin || isAdmin();
+  const hasRequiredSuperAdmin = !requireSuperAdmin || isSuperAdmin();
+
+
+  useEffect(() => {
+    // If not authenticated, redirect to login with return URL
+    if (!isUserAuthenticated) {
+      const returnUrl = encodeURIComponent(location.pathname + location.search);
+      navigate(`${redirectTo}?returnUrl=${returnUrl}`, { replace: true });
+    }
+  }, [isUserAuthenticated, location, redirectTo, navigate]);
+
+  // If not authenticated, show loading or null while redirecting
+  if (!isUserAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If authenticated but doesn't have required permissions
+  if (!hasRequiredPermission || !hasRequiredRole || !hasRequiredSuperAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-4">
+            {requireSuperAdmin
+              ? "You need super admin privileges to access this page."
+              : requireAdmin
+              ? "You need admin privileges to access this page."
+              : requiredPermission
+              ? `You don't have permission to ${requiredPermission.action} ${requiredPermission.resource}.`
+              : "You don't have permission to access this page."
+            }
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+// Higher-order component for protecting routes
+export const withAuth = <P extends object>(
+  Component: React.ComponentType<P>,
+  options?: Omit<ProtectedRouteProps, 'children'>
+): React.FC<P> => {
+  return (props: P) => (
+    <ProtectedRoute {...options}>
+      <Component {...props} />
+    </ProtectedRoute>
+  );
+};
+
+// Higher-order component for admin-only routes
+export const withAdmin = <P extends object>(
+  Component: React.ComponentType<P>
+): React.FC<P> => {
+  return (props: P) => (
+    <ProtectedRoute requireAdmin>
+      <Component {...props} />
+    </ProtectedRoute>
+  );
+};
+
+// Higher-order component for super admin-only routes
+export const withSuperAdmin = <P extends object>(
+  Component: React.ComponentType<P>
+): React.FC<P> => {
+  return (props: P) => (
+    <ProtectedRoute requireSuperAdmin>
+      <Component {...props} />
+    </ProtectedRoute>
+  );
+};
+
+// Higher-order component for permission-based routes
+export const withPermission = <P extends object>(
+  Component: React.ComponentType<P>,
+  requiredPermission: { resource: string; action: PermissionLevel }
+): React.FC<P> => {
+  return (props: P) => (
+    <ProtectedRoute requiredPermission={requiredPermission}>
+      <Component {...props} />
+    </ProtectedRoute>
+  );
+};

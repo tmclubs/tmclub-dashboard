@@ -1,29 +1,26 @@
 import React from 'react';
-import { Building2, Users, MapPin, Calendar, MoreHorizontal, Mail, Edit, Trash2, Eye, ExternalLink, Shield } from 'lucide-react';
+import { Users, MapPin, Calendar, Mail, Edit, Trash2, Eye, ExternalLink, Shield } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
-import { formatDate } from '@/lib/utils/date';
+import { Company as APICompany } from '@/types/api';
 
-export interface Company {
+export interface Company extends Omit<APICompany, 'pk'> {
   id: string;
-  name: string;
-  description: string;
-  logo?: string;
-  industry: string;
-  location: string;
-  website?: string;
-  email: string;
-  phone?: string;
+  pk?: number;
   memberCount: number;
   eventCount: number;
   joinDate: string;
-  status: 'active' | 'inactive' | 'pending';
   verified: boolean;
+  status: 'active' | 'inactive' | 'pending';
   contactPerson: {
     name: string;
     email: string;
     phone?: string;
   };
+  industry: string;
+  location: string;
+  website?: string;
+  logo?: string;
 }
 
 export interface CompanyCardProps {
@@ -95,12 +92,12 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
           <div className="flex flex-col items-center">
             <Avatar
               src={company.logo}
-              name={company.name}
+              name={company.display_name}
               size="lg"
               className="mb-4 border-4 border-white shadow-lg"
             />
             <h3 className="font-bold text-lg text-gray-900 text-center line-clamp-2">
-              {company.name}
+              {company.display_name}
             </h3>
             <Badge className={cn("mt-2", getIndustryColor(company.industry))}>
               {company.industry}
@@ -135,7 +132,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
           {/* Location */}
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <MapPin className="w-4 h-4 flex-shrink-0" />
-            <span className="line-clamp-1">{company.location}</span>
+            <span className="line-clamp-1">{company.city || company.location}</span>
           </div>
 
           {/* Actions */}
@@ -183,7 +180,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
           <div className="flex gap-4">
             <Avatar
               src={company.logo}
-              name={company.name}
+              name={company.display_name}
               size="md"
               className="flex-shrink-0"
             />
@@ -193,7 +190,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-gray-900 line-clamp-1">
-                      {company.name}
+                      {company.display_name}
                     </h3>
                     {company.verified && (
                       <Shield className="w-4 h-4 text-blue-500 flex-shrink-0" />
@@ -214,7 +211,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                     </div>
                     <div className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
-                      <span className="line-clamp-1">{company.location}</span>
+                      <span className="line-clamp-1">{company.city || company.location}</span>
                     </div>
                   </div>
                 </div>
@@ -260,7 +257,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
           <div className="flex-shrink-0">
             <Avatar
               src={company.logo}
-              name={company.name}
+              name={company.display_name}
               size="xl"
               className="border-2 border-gray-200"
             />
@@ -272,7 +269,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-orange-600 transition-colors">
-                    {company.name}
+                    {company.display_name}
                   </h3>
                   {company.verified && (
                     <Shield className="w-5 h-5 text-blue-500 flex-shrink-0" />
@@ -331,7 +328,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="line-clamp-1">{company.location}</span>
+                <span className="line-clamp-1">{company.city || company.location}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-gray-400" />
@@ -366,16 +363,15 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 </Button>
               )}
               {company.website && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-md border border-orange-300 bg-transparent hover:bg-orange-50 text-orange-700 h-9 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                 >
-                  <a href={company.website} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Website
-                  </a>
-                </Button>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Website
+                </a>
               )}
             </div>
           </div>

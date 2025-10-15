@@ -343,7 +343,7 @@ show_status() {
     echo "🔗 Useful Links:"
     echo "• Development Server: http://localhost:$PORT"
     echo "• Documentation: ./docs/"
-    echo "• API Endpoint: http://localhost:1338"
+    echo "• API Endpoint: http://localhost:8000"
 }
 
 show_help() {
@@ -411,7 +411,7 @@ show_help() {
     echo "🔧 Environment:"
     echo "• Make sure Bun is installed: curl -fsSL https://bun.sh/install | bash"
     echo "• Make sure Docker is installed for container commands"
-    echo "• Backend API should be running on http://localhost:1338"
+    echo "• Backend API should be running on http://localhost:8000"
 }
 
 # Main script logic

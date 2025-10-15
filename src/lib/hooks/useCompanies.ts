@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { companiesApi } from '@/lib/api/companies';
-import { Company, CompanyFormData, CompanyInviteData } from '@/types/api';
+import { CompanyFormData, CompanyInviteData } from '@/types/api';
 import { isAuthenticated } from '@/lib/api/client';
 
 // Hook for getting all companies

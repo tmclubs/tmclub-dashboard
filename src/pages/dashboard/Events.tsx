@@ -13,9 +13,9 @@ import {
   EventCard,
   EventForm,
   EventRegistration,
-  QRScanner,
-  type Event as EventType
+  QRScanner
 } from '@/components/features/events';
+import { Event as EventType } from '@/types/api';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/lib/hooks/useEvents';
 
 export const EventsPage: React.FC = () => {
@@ -80,6 +80,45 @@ export const EventsPage: React.FC = () => {
     setShowRegistration(true);
   };
 
+  // Convert API Event to EventCard props
+  const convertEventForCard = (event: EventType) => ({
+    id: event.pk.toString(),
+    title: event.title,
+    description: event.description,
+    date: event.date,
+    venue: event.venue,
+    price: event.price || 0,
+    isFree: event.is_free,
+    eventType: 'offline' as const, // Default since API doesn't have this field
+    maxParticipants: undefined,
+    currentRegistrants: event.registrant_count,
+    mainImage: event.main_image_url ? {
+      id: event.pk.toString(),
+      image: event.main_image_url,
+      caption: undefined
+    } : undefined,
+    isRegistrationClose: event.is_registration_close,
+    isPast: new Date(event.date) < new Date(),
+    organizer: undefined, // API doesn't provide organizer info
+    rating: undefined,
+    reviewsCount: undefined,
+    status: event.is_registration_close ? 'draft' as const : 'published' as const
+  });
+
+  // Convert API Event to EventRegistration props
+  const convertEventForRegistration = (event: EventType) => ({
+    id: event.pk.toString(),
+    title: event.title,
+    date: event.date,
+    venue: event.venue,
+    price: event.price || 0,
+    isFree: event.is_free,
+    maxParticipants: undefined,
+    currentRegistrants: event.registrant_count,
+    isRegistrationClose: event.is_registration_close,
+    isPast: new Date(event.date) < new Date()
+  });
+
   const handleEventSubmit = (data: any) => {
     if (selectedEvent) {
       // Update existing event
@@ -139,7 +178,7 @@ export const EventsPage: React.FC = () => {
           {filteredEvents.map((event) => (
             <EventCard
               key={event.pk}
-              event={event}
+              event={convertEventForCard(event)}
               variant="grid"
               showActions={true}
               onView={() => setSelectedEvent(event)}
@@ -157,11 +196,10 @@ export const EventsPage: React.FC = () => {
         {filteredEvents.map((event) => (
           <EventCard
             key={event.pk}
-            event={event}
+            event={convertEventForCard(event)}
             variant="featured"
             showActions={true}
             showOrganizer={true}
-            showStats={true}
             onView={() => setSelectedEvent(event)}
             onRegister={() => handleRegister(event)}
             onEdit={() => handleEditEvent(event)}
@@ -368,7 +406,7 @@ export const EventsPage: React.FC = () => {
       >
         {selectedEvent && (
           <EventRegistration
-            event={selectedEvent}
+            event={convertEventForRegistration(selectedEvent)}
             onSuccess={() => {
               setShowRegistration(false);
               setSelectedEvent(null);
