@@ -34,28 +34,30 @@ export interface User {
 // Event Types
 export interface Event {
   id: string;
+  nonce?: string; // UUID field dari backend
   title: string;
   description: string;
-  date: string;
+  date: string; // DateTimeField
   venue: string;
-  price: number;
-  isFree: boolean;
-  isRegistrationClose: boolean;
-  maxParticipants?: number;
-  mainImage?: {
-    id: string;
-    image: string;
-    caption?: string;
-  };
-  images?: Array<{
-    id: string;
-    image: string;
-    caption?: string;
-  }>;
-  eventType: 'offline' | 'online' | 'hybrid';
-  registrantCount?: number;
-  createdAt: string;
-  updatedAt: string;
+  main_image?: string; // File ID
+  main_image_url?: string; // URL dari serializer
+  level?: string; // CharField di backend
+  is_free: boolean;
+  is_registration_close: boolean;
+  is_list_attendees: boolean;
+  price?: number;
+  billing_deadline?: number; // IntegerField
+  published_at?: string; // DateTimeField
+  created_at: string;
+  updated_at: string;
+  owned_by?: string; // User ID
+  owned_by_email?: string; // Dari DetailEventSerializer
+  is_registered?: boolean; // Dari DetailEventSerializer
+  references?: string[]; // Array of reference IDs
+  medias_id?: string[]; // Array of file IDs
+  medias_url?: string[]; // Array of URLs dari serializer
+  surveys_id?: string[]; // Array of survey IDs
+  registrant_count?: number;
 }
 
 // Company Types
@@ -143,12 +145,15 @@ export interface Notification {
 export interface EventFormData {
   title: string;
   description: string;
-  date: string;
+  date: string; // DateTimeField di backend
   venue: string;
-  price: number;
-  isFree: boolean;
-  maxParticipants?: number;
-  eventType: 'offline' | 'online' | 'hybrid';
+  main_image?: string; // File ID untuk backend
+  level?: string; // CharField di backend
+  is_free: boolean;
+  is_registration_close: boolean;
+  is_list_attendees: boolean;
+  price?: number;
+  billing_deadline?: number; // IntegerField di backend
 }
 
 export interface CompanyFormData {

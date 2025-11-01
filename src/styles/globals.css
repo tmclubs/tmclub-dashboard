@@ -82,6 +82,51 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* Blog Typography Optimizations */
+  .blog-title {
+    @apply text-xl sm:text-2xl lg:text-3xl font-bold leading-tight tracking-tight;
+    line-height: 1.2;
+  }
+
+  .blog-excerpt {
+    @apply text-sm sm:text-base text-gray-600 leading-relaxed;
+    line-height: 1.6;
+  }
+
+  .blog-meta {
+    @apply text-xs sm:text-sm text-gray-500;
+  }
+
+  .blog-tag {
+    @apply text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors;
+  }
+
+  .blog-stats {
+    @apply text-xs sm:text-sm text-gray-500 flex items-center gap-1;
+  }
+
+  /* Responsive Spacing */
+  .blog-card-padding {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+
+  .blog-section-spacing {
+    @apply space-y-3 sm:space-y-4 lg:space-y-6;
+  }
+
+  .blog-grid-gap {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  /* Improved Button Spacing */
+  .blog-button {
+    @apply px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200;
+  }
+
+  .blog-button-group {
+    @apply flex flex-wrap gap-2 sm:gap-3;
+  }
 }
 
 /* Custom animations */

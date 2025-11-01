@@ -123,30 +123,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <div className={className}>
       <Card className="w-full max-w-md mx-auto">
-        <CardContent className="p-8">
+        <CardContent className="p-4 sm:p-6 lg:p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-orange-600" />
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
               Welcome Back
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Sign in to your TMC account
             </p>
           </div>
 
           {/* Error Message */}
           {(error || googleError) && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
               <span className="text-red-700 text-sm">{googleError || error}</span>
             </div>
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <Input
               label="Email or Username"
               type="text"
@@ -191,8 +191,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               <div className="mt-2 text-right">
                 <button
                   type="button"
-                  className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
+                  className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors touch-manipulation"
                   disabled={isLoading}
+                  aria-label="Reset password"
                 >
                   Forgot password?
                 </button>
@@ -218,16 +219,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full touch-manipulation"
               loading={isLoading}
               disabled={isLoading}
+              size="lg"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
           {/* Divider */}
-          <div className="relative my-6">
+          <div className="relative my-4 sm:my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200" />
             </div>
@@ -240,10 +242,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           {env.enableGoogleAuth && (
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full touch-manipulation"
               onClick={handleGoogleLogin}
               disabled={isLoading || isGoogleLoading}
               loading={isGoogleLoading}
+              size="lg"
               leftIcon={
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -271,7 +274,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           {/* Google Auth Disabled Message */}
           {!env.enableGoogleAuth && (
-            <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
+            <div className="w-full p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
               <p className="text-gray-500 text-sm">
                 Google authentication is currently disabled
               </p>
@@ -279,12 +282,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           )}
 
           {/* Sign Up Link */}
-          <div className="text-center mt-6">
+          <div className="text-center mt-4 sm:mt-6">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
               <a
                 href="/register"
-                className="font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                className="font-medium text-orange-600 hover:text-orange-700 transition-colors touch-manipulation"
               >
                 Sign up for free
               </a>

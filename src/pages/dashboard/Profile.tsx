@@ -1,91 +1,97 @@
 import React, { useState } from 'react';
 import { ProfileForm, type ProfileFormData } from '@/components/features/profile';
 import { Card, Button, Modal, ConfirmDialog } from '@/components/ui';
-import { User, Settings, Shield, Bell, Key, Download, Trash2 } from 'lucide-react';
+import { User, Settings, Shield, Bell, Key, Download, Trash2, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { useProfile, useProfileForm } from '@/lib/hooks/useProfile';
 
 export const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // Mock current user data
-  const currentProfileData: Partial<ProfileFormData> = {
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@toyota-indonesia.com',
-    phone: '+62 812 3456 7890',
-    bio: 'Senior Software Engineer with expertise in automotive technology and digital transformation. Passionate about creating innovative solutions for the manufacturing industry.',
-    location: 'Jakarta, Indonesia',
-    birthDate: '1990-01-15',
-    jobTitle: 'Senior Software Engineer',
-    company: 'PT Toyota Motor Manufacturing Indonesia',
-    department: 'IT Department',
-    website: 'https://johndoe.dev',
-    linkedin: 'https://linkedin.com/in/johndoe',
-    twitter: '@johndoe',
-    skills: ['React', 'TypeScript', 'Node.js', 'Cloud Architecture', 'DevOps', 'Agile'],
-    interests: ['Automotive Technology', 'Innovation', 'Leadership', 'Mentoring'],
-  };
+  // Use profile hook for API integration
+  const {
+    profile,
+    loading,
+    error,
+    updating,
+    fetchProfile,
+    updateProfile,
+    changePassword,
+    deleteAccount,
+    clearError
+  } = useProfile();
+
+  // Transform profile data for form
+  const formData = useProfileForm(profile);
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Profile updated:', data);
+    const success = await updateProfile(data);
+    if (success) {
       // TODO: Show success toast
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      // TODO: Show error toast
-    } finally {
-      setLoading(false);
+      console.log('Profile updated successfully');
     }
   };
 
-  const handlePasswordChange = async (_currentPassword: string, _newPassword: string) => {
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Password changed');
+  const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
+    const success = await changePassword(currentPassword, newPassword);
+    if (success) {
       setShowPasswordModal(false);
       // TODO: Show success toast
-    } catch (error) {
-      console.error('Failed to change password:', error);
-      // TODO: Show error toast
-    } finally {
-      setLoading(false);
+      console.log('Password changed successfully');
     }
   };
 
   const handleAccountDeletion = async () => {
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Account deleted');
-      // Redirect to login or home page
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Failed to delete account:', error);
-      // TODO: Show error toast
-    } finally {
-      setLoading(false);
+    const success = await deleteAccount();
+    if (success) {
+      setShowDeleteDialog(false);
+      // TODO: Redirect to login page
+      console.log('Account deleted successfully');
     }
   };
 
-  const handleExportData = () => {
-    // Simulate data export
-    const dataStr = JSON.stringify(currentProfileData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'profile-data.json';
-    link.click();
-    URL.revokeObjectURL(url);
+  const handleExportData = async () => {
+    // TODO: Implement data export functionality
+    console.log('Data export not implemented yet');
   };
+
+  // Loading state
+  if (loading && !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-orange-500" />
+          <p className="text-gray-600 dark:text-gray-400">Memuat data profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Gagal Memuat Profile
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <Button 
+            onClick={() => {
+              clearError();
+              fetchProfile();
+            }}
+            className="inline-flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Coba Lagi
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'profile', label: 'Profile Information', icon: User },
@@ -124,13 +130,31 @@ export const ProfilePage: React.FC = () => {
         </nav>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <p className="text-red-700">{error}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={clearError}
+              className="ml-auto"
+            >
+              Tutup
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Tab Content */}
       <div className="space-y-6">
         {activeTab === 'profile' && (
           <ProfileForm
-            initialData={currentProfileData}
+            initialData={formData}
             onSubmit={handleProfileUpdate}
-            loading={loading}
+            loading={updating}
           />
         )}
 
@@ -277,7 +301,7 @@ export const ProfilePage: React.FC = () => {
       >
         <PasswordChangeForm
           onSubmit={handlePasswordChange}
-          loading={loading}
+          loading={updating}
           onCancel={() => setShowPasswordModal(false)}
         />
       </Modal>
@@ -292,7 +316,7 @@ export const ProfilePage: React.FC = () => {
         confirmText="Delete Account"
         cancelText="Cancel"
         variant="destructive"
-        loading={loading}
+        loading={updating}
       />
     </div>
   );

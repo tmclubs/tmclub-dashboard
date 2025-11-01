@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { BottomNavigation } from '@/components/ui';
+import { useUIStore } from '@/lib/stores';
 
 export const Layout: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { sidebarOpen, setSidebarOpen, toggleSidebar } = useUIStore();
 
   // Check if user is authenticated (will be implemented later)
   const isAuthenticated = !!localStorage.getItem('auth_token');
@@ -28,9 +29,9 @@ export const Layout: React.FC = () => {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
+      <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         {/* Header */}
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <Header onMenuClick={toggleSidebar} />
 
         {/* Page Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 pb-16 md:pb-0">

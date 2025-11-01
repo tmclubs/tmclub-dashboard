@@ -5,7 +5,6 @@ import {
   Calendar,
   Building2,
   User,
-  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
@@ -47,14 +46,7 @@ export const BottomNavigation: React.FC = () => {
           </NavLink>
         ))}
 
-        {/* Quick Action Button */}
-        <button className="flex flex-col items-center justify-center py-2 px-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">
-          <div className="relative">
-            <Plus className="h-5 w-5 mb-1 text-gray-400" />
-            <span className="absolute -top-1 -right-1 h-2 w-2 bg-orange-500 rounded-full"></span>
-          </div>
-          <span className="truncate max-w-full">More</span>
-        </button>
+
       </div>
     </div>
   );

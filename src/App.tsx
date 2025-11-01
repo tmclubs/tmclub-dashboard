@@ -3,9 +3,11 @@ import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { EventsPage } from './pages/dashboard/Events';
+import { EventDetailPage } from './pages/dashboard/EventDetailPage';
 import { CompaniesPage } from './pages/dashboard/Companies';
 import { SurveysPage } from './pages/dashboard/Surveys';
 import { BlogPage } from './pages/dashboard/Blog';
+import { BlogDetailPage } from './pages/dashboard/BlogDetailPage';
 import { AnalyticsPage } from './pages/dashboard/Analytics';
 import { ProfilePage } from './pages/dashboard/Profile';
 import { SettingsPage } from './pages/dashboard/Settings';
@@ -30,9 +32,11 @@ function App() {
         }>
           <Route index element={<Dashboard />} />
           <Route path="events" element={<EventsPage />} />
+          <Route path="events/:pk" element={<EventDetailPage />} />
           <Route path="companies" element={<CompaniesPage />} />
           <Route path="surveys" element={<SurveysPage />} />
           <Route path="blog" element={<BlogPage />} />
+          <Route path="blog/:slug" element={<BlogDetailPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />

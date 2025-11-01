@@ -96,18 +96,28 @@ export interface UserProfile {
 // Event Types
 export interface Event {
   pk: number;
+  nonce?: string; // UUID field dari backend
   title: string;
-  date: string;
+  date: string; // DateTimeField
   venue: string;
-  main_image_url?: string;
+  main_image?: string; // File ID
+  main_image_url?: string; // URL dari serializer
   description: string;
+  level?: string; // CharField di backend
   is_free: boolean;
   price?: number;
   is_registration_close: boolean;
   is_list_attendees: boolean;
-  billing_deadline?: string;
-  main_image?: any;
+  billing_deadline?: number; // IntegerField
+  published_at?: string; // DateTimeField
   registrant_count?: number;
+  owned_by?: string; // User ID
+  owned_by_email?: string; // Dari DetailEventSerializer
+  is_registered?: boolean; // Dari DetailEventSerializer
+  references?: string[]; // Array of reference IDs
+  medias_id?: string[]; // Array of file IDs
+  medias_url?: string[]; // Array of URLs dari serializer
+  surveys_id?: string[]; // Array of survey IDs
 }
 
 export interface EventRegistration {
@@ -117,15 +127,15 @@ export interface EventRegistration {
 
 export interface EventFormData {
   title: string;
-  date: string;
+  date: string; // DateTimeField di backend
   venue: string;
-  main_image: string;
+  main_image?: string; // File ID untuk backend
   description: string;
   is_free: boolean;
   is_registration_close: boolean;
   is_list_attendees: boolean;
   price?: number;
-  billing_deadline?: string;
+  billing_deadline?: number; // IntegerField di backend serializer
 }
 
 // Company Types
@@ -202,45 +212,41 @@ export interface BlogPost {
   summary: string;
   slug: string;
   content: string;
-  main_image?: any;
+  main_image?: number | { image: string }; // File ID or object with image URL
+  main_image_url?: string; // URL dari serializer
   youtube_id?: string;
   youtube_embeded?: string;
-  albums?: any[];
+  albums_id?: number[]; // Array of file IDs
+  albums_url?: string[]; // Array of URLs dari serializer
+  created_at?: string;
+  updated_at?: string;
+  // Additional properties used in frontend
   owned_by?: {
     id: number;
     username: string;
-    first_name: string;
+    first_name?: string;
     last_name?: string;
-    email: string;
   };
-  published_at?: string;
-  created_at?: string;
-  updated_at?: string;
-  status?: 'draft' | 'published' | 'archived';
-  view_count?: number;
-  read_time?: number;
-  tags?: string[];
   category?: string;
+  tags?: string[];
+  status?: 'draft' | 'published' | 'archived';
+  published_at?: string;
+  read_time?: number;
+  view_count?: number;
 }
 
 export interface BlogFormData {
   title: string;
   summary: string;
-  slug: string;
-  main_image: string;
+  slug?: string; // Auto-generated di backend
+  main_image?: string; // File ID untuk backend
   content: string;
   youtube_id?: string;
-  albums?: number[];
-  published_at?: string;
-  status?: 'draft' | 'published' | 'archived';
-  tags?: string[];
-  category?: string;
-  meta_description?: string;
-  meta_keywords?: string;
-  og_image?: string;
-  og_title?: string;
-  og_description?: string;
-  canonical_url?: string;
+  youtube_embeded?: string; // Field yang ada di backend
+  albums_id?: number[]; // Sesuai dengan backend serializer
+  status?: 'draft' | 'published' | 'archived'; // Status for blog post
+  tags?: string[]; // Tags for blog post
+  category?: string; // Category for blog post
 }
 
 // SEO Types

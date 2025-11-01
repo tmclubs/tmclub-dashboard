@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   BlogArticleCard,
   BlogForm,
@@ -21,6 +22,9 @@ export const BlogPage: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<BlogArticle | null>(null);
   const [previewData, setPreviewData] = useState<BlogFormData | null>(null);
+
+  // Navigation hook
+  const navigate = useNavigate();
 
   // API hooks
   const { data: blogPosts = [], isLoading, error } = useBlogPosts();
@@ -77,7 +81,8 @@ export const BlogPage: React.FC = () => {
       title: post.title,
       excerpt: post.summary,
       content: post.content,
-      featuredImage: typeof post.main_image === 'string' ? post.main_image : (post.main_image?.image ? post.main_image.image : undefined),
+      slug: post.slug,
+      featuredImage: typeof post.main_image === 'string' ? post.main_image : (typeof post.main_image === 'object' && post.main_image?.image ? post.main_image.image : undefined),
       author,
       category,
       tags: post.tags || [],
@@ -185,8 +190,8 @@ export const BlogPage: React.FC = () => {
 
   const handleViewArticle = (article: BlogArticle) => {
     setSelectedArticle(article);
-    // TODO: Navigate to article detail page or show detail modal
-    console.log('View article:', article);
+    // Navigate to article detail page
+    navigate(`/blog/${article.slug}`);
   };
 
   if (isLoading) {
@@ -203,16 +208,17 @@ export const BlogPage: React.FC = () => {
 
   if (view === 'list') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Blog</h1>
-            <p className="text-gray-600">Manage and publish blog articles</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Blog</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage and publish blog articles</p>
           </div>
-          <Button onClick={handleCreateArticle}>
+          <Button onClick={handleCreateArticle} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            Create Article
+            <span className="hidden sm:inline">Create Article</span>
+            <span className="sm:hidden">Create</span>
           </Button>
         </div>
 
@@ -306,6 +312,7 @@ export const BlogPage: React.FC = () => {
       title: previewData.title,
       excerpt: previewData.excerpt,
       content: previewData.content,
+      slug: 'preview',
       featuredImage: previewData.featuredImage,
       author: previewAuthor,
       category: previewCategory,

@@ -210,36 +210,157 @@ export const useExportRegistrants = () => {
 };
 
 
-// Hook for downloading event certificate
-export const useDownloadEventCertificate = () => {
+// Hook for getting event survey responses
+export const useEventSurveyResponses = (eventId: number) => {
+  return useQuery({
+    queryKey: ['events', eventId, 'survey-responses'],
+    queryFn: () => eventsApi.getEventSurveyResponses(eventId),
+    enabled: isAuthenticated() && !!eventId,
+    retry: 1,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+};
+
+// Hook for sending survey to participants
+export const useSendEventSurvey = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (eventId: number) => eventsApi.downloadEventCertificate(eventId),
-    onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'event-certificate.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success('Sertifikat berhasil diunduh!');
+    mutationFn: (eventId: number) => eventsApi.sendEventSurvey(eventId),
+    onSuccess: (_, eventId) => {
+      queryClient.invalidateQueries({ queryKey: ['events', eventId] });
+      toast.success('Survey berhasil dikirim ke peserta!');
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Gagal mengunduh sertifikat');
+      toast.error(error instanceof Error ? error.message : 'Gagal mengirim survey');
     },
   });
 };
 
-// Hook for exporting event registrants
-export const useExportEventRegistrants = () => {
+// Hook for marking event as done
+export const useSetEventDone = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (eventId: number) => eventsApi.exportEventRegistrants(eventId),
-    onSuccess: () => {
-      toast.success('Data registrant berhasil diekspor!');
+    mutationFn: (eventId: number) => eventsApi.setEventDone(eventId),
+    onSuccess: (_, eventId) => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['events', eventId] });
+      toast.success('Event berhasil ditandai selesai!');
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Gagal mengekspor data');
+      toast.error(error instanceof Error ? error.message : 'Gagal menandai event selesai');
+    },
+  });
+};
+
+// Hook for getting event references
+export const useEventReferences = (eventId: number) => {
+  return useQuery({
+    queryKey: ['events', eventId, 'references'],
+    queryFn: () => eventsApi.getEventReferences(eventId),
+    enabled: isAuthenticated() && !!eventId,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Hook for creating event reference
+export const useCreateEventReference = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, referenceData }: { eventId: number; referenceData: any }) =>
+      eventsApi.createEventReference(eventId, referenceData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'references'] });
+      toast.success('Referensi event berhasil dibuat!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal membuat referensi');
+    },
+  });
+};
+
+// Hook for updating event reference
+export const useUpdateEventReference = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, referenceId, referenceData }: { 
+      eventId: number; 
+      referenceId: number; 
+      referenceData: any 
+    }) => eventsApi.updateEventReference(eventId, referenceId, referenceData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'references'] });
+      toast.success('Referensi event berhasil diperbarui!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal memperbarui referensi');
+    },
+  });
+};
+
+// Hook for deleting event reference
+export const useDeleteEventReference = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, referenceId }: { eventId: number; referenceId: number }) =>
+      eventsApi.deleteEventReference(eventId, referenceId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'references'] });
+      toast.success('Referensi event berhasil dihapus!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal menghapus referensi');
+    },
+  });
+};
+
+// Hook for registering participant by PIC
+export const useRegisterParticipantByPIC = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, participantData }: { eventId: number; participantData: any }) =>
+      eventsApi.registerParticipantByPIC(eventId, participantData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'registrants'] });
+      toast.success('Peserta berhasil didaftarkan oleh PIC!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal mendaftarkan peserta');
+    },
+  });
+};
+
+// Hook for getting registrants by PIC
+export const useRegistrantsByPIC = (eventId: number) => {
+  return useQuery({
+    queryKey: ['events', eventId, 'registrants-by-pic'],
+    queryFn: () => eventsApi.getRegistrantsByPIC(eventId),
+    enabled: isAuthenticated() && !!eventId,
+    retry: 1,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+};
+
+// Hook for deleting registration
+export const useDeleteRegistration = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, registrationId }: { eventId: number; registrationId: number }) =>
+      eventsApi.deleteRegistration(eventId, registrationId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'registrants'] });
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'registrants-by-pic'] });
+      toast.success('Registrasi berhasil dihapus!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal menghapus registrasi');
     },
   });
 };

@@ -6,6 +6,8 @@ import { validateEnvironment, logEnvironment } from '@/lib/config/env';
 import App from './App';
 import './styles/globals.css';
 
+
+
 // Initialize environment
 const initEnvironment = () => {
   const validation = validateEnvironment();

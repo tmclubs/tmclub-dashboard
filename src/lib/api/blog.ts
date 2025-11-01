@@ -1,5 +1,7 @@
 import { apiClient } from './client';
 import { BlogPost, BlogFormData, BlogAnalytics, SEOMetadata } from '@/types/api';
+import { FileUploadResult } from '@/lib/utils/file-upload';
+import { filesApi } from './files';
 
 export const blogApi = {
   // Get all blog posts
@@ -104,6 +106,11 @@ export const blogApi = {
     const formData = new FormData();
     formData.append('image', file);
     return apiClient.upload('/blog/upload-image/', formData);
+  },
+
+  // Upload main image untuk blog post
+  async uploadMainImage(file: File, caption?: string): Promise<FileUploadResult> {
+    return filesApi.uploadMainImage(file, caption);
   },
 
   // Increment view count

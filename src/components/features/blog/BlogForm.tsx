@@ -4,16 +4,12 @@ import {
   X,
   Eye,
   Save,
-  Bold,
-  Italic,
-  List,
-  Link,
-  Image as ImageIcon,
-  Hash,
   Plus,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
 import { type BlogArticle, type BlogCategory } from './BlogArticleCard';
+import { TiptapEditor } from './TiptapEditor';
 
 export interface BlogFormData {
   title: string;
@@ -116,31 +112,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     onPreview?.(formData);
   };
 
-  const insertText = (before: string, after: string = '') => {
-    const textarea = document.getElementById('content-editor') as HTMLTextAreaElement;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const selectedText = textarea.value.substring(start, end);
-      const newText = before + selectedText + after;
 
-      const newContent =
-        textarea.value.substring(0, start) +
-        newText +
-        textarea.value.substring(end);
-
-      setFormData(prev => ({ ...prev, content: newContent }));
-
-      // Set cursor position
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(
-          start + before.length,
-          start + before.length + selectedText.length
-        );
-      }, 0);
-    }
-  };
 
   const calculateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
@@ -149,16 +121,18 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-4 sm:space-y-6">
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">{title}</CardTitle>
-            <div className="flex gap-2">
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <CardTitle className="text-lg sm:text-xl truncate">{title}</CardTitle>
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={handlePreview}
                 leftIcon={<Eye className="w-4 h-4" />}
+                className="w-full sm:w-auto text-sm touch-manipulation"
+                aria-label="Preview article"
               >
                 Preview
               </Button>
@@ -166,17 +140,19 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                 onClick={handleSubmit}
                 loading={loading}
                 leftIcon={<Save className="w-4 h-4" />}
+                className="w-full sm:w-auto text-sm touch-manipulation"
+                aria-label={article ? "Update article" : "Publish article"}
               >
                 {loading ? 'Saving...' : article ? 'Update Article' : 'Publish Article'}
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="p-4 sm:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Article Title *
               </label>
               <Input
@@ -184,20 +160,20 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 required
-                className="text-lg font-medium"
+                className="text-base sm:text-lg font-medium"
               />
             </div>
 
             {/* Excerpt */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Excerpt *
               </label>
               <textarea
                 placeholder="Brief description of the article (appears in article cards)"
                 value={formData.excerpt}
                 onChange={(e) => handleInputChange('excerpt', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
                 rows={3}
                 required
               />
@@ -208,12 +184,12 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
             {/* Featured Image */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Featured Image
               </label>
               <div className="space-y-3">
                 {imagePreview ? (
-                  <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                  <div className="relative w-full h-32 sm:h-48 rounded-lg overflow-hidden">
                     <img
                       src={imagePreview}
                       alt="Featured image preview"
@@ -222,16 +198,17 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                     <button
                       type="button"
                       onClick={removeImage}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 touch-manipulation"
+                      aria-label="Remove featured image"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-6 text-center">
                     <div className="flex flex-col items-center gap-2">
-                      <ImageIcon className="w-8 h-8 text-gray-400" />
-                      <p className="text-sm text-gray-600">Upload a featured image for your article</p>
+                      <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                      <p className="text-xs sm:text-sm text-gray-600">Upload a featured image for your article</p>
                       <div className="flex items-center gap-2">
                         <input
                           ref={fileInputRef}
@@ -242,7 +219,14 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                           id="featured-image-input"
                         />
                         <label htmlFor="featured-image-input">
-                          <Button variant="outline" leftIcon={<Upload className="w-4 h-4" />}>Choose Image</Button>
+                          <Button 
+                            variant="outline" 
+                            leftIcon={<Upload className="w-3 h-3 sm:w-4 sm:h-4" />} 
+                            className="text-xs sm:text-sm touch-manipulation"
+                            aria-label="Choose featured image"
+                          >
+                            Choose Image
+                          </Button>
                         </label>
                       </div>
                     </div>
@@ -253,13 +237,13 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Category
               </label>
               <select
                 value={formData.categoryId}
                 onChange={(e) => handleInputChange('categoryId', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
               >
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>{category.name}</option>
@@ -269,47 +253,57 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
             {/* Content Editor */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Content *
               </label>
-              <div className="flex items-center gap-2 mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => insertText('**', '**')} leftIcon={<Bold className="w-4 h-4" />}>Bold</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => insertText('*', '*')} leftIcon={<Italic className="w-4 h-4" />}>Italic</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => insertText('- ')} leftIcon={<List className="w-4 h-4" />}>List</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => insertText('[text](url)')} leftIcon={<Link className="w-4 h-4" />}>Link</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => insertText('![alt](image-url)')} leftIcon={<ImageIcon className="w-4 h-4" />}>Image</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => insertText('# ')} leftIcon={<Hash className="w-4 h-4" />}>Heading</Button>
+              <div className="border border-gray-300 rounded-md min-h-[200px] sm:min-h-[300px]">
+                <TiptapEditor
+                  content={formData.content}
+                  onChange={(content) => handleInputChange('content', content)}
+                  placeholder="Write your article content here..."
+                />
               </div>
-              <textarea
-                id="content-editor"
-                placeholder="Write your article content here"
-                value={formData.content}
-                onChange={(e) => handleInputChange('content', e.target.value)}
-                className="w-full h-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                required
-              />
               <p className="text-xs text-gray-500 mt-1">Estimated reading time: {calculateReadingTime(formData.content)} mins</p>
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Tags
               </label>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row gap-2 mb-2">
                 <Input
                   placeholder="Add a tag"
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  className="flex-1"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                  className="flex-1 text-sm sm:text-base"
                 />
-                <Button type="button" onClick={addTag} leftIcon={<Plus className="w-4 h-4" />}>Add Tag</Button>
+                <Button 
+                  type="button" 
+                  onClick={addTag} 
+                  leftIcon={<Plus className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  className="w-full sm:w-auto text-xs sm:text-sm touch-manipulation"
+                  aria-label="Add tag"
+                >
+                  Add Tag
+                </Button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {formData.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1 text-xs sm:text-sm">
                     {tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="text-red-500 hover:text-red-600">
+                    <button 
+                      type="button" 
+                      onClick={() => removeTag(tag)} 
+                      className="text-red-500 hover:text-red-600 touch-manipulation p-0.5"
+                      aria-label={`Remove ${tag} tag`}
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </Badge>
@@ -318,42 +312,76 @@ export const BlogForm: React.FC<BlogFormProps> = ({
             </div>
 
             {/* Status & Featured */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value as BlogFormData['status'])}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Featured
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.featured}
-                    onChange={(e) => handleInputChange('featured', e.target.checked)}
-                  />
-                  <span className="text-sm text-gray-600">Show article in featured section</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg">
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">
+                    Published
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    Make this article visible to readers
+                  </p>
                 </div>
+                <input
+                  type="checkbox"
+                  checked={formData.status === 'published'}
+                  onChange={(e) => handleInputChange('status', e.target.checked ? 'published' : 'draft')}
+                  className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg">
+                <div>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">
+                    Featured
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    Highlight this article on homepage
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={formData.featured}
+                  onChange={(e) => handleInputChange('featured', e.target.checked)}
+                  className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                />
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t">
               {onCancel && (
-                <Button variant="outline" onClick={onCancel}>Cancel</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={onCancel} 
+                  className="w-full sm:w-auto text-sm touch-manipulation"
+                  aria-label="Cancel editing"
+                >
+                  Cancel
+                </Button>
               )}
-              <Button type="submit" loading={loading} leftIcon={<Save className="w-4 h-4" />}>{loading ? 'Saving...' : article ? 'Update Article' : 'Publish Article'}</Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  const draftData = { ...formData, status: 'draft' as const };
+                  onSubmit(draftData);
+                }} 
+                loading={loading}
+                className="w-full sm:w-auto text-sm touch-manipulation"
+                aria-label="Save as draft"
+              >
+                Save as Draft
+              </Button>
+              <Button 
+                type="submit" 
+                loading={loading} 
+                leftIcon={<Save className="w-4 h-4" />}
+                className="w-full sm:w-auto text-sm touch-manipulation"
+                aria-label={article ? "Update article" : "Publish article"}
+              >
+                {loading ? 'Saving...' : article ? 'Update Article' : 'Publish Article'}
+              </Button>
             </div>
           </form>
         </CardContent>

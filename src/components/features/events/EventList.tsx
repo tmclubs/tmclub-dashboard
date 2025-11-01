@@ -1,32 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, Calendar, MapPin, Users, DollarSign } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, DollarSign, Download, Settings, Eye, Edit, Trash2 } from 'lucide-react';
 import { Table, Badge, Button, StatusBadge } from '@/components/ui';
 import { Column } from '@/components/ui/Table';
+import { Event } from '@/types/api';
+import { useExportRegistrants } from '@/lib/hooks/useEvents';
 
 // Extended Column type to allow non-Event keys
 interface ExtendedColumn<T> extends Omit<Column<T>, 'key'> {
   key: keyof T | string;
-}
-
-export interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  venue: string;
-  price: number;
-  isFree: boolean;
-  eventType: 'offline' | 'online' | 'hybrid';
-  maxParticipants?: number;
-  currentRegistrants?: number;
-  organizer: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  status: 'draft' | 'published' | 'cancelled';
-  isRegistrationClose: boolean;
-  isPast: boolean;
 }
 
 export interface EventListProps {
@@ -37,13 +18,17 @@ export interface EventListProps {
   onDelete?: (event: Event) => void;
   onRegister?: (event: Event) => void;
   onCreate?: () => void;
-  onExport?: () => void;
+  onExport?: (eventId?: number) => void;
+  onManageRegistrants?: (event: Event) => void;
+  onViewAnalytics?: (event: Event) => void;
+  onSendSurvey?: (event: Event) => void;
   pagination?: {
     current: number;
     pageSize: number;
     total: number;
     onChange: (page: number, pageSize: number) => void;
   };
+  showAdvancedActions?: boolean;
 }
 
 export const EventList: React.FC<EventListProps> = ({
@@ -54,12 +39,23 @@ export const EventList: React.FC<EventListProps> = ({
   onDelete,
   onCreate,
   onExport,
+  onSendSurvey,
   pagination,
+  showAdvancedActions = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows, setSelectedRows] = useState<React.Key[]>([]);
+  
+  // Hooks for advanced actions
+  const exportRegistrants = useExportRegistrants();
 
-  const columns: ExtendedColumn<Event>[] = [
+  // Transform events to include id field required by Table component
+  const tableData = events.map(event => ({
+    ...event,
+    id: event.pk, // Map pk to id for Table component
+  }));
+
+  const columns: ExtendedColumn<typeof tableData[0]>[] = [
     {
       key: 'title',
       title: 'Event Name',
@@ -95,125 +91,148 @@ export const EventList: React.FC<EventListProps> = ({
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-900">{value}</span>
-          <Badge variant="secondary" size="sm">
-            {event.eventType}
-          </Badge>
+          {event.level && (
+            <Badge variant="secondary" size="sm">
+              {event.level}
+            </Badge>
+          )}
         </div>
       ),
       width: '200px',
     },
     {
-      key: 'organizer',
+      key: 'owned_by_email',
       title: 'Organizer',
-      render: (value) => (
-        <div className="text-sm text-gray-900">{value}</div>
+      render: (_, record) => (
+        <div className="text-sm text-gray-900">{record.owned_by_email}</div>
       ),
-      width: '150px',
     },
     {
       key: 'price',
       title: 'Price',
-      sortable: true,
-      render: (value, event) => (
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-gray-400" />
-          <span className="font-medium">
-            {event.isFree ? 'Free' : `$${value}`}
+      render: (_, record) => (
+        <div className="flex items-center">
+          <DollarSign className="h-4 w-4 text-gray-400 mr-1" />
+          <span className="text-sm text-gray-900">
+            {record.is_free ? 'Free' : `Rp ${record.price?.toLocaleString()}`}
           </span>
         </div>
       ),
-      width: '100px',
-      align: 'right',
     },
     {
-      key: 'currentRegistrants',
+      key: 'registrant_count',
       title: 'Participants',
-      sortable: true,
-      render: (value, event) => (
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-gray-400" />
-          <div>
-            <div className="text-sm font-medium">
-              {value || 0}
-            </div>
-            {event.maxParticipants && (
-              <div className="text-xs text-gray-500">
-                of {event.maxParticipants}
-              </div>
-            )}
-          </div>
+      render: (_, record) => (
+        <div className="flex items-center">
+          <Users className="h-4 w-4 text-gray-400 mr-1" />
+          <span className="text-sm text-gray-900">{record.registrant_count || 0}</span>
         </div>
       ),
-      width: '120px',
     },
     {
-      key: 'status',
+      key: 'status' as keyof typeof tableData[0],
       title: 'Status',
-      render: (_, event) => {
-        let status: 'active' | 'inactive' | 'pending' | 'draft' | 'published' | 'archived' | 'upcoming' | 'completed' | 'cancelled';
-
-        if (event.status === 'cancelled') status = 'cancelled';
-        else if (event.status === 'draft') status = 'draft';
-        else if (event.isPast) status = 'completed';
-        else if (event.isRegistrationClose) status = 'inactive';
-        else status = 'upcoming';
-
-        return <StatusBadge status={status} />;
+      render: (_, record) => {
+        const event = events.find(e => e.pk === record.id);
+        if (!event) return null;
+        
+        const now = new Date();
+        const eventDate = new Date(event.date);
+        
+        let statusType: "draft" | "upcoming" | "completed" | "cancelled" = "draft";
+        
+        if (event.is_registration_close) {
+          statusType = "cancelled";
+        } else if (eventDate < now) {
+          statusType = "completed";
+        } else if (eventDate.toDateString() === now.toDateString()) {
+          statusType = "upcoming";
+        } else if (eventDate > now) {
+          statusType = "upcoming";
+        } else if (!event.published_at) {
+          statusType = "draft";
+        }
+        
+        return <StatusBadge status={statusType} />;
       },
-      width: '100px',
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof typeof tableData[0],
       title: 'Actions',
-      render: (_, event) => (
-        <div className="flex items-center gap-2">
-          {onView && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onView(event)}
-            >
-              View
-            </Button>
+      render: (_, record) => (
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              const originalEvent = events.find(e => e.pk === record.id);
+              if (originalEvent) onView?.(originalEvent);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              const originalEvent = events.find(e => e.pk === record.id);
+              if (originalEvent) onEdit?.(originalEvent);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          {showAdvancedActions && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  exportRegistrants.mutate(record.pk);
+                }}
+                loading={exportRegistrants.isPending}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const originalEvent = events.find(e => e.pk === record.id);
+                  if (originalEvent) onSendSurvey?.(originalEvent);
+                }}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </>
           )}
-          {onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(event)}
-            >
-              Edit
-            </Button>
-          )}
-          {onDelete && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(event)}
-            >
-              Delete
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              const originalEvent = events.find(e => e.pk === record.id);
+              if (originalEvent) onDelete?.(originalEvent);
+            }}
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </Button>
         </div>
       ),
-      width: '200px',
     },
   ];
 
-  const filteredEvents = events.filter(event =>
+  const filteredData = tableData.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.organizer.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (event.owned_by_email && event.owned_by_email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
 
-  const handleExport = () => {
-    onExport?.();
-  };
 
   return (
     <div className="space-y-6">
@@ -253,7 +272,7 @@ export const EventList: React.FC<EventListProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Participants</p>
               <p className="text-2xl font-bold text-gray-900">
-                {events.reduce((sum, event) => sum + (event.currentRegistrants || 0), 0)}
+                {events.reduce((sum, event) => sum + (event.registrant_count || 0), 0)}
               </p>
             </div>
           </div>
@@ -267,7 +286,7 @@ export const EventList: React.FC<EventListProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Upcoming</p>
               <p className="text-2xl font-bold text-gray-900">
-                {events.filter(event => !event.isPast).length}
+                {events.filter(event => new Date(event.date) >= new Date()).length}
               </p>
             </div>
           </div>
@@ -281,7 +300,7 @@ export const EventList: React.FC<EventListProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Revenue</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${events.reduce((sum, event) => sum + (event.isFree ? 0 : event.price * (event.currentRegistrants || 0)), 0).toLocaleString()}
+                Rp {events.reduce((sum, event) => sum + (event.is_free ? 0 : (event.price || 0) * (event.registrant_count || 0)), 0).toLocaleString()}
               </p>
             </div>
           </div>
@@ -290,27 +309,32 @@ export const EventList: React.FC<EventListProps> = ({
 
       {/* Events Table */}
       <Table
-        data={filteredEvents}
-        columns={columns as Column<Event>[]}
-        loading={loading}
-        actions={{
-          search: {
-            placeholder: 'Search events...',
-            onSearch: handleSearch,
-          },
-          export: onExport ? {
-            onExport: handleExport,
-          } : undefined,
-        }}
-        pagination={pagination}
-        selection={{
-          selectedRowKeys: selectedRows,
-          onChange: (keys) => setSelectedRows(keys as string[]),
-        }}
-        onRow={(event) => ({
-          onClick: () => onView?.(event),
-          className: 'cursor-pointer',
-        })}
+          data={filteredData}
+          columns={columns as Column<typeof tableData[0]>[]}
+          loading={loading}
+          actions={{
+            search: {
+              placeholder: 'Search events...',
+              onSearch: setSearchQuery,
+            },
+            export: {
+              onExport: () => onExport?.(),
+            },
+          }}
+          pagination={pagination}
+          selection={{
+            selectedRowKeys: selectedRows,
+            onChange: (keys) => setSelectedRows(keys),
+          }}
+          onRow={(event) => ({
+            onClick: () => {
+              const originalEvent = events.find(e => e.pk === event.id);
+              if (originalEvent) {
+                onView?.(originalEvent);
+              }
+            },
+            className: 'cursor-pointer',
+          })}
       />
     </div>
   );

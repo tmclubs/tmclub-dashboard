@@ -12,10 +12,16 @@ export const useBlogPosts = (params?: {
   search?: string;
   ordering?: string;
 }) => {
+  const isAuth = isAuthenticated();
+  console.log('useBlogPosts - isAuthenticated:', isAuth);
+  
   return useQuery({
     queryKey: ['blog-posts', params],
-    queryFn: () => blogApi.getBlogPosts(params),
-    enabled: isAuthenticated(),
+    queryFn: () => {
+      console.log('useBlogPosts - queryFn called');
+      return blogApi.getBlogPosts(params);
+    },
+    enabled: true, // Blog posts should be publicly accessible
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input, Textarea, Card } from '@/components/ui';
 import { Upload, Camera, User, Mail, Phone, MapPin, Calendar, Briefcase, Link2, Save } from 'lucide-react';
 
@@ -54,6 +54,29 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [newSkill, setNewSkill] = useState('');
   const [newInterest, setNewInterest] = useState('');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  // Update form data when initialData changes (e.g., when API data is loaded)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        firstName: initialData.firstName || '',
+        lastName: initialData.lastName || '',
+        email: initialData.email || '',
+        phone: initialData.phone || '',
+        bio: initialData.bio || '',
+        location: initialData.location || '',
+        birthDate: initialData.birthDate || '',
+        jobTitle: initialData.jobTitle || '',
+        company: initialData.company || '',
+        department: initialData.department || '',
+        website: initialData.website || '',
+        linkedin: initialData.linkedin || '',
+        twitter: initialData.twitter || '',
+        skills: initialData.skills || [],
+        interests: initialData.interests || [],
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

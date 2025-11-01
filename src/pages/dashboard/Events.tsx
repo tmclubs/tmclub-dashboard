@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Plus, Camera } from 'lucide-react';
 import {
   Card,
@@ -17,49 +18,79 @@ import {
 } from '@/components/features/events';
 import { Event as EventType } from '@/types/api';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/lib/hooks/useEvents';
+import { usePermissions, PERMISSION_LEVELS } from '@/lib/hooks/usePermissions';
+import { useAuthStore } from '@/lib/stores/authStore';
 
 export const EventsPage: React.FC = () => {
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  // Navigation
+  const navigate = useNavigate();
+  
+  // Authentication and permissions
+  useAuthStore();
+  const { hasPermission } = usePermissions();
+
+  // Permission checks
+  const canCreateEvent = hasPermission({ resource: 'events', action: PERMISSION_LEVELS.WRITE });
+  const canEditEvent = hasPermission({ resource: 'events', action: PERMISSION_LEVELS.WRITE });
+  const canDeleteEvent = hasPermission({ resource: 'events', action: PERMISSION_LEVELS.DELETE });
+  const canManageEvents = hasPermission({ resource: 'events', action: PERMISSION_LEVELS.ADMIN });
+
+  // State
+  const [currentView, setCurrentView] = useState<'grid' | 'featured'>('grid');
+  const [filterStatus] = useState<'all' | 'published' | 'draft'>('all');
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past' | 'draft'>('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showQRScanner, setShowQRScanner] = useState(false);
+
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<EventType | null>(null);
-  const [showRegistration, setShowRegistration] = useState(false);
 
   // API hooks
-  const { data: events = [], isLoading, error } = useEvents();
+  const { data: events, isLoading, error } = useEvents();
   const createEventMutation = useCreateEvent();
   const updateEventMutation = useUpdateEvent();
   const deleteEventMutation = useDeleteEvent();
 
-  const filteredEvents = events.filter(event => {
+
+
+  const filteredEvents = events?.filter(event => {
     const isPast = new Date(event.date) < new Date();
 
-    switch (filter) {
-      case 'upcoming':
-        return !isPast;
-      case 'past':
-        return isPast;
+    switch (filterStatus) {
+      case 'published':
+        return !isPast && event.published_at;
       case 'draft':
-        return event.is_registration_close;
+        return !event.published_at;
       default:
         return true;
     }
-  });
+  }) || [];
 
   const handleCreateEvent = () => {
+    if (!canCreateEvent) {
+      console.warn('User does not have permission to create events');
+      return;
+    }
     setSelectedEvent(null);
-    setShowCreateModal(true);
+    setShowEventForm(true);
   };
 
   const handleEditEvent = (event: EventType) => {
+    if (!canEditEvent) {
+      console.warn('User does not have permission to edit events');
+      return;
+    }
     setSelectedEvent(event);
-    setShowCreateModal(true);
+    setShowEventForm(true);
   };
 
   const handleDeleteEvent = (event: EventType) => {
+    if (!canDeleteEvent) {
+      console.warn('User does not have permission to delete events');
+      return;
+    }
     setEventToDelete(event);
     setShowDeleteConfirm(true);
   };
@@ -75,35 +106,12 @@ export const EventsPage: React.FC = () => {
     }
   };
 
-  const handleRegister = (event: EventType) => {
+  const handleEventRegistration = (event: EventType) => {
     setSelectedEvent(event);
-    setShowRegistration(true);
+    setShowRegistrationModal(true);
   };
 
-  // Convert API Event to EventCard props
-  const convertEventForCard = (event: EventType) => ({
-    id: event.pk.toString(),
-    title: event.title,
-    description: event.description,
-    date: event.date,
-    venue: event.venue,
-    price: event.price || 0,
-    isFree: event.is_free,
-    eventType: 'offline' as const, // Default since API doesn't have this field
-    maxParticipants: undefined,
-    currentRegistrants: event.registrant_count,
-    mainImage: event.main_image_url ? {
-      id: event.pk.toString(),
-      image: event.main_image_url,
-      caption: undefined
-    } : undefined,
-    isRegistrationClose: event.is_registration_close,
-    isPast: new Date(event.date) < new Date(),
-    organizer: undefined, // API doesn't provide organizer info
-    rating: undefined,
-    reviewsCount: undefined,
-    status: event.is_registration_close ? 'draft' as const : 'published' as const
-  });
+
 
   // Convert API Event to EventRegistration props
   const convertEventForRegistration = (event: EventType) => ({
@@ -126,7 +134,7 @@ export const EventsPage: React.FC = () => {
         { eventId: selectedEvent.pk, data },
         {
           onSuccess: () => {
-            setShowCreateModal(false);
+            setShowEventForm(false);
             setSelectedEvent(null);
           }
         }
@@ -135,7 +143,7 @@ export const EventsPage: React.FC = () => {
       // Create new event
       createEventMutation.mutate(data, {
         onSuccess: () => {
-          setShowCreateModal(false);
+          setShowEventForm(false);
           setSelectedEvent(null);
         }
       });
@@ -172,17 +180,17 @@ export const EventsPage: React.FC = () => {
       );
     }
 
-    if (view === 'grid') {
+    if (currentView === 'grid') {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <EventCard
               key={event.pk}
-              event={convertEventForCard(event)}
+              event={event}
               variant="grid"
               showActions={true}
-              onView={() => setSelectedEvent(event)}
-              onRegister={() => handleRegister(event)}
+              onView={() => navigate(`/events/${event.pk}`)}
+              onRegister={() => handleEventRegistration(event)}
               onEdit={() => handleEditEvent(event)}
               onDelete={() => handleDeleteEvent(event)}
             />
@@ -196,12 +204,12 @@ export const EventsPage: React.FC = () => {
         {filteredEvents.map((event) => (
           <EventCard
             key={event.pk}
-            event={convertEventForCard(event)}
+            event={event}
             variant="featured"
             showActions={true}
             showOrganizer={true}
-            onView={() => setSelectedEvent(event)}
-            onRegister={() => handleRegister(event)}
+            onView={() => navigate(`/events/${event.pk}`)}
+            onRegister={() => handleEventRegistration(event)}
             onEdit={() => handleEditEvent(event)}
             onDelete={() => handleDeleteEvent(event)}
           />
@@ -210,31 +218,41 @@ export const EventsPage: React.FC = () => {
     );
   };
 
-  const upcomingCount = events.filter(e => new Date(e.date) >= new Date()).length;
-  const pastCount = events.filter(e => new Date(e.date) < new Date()).length;
-  const draftCount = events.filter(e => e.is_registration_close).length;
-  const totalParticipants = events.reduce((sum, event) => sum + (event.registrant_count || 0), 0);
+  const upcomingCount = events?.filter(e => new Date(e.date) >= new Date()).length || 0;
+  const pastCount = events?.filter(e => new Date(e.date) < new Date()).length || 0;
+  const draftCount = events?.filter(e => e.is_registration_close).length || 0;
+  const totalParticipants = events?.reduce((sum, event) => sum + (event.registrant_count || 0), 0) || 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-          <p className="text-gray-600">Manage and organize community events</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Events</h1>
+            <p className="text-gray-600">Manage and organize events</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setShowQRScanner(true)}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Check-in Scanner
-          </Button>
-          <Button onClick={handleCreateEvent}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Event
-          </Button>
+          {canCreateEvent && (
+            <Button onClick={handleCreateEvent} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Create Event
+            </Button>
+          )}
+          {canManageEvents && (
+            <Button
+              variant="outline"
+              onClick={() => setShowQRScanner(true)}
+              className="flex items-center gap-2"
+            >
+              <Camera className="w-4 h-4" />
+              QR Scanner
+            </Button>
+          )}
         </div>
       </div>
 
@@ -248,7 +266,7 @@ export const EventsPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Events</p>
-                <p className="text-2xl font-bold text-gray-900">{events.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{events?.length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -305,7 +323,7 @@ export const EventsPage: React.FC = () => {
             size="sm"
             onClick={() => setFilter('all')}
           >
-            All Events ({events.length})
+            All Events ({events?.length || 0})
           </Button>
           <Button
             variant={filter === 'upcoming' ? 'default' : 'outline'}
@@ -332,16 +350,16 @@ export const EventsPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Button
-            variant={view === 'grid' ? 'default' : 'outline'}
+            variant={currentView === 'grid' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setView('grid')}
+            onClick={() => setCurrentView('grid')}
           >
             Grid
           </Button>
           <Button
-            variant={view === 'list' ? 'default' : 'outline'}
+            variant={currentView === 'featured' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setView('list')}
+            onClick={() => setCurrentView('featured')}
           >
             List
           </Button>
@@ -353,8 +371,8 @@ export const EventsPage: React.FC = () => {
 
       {/* Create/Edit Event Modal */}
       <Modal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        open={showEventForm}
+        onClose={() => setShowEventForm(false)}
         title={selectedEvent ? 'Edit Event' : 'Create New Event'}
         size="xl"
         preventClose={createEventMutation.isPending || updateEventMutation.isPending}
@@ -362,8 +380,7 @@ export const EventsPage: React.FC = () => {
         <EventForm
           event={selectedEvent || undefined}
           onSubmit={handleEventSubmit}
-          loading={createEventMutation.isPending || updateEventMutation.isPending}
-          onCancel={() => setShowCreateModal(false)}
+          onCancel={() => setShowEventForm(false)}
         />
       </Modal>
 
@@ -399,8 +416,8 @@ export const EventsPage: React.FC = () => {
 
       {/* Registration Modal */}
       <Modal
-        open={showRegistration}
-        onClose={() => setShowRegistration(false)}
+        open={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
         title="Event Registration"
         size="xl"
       >
@@ -408,10 +425,10 @@ export const EventsPage: React.FC = () => {
           <EventRegistration
             event={convertEventForRegistration(selectedEvent)}
             onSuccess={() => {
-              setShowRegistration(false);
+              setShowRegistrationModal(false);
               setSelectedEvent(null);
             }}
-            onCancel={() => setShowRegistration(false)}
+            onCancel={() => setShowRegistrationModal(false)}
           />
         )}
       </Modal>

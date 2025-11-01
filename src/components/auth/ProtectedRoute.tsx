@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/lib/stores/authStore';
-import { isAuthenticated } from '@/lib/api/client';
-import { usePermissions, PermissionLevel } from '@/lib/hooks/usePermissions';
+import React from 'react';
+import useAuthMiddleware, { UseAuthMiddlewareOptions } from '@/lib/hooks/useAuthMiddleware';
+import { PermissionLevel } from '@/lib/hooks/usePermissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,45 +20,63 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAdmin = false,
   requireSuperAdmin = false,
 }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated: isAuthStoreAuthenticated } = useAuthStore();
-  const { hasPermission, isAdmin, isSuperAdmin } = usePermissions();
+  // Build permissions array based on requirements
+  const permissions: string[] = [];
+  
+  if (requiredPermission) {
+    permissions.push(`${requiredPermission.resource}:${requiredPermission.action}`);
+  }
+  
+  if (requireAdmin) {
+    permissions.push('admin');
+  }
+  
+  if (requireSuperAdmin) {
+    permissions.push('super_admin');
+  }
 
-  // Check both Zustand store and localStorage for token
-  const isUserAuthenticated = isAuthStoreAuthenticated || isAuthenticated();
+  const options: UseAuthMiddlewareOptions = {
+    requireAuth: true,
+    permissions,
+    redirectTo,
+    checkInterval: 30000, // Check every 30 seconds
+  };
 
-  // Check role-based permissions
-  const hasRequiredPermission = requiredPermission
-    ? hasPermission(requiredPermission)
-    : true;
+  const { isLoading, isAuthenticated, hasRequiredPermissions, error } = useAuthMiddleware(options);
 
-  const hasRequiredRole = !requireAdmin || isAdmin();
-  const hasRequiredSuperAdmin = !requireSuperAdmin || isSuperAdmin();
-
-
-  useEffect(() => {
-    // If not authenticated, redirect to login with return URL
-    if (!isUserAuthenticated) {
-      const returnUrl = encodeURIComponent(location.pathname + location.search);
-      navigate(`${redirectTo}?returnUrl=${returnUrl}`, { replace: true });
-    }
-  }, [isUserAuthenticated, location, redirectTo, navigate]);
-
-  // If not authenticated, show loading or null while redirecting
-  if (!isUserAuthenticated) {
+  // Show loading state during validation
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to login...</p>
+          <p className="text-gray-600">Validating authentication...</p>
         </div>
       </div>
     );
   }
 
-  // If authenticated but doesn't have required permissions
-  if (!hasRequiredPermission || !hasRequiredRole || !hasRequiredSuperAdmin) {
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Authentication Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mt-4"></div>
+          <p className="text-sm text-gray-500 mt-2">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if authenticated but doesn't have required permissions
+  if (isAuthenticated && !hasRequiredPermissions) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -91,7 +107,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  return <>{children}</>;
+  // Show children if authenticated and has required permissions
+  if (isAuthenticated && hasRequiredPermissions) {
+    return <>{children}</>;
+  }
+
+  // Fallback loading state (should not reach here due to redirects in middleware)
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Checking authentication...</p>
+      </div>
+    </div>
+  );
 };
 
 // Higher-order component for protecting routes

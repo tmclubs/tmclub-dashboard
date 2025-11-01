@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
             password: credentials.password,
           };
 
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/authentication/manual-login/`, {
+          const response = await fetch(`/api/authentication/manual-login/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

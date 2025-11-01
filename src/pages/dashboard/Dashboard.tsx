@@ -18,29 +18,19 @@ import {
   Minus,
 } from 'lucide-react';
 import { Button, Card, CardContent, Badge, LoadingSpinner, EmptyState } from '@/components/ui';
-// import { useEvents, useCompanies, useBlogPosts, useUnreadNotificationCount } from '@/lib/hooks';
+import { useEvents, useCompanies, useBlogPosts, useUnreadNotificationCount } from '@/lib/hooks';
 import { formatDate, formatRelativeTime } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
 
 export const Dashboard: React.FC = () => {
-  // API hooks for real-time data - temporarily disabled to avoid API errors
-  // const { data: events = [], isLoading: eventsLoading } = useEvents();
-  // const { data: companies = [], isLoading: companiesLoading } = useCompanies();
-  // const { data: blogPosts = [], isLoading: blogLoading } = useBlogPosts();
-  // const { data: unreadNotifications = 0, isLoading: notificationsLoading } = useUnreadNotificationCount();
-  
-  // Temporary mock data for testing
-  const events: any[] = [];
-  const companies: any[] = [];
-  const blogPosts: any[] = [];
-  const unreadNotifications = 0;
-  const eventsLoading = false;
-  const companiesLoading = false;
-  const blogLoading = false;
-  const notificationsLoading = false;
+  // API hooks for real-time data
+  const { data: events = [], isLoading: eventsLoading } = useEvents();
+  const { data: companies = [], isLoading: companiesLoading } = useCompanies();
+  const { data: blogPosts = [], isLoading: blogLoading } = useBlogPosts();
+  const { data: unreadNotifications = 0, isLoading: notificationsLoading } = useUnreadNotificationCount();
 
   // Calculate stats from real data
-  const upcomingEvents = events.filter(event => new Date(event.date) >= new Date());
+  const upcomingEvents = events.filter(event => event.date && new Date(event.date) >= new Date());
   const totalParticipants = events.reduce((sum, event) => sum + (event.registrant_count || 0), 0);
 
   const stats = [
@@ -101,14 +91,24 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back! Here's what's happening in your community.</p>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Welcome back! Here's what's happening in your community.</p>
         </div>
-        <div className="flex gap-2 sm:gap-3">
-          <Button variant="outline" size="sm" className="hidden sm:flex">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full sm:w-auto touch-manipulation"
+            aria-label="Export dashboard report"
+          >
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium">
+          <Button 
+            size="sm" 
+            className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium touch-manipulation"
+            aria-label="Quick add new item"
+          >
             <Plus className="h-4 w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Quick Add</span>
             <span className="sm:hidden">Add</span>
@@ -195,7 +195,7 @@ export const Dashboard: React.FC = () => {
                           <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
-                              <span>{formatDate(event.date)}</span>
+                              <span>{event.date ? formatDate(event.date) : 'TBD'}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-4 w-4" />
@@ -265,7 +265,7 @@ export const Dashboard: React.FC = () => {
                             {post.summary}
                           </p>
                           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                            <span>{formatRelativeTime(post.created_at)}</span>
+                            <span>{post.created_at ? formatRelativeTime(post.created_at) : 'Unknown date'}</span>
                             <span>•</span>
                             <span>3 min read</span>
                           </div>
@@ -288,34 +288,38 @@ export const Dashboard: React.FC = () => {
                 <Plus className="h-5 w-5 text-orange-600" />
                 Quick Actions
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <Button
                   variant="outline"
-                  className="h-auto p-3 flex-col hover:bg-white hover:shadow-md transition-all"
+                  className="h-auto p-2 sm:p-3 flex-col hover:bg-white hover:shadow-md transition-all touch-manipulation"
+                  aria-label="Create new event"
                 >
-                  <Calendar className="h-5 w-5 mb-2 text-orange-600" />
-                  <span className="text-xs font-medium">Create Event</span>
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mb-1 sm:mb-2 text-orange-600" />
+                  <span className="text-xs font-medium text-center">Create Event</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-auto p-3 flex-col hover:bg-white hover:shadow-md transition-all"
+                  className="h-auto p-2 sm:p-3 flex-col hover:bg-white hover:shadow-md transition-all touch-manipulation"
+                  aria-label="Add new company"
                 >
-                  <Building2 className="h-5 w-5 mb-2 text-blue-600" />
-                  <span className="text-xs font-medium">Add Company</span>
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mb-1 sm:mb-2 text-blue-600" />
+                  <span className="text-xs font-medium text-center">Add Company</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-auto p-3 flex-col hover:bg-white hover:shadow-md transition-all"
+                  className="h-auto p-2 sm:p-3 flex-col hover:bg-white hover:shadow-md transition-all touch-manipulation"
+                  aria-label="Invite new member"
                 >
-                  <Users className="h-5 w-5 mb-2 text-green-600" />
-                  <span className="text-xs font-medium">Invite Member</span>
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 mb-1 sm:mb-2 text-green-600" />
+                  <span className="text-xs font-medium text-center">Invite Member</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-auto p-3 flex-col hover:bg-white hover:shadow-md transition-all"
+                  className="h-auto p-2 sm:p-3 flex-col hover:bg-white hover:shadow-md transition-all touch-manipulation"
+                  aria-label="Create new survey"
                 >
-                  <Clipboard className="h-5 w-5 mb-2 text-purple-600" />
-                  <span className="text-xs font-medium">Create Survey</span>
+                  <Clipboard className="h-4 w-4 sm:h-5 sm:w-5 mb-1 sm:mb-2 text-purple-600" />
+                  <span className="text-xs font-medium text-center">Create Survey</span>
                 </Button>
               </div>
             </CardContent>

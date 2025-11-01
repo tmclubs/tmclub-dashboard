@@ -37,16 +37,88 @@ interface TokenManagerConfig {
   onAuthError?: (error: Error) => void;
 }
 
+interface TokenManagerCallbacks {
+  onTokenExpired?: () => void;
+  onAuthError?: (error: any) => void;
+  onTokenRefreshed?: (tokens: { access: string; refresh: string }) => void;
+}
+
 class TokenManager {
   private refreshPromise: Promise<AuthResponse> | null = null;
   private refreshRetries = 0;
   private activityTimer: number | null = null;
   private config: TokenManagerConfig = {};
+  private callbacks: TokenManagerCallbacks = {};
+  private validationInterval: number | null = null;
+  private isValidating = false;
 
   constructor(config: TokenManagerConfig = {}) {
     this.config = config;
     this.setupActivityTracking();
     this.setupTokenRefresh();
+    this.setupPeriodicValidation();
+  }
+
+  // Set callbacks for token events
+  setCallbacks(callbacks: TokenManagerCallbacks) {
+    this.callbacks = { ...this.callbacks, ...callbacks };
+  }
+
+  // Clear callbacks
+  clearCallbacks() {
+    this.callbacks = {};
+  }
+
+  // Setup periodic token validation
+  private setupPeriodicValidation() {
+    // Clear existing interval
+    if (this.validationInterval) {
+      clearInterval(this.validationInterval);
+    }
+
+    // Validate every 60 seconds
+    this.validationInterval = window.setInterval(() => {
+      this.validateTokens();
+    }, 60000);
+  }
+
+  // Validate tokens and trigger callbacks if needed
+  private async validateTokens() {
+    if (this.isValidating) return;
+    
+    try {
+      this.isValidating = true;
+      
+      const accessToken = this.getAccessToken();
+      if (!accessToken) {
+        // No token, trigger expiry callback
+        this.callbacks.onTokenExpired?.();
+        return;
+      }
+
+      // Check if token is expired
+      if (this.isTokenExpired()) {
+        console.log('Token expired during validation');
+        this.callbacks.onTokenExpired?.();
+        return;
+      }
+
+      // Check session validity
+      if (!this.isSessionValid()) {
+        console.log('Session invalid during validation');
+        this.callbacks.onTokenExpired?.();
+        return;
+      }
+
+      // Update last activity
+      this.updateLastActivity();
+      
+    } catch (error) {
+      console.error('Token validation error:', error);
+      this.callbacks.onAuthError?.(error);
+    } finally {
+      this.isValidating = false;
+    }
   }
 
   // Set tokens in storage
@@ -78,27 +150,38 @@ class TokenManager {
   }
 
   // Get token expiry time
-  getTokenExpiry(accessToken?: string): number | null {
-    const token = accessToken || this.getAccessToken();
-    if (!token) return null;
-
-    try {
-      // Parse JWT payload (without verification)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp ? payload.exp * 1000 : null; // Convert to milliseconds
-    } catch (error) {
-      console.warn('Failed to parse token expiry:', error);
-      return null;
+  getTokenExpiry(): number | null {
+    // For Django simple token, we need to get expiry from localStorage
+    // since Django tokens don't contain expiry info in the token itself
+    const expiryStr = localStorage.getItem(TOKEN_KEYS.TOKEN_EXPIRY);
+    if (expiryStr) {
+      return parseInt(expiryStr, 10);
     }
+    
+    // If no expiry stored, check if we have a token and set a default expiry
+    const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+    if (token) {
+      // Set default expiry to 24 hours from now
+      const defaultExpiry = Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
+      localStorage.setItem(TOKEN_KEYS.TOKEN_EXPIRY, defaultExpiry.toString());
+      return defaultExpiry;
+    }
+    
+    return null;
   }
 
   // Check if token is expired or will expire soon
-  isTokenExpired(accessToken?: string): boolean {
-    const expiry = this.getTokenExpiry(accessToken);
-    if (!expiry) return false;
+  isTokenExpired(): boolean {
+    try {
+      const expiry = this.getTokenExpiry();
+      if (!expiry) return false;
 
-    const now = Date.now();
-    return expiry - now <= TOKEN_CONFIG.REFRESH_THRESHOLD;
+      const now = Date.now();
+      return expiry - now <= TOKEN_CONFIG.REFRESH_THRESHOLD;
+    } catch (error) {
+      console.warn('Error checking token expiry:', error);
+      return true; // Assume expired if we can't check
+    }
   }
 
   // Check if session is still valid based on activity
@@ -113,15 +196,29 @@ class TokenManager {
     return sessionAge < TOKEN_CONFIG.MAX_SESSION_TIME;
   }
 
-  // Validate current authentication state
+  // Enhanced authentication validation with error handling
   isAuthenticationValid(): boolean {
-    const token = this.getAccessToken();
-    if (!token) return false;
-    
-    const isExpired = this.isTokenExpired(token);
-    const isSessionValid = this.isSessionValid();
+    try {
+      const token = this.getAccessToken();
+      if (!token) {
+        return false;
+      }
+      
+      const isExpired = this.isTokenExpired();
+      const isSessionValid = this.isSessionValid();
 
-    return !isExpired && isSessionValid;
+      // If token is expired or session invalid, trigger callbacks
+      if (isExpired || !isSessionValid) {
+        this.callbacks.onTokenExpired?.();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('Error validating authentication:', error);
+      this.callbacks.onAuthError?.(error);
+      return false;
+    }
   }
 
   // Refresh access token using refresh token
@@ -133,6 +230,7 @@ class TokenManager {
 
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
+      this.callbacks.onTokenExpired?.();
       throw new Error('No refresh token available');
     }
 
@@ -143,6 +241,7 @@ class TokenManager {
       const result = await this.refreshPromise;
       this.setTokens(result);
       this.refreshRetries = 0;
+      this.callbacks.onTokenRefreshed?.({ access: result.token, refresh: result.token });
       return result;
     } catch (error) {
       this.refreshRetries++;
@@ -151,6 +250,7 @@ class TokenManager {
       if (this.refreshRetries >= TOKEN_CONFIG.MAX_REFRESH_RETRIES) {
         this.clearTokens();
         this.config.onTokenExpired?.();
+        this.callbacks.onTokenExpired?.();
         throw new Error('Token refresh failed after maximum retries');
       }
 
@@ -172,48 +272,70 @@ class TokenManager {
       return response;
     } catch (error) {
       console.error('Token refresh failed:', error);
+      this.callbacks.onAuthError?.(error);
       throw error;
     }
   }
 
   // Get valid token (refresh if necessary)
-  async getValidToken(): Promise<string> {
+  async getValidToken(): Promise<string | null> {
     const token = this.getAccessToken();
-
+    
     if (!token) {
-      throw new Error('No access token available');
+      return null;
     }
 
-    if (!this.isTokenExpired(token)) {
+    // For Django simple tokens, we don't refresh - just return the token if it exists
+    // Django simple tokens don't expire unless manually revoked
+    return token;
+
+    // Original refresh logic commented out for Django simple tokens
+    /*
+    if (!this.isTokenExpired()) {
       return token;
     }
 
-    // Token is expired, refresh it
     try {
+      // Token is expired, refresh it
+      console.log('Token expired, attempting refresh...');
       const newTokens = await this.refreshAccessToken();
       return newTokens.token;
     } catch (error) {
       // Refresh failed, clear tokens
+      console.error('Token refresh failed:', error);
       this.clearTokens();
-      this.config.onTokenExpired?.();
-      throw error;
+      return null;
     }
+    */
   }
 
-  // Clear all tokens and authentication data
+  // Enhanced clear tokens with callback notification
   clearTokens(): void {
-    Object.values(TOKEN_KEYS).forEach(key => {
-      localStorage.removeItem(key);
-    });
+    try {
+      Object.values(TOKEN_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+      });
 
-    // Clear activity tracking
-    if (this.activityTimer) {
-      clearInterval(this.activityTimer);
-      this.activityTimer = null;
+      // Clear activity tracking
+      if (this.activityTimer) {
+        clearInterval(this.activityTimer);
+        this.activityTimer = null;
+      }
+
+      // Clear validation interval
+      if (this.validationInterval) {
+        clearInterval(this.validationInterval);
+        this.validationInterval = null;
+      }
+
+      // Notify Zustand store
+      clearAuthData();
+      
+      console.log('All tokens cleared');
+    } catch (error) {
+      console.error('Error clearing tokens:', error);
+      this.callbacks.onAuthError?.(error);
     }
-
-    // Notify Zustand store
-    clearAuthData();
   }
 
   // Update last activity timestamp
@@ -236,10 +358,11 @@ class TokenManager {
     });
 
     // Periodic session validity check
-    this.activityTimer = setInterval(() => {
+    this.activityTimer = window.setInterval(() => {
       if (!this.isSessionValid()) {
         this.clearTokens();
         this.config.onTokenExpired?.();
+        this.callbacks.onTokenExpired?.();
       }
     }, TOKEN_CONFIG.ACTIVITY_CHECK_INTERVAL);
   }
@@ -253,6 +376,7 @@ class TokenManager {
         this.refreshAccessToken().catch(error => {
           console.error('Automatic token refresh failed:', error);
           this.config.onAuthError?.(error);
+          this.callbacks.onAuthError?.(error);
         });
       }
     }, TOKEN_CONFIG.ACTIVITY_CHECK_INTERVAL);
@@ -272,14 +396,29 @@ class TokenManager {
     };
   }
 
-  // Cleanup method
+  // Destroy token manager and cleanup
   destroy(): void {
     if (this.activityTimer) {
       clearInterval(this.activityTimer);
       this.activityTimer = null;
     }
+    
+    if (this.validationInterval) {
+      clearInterval(this.validationInterval);
+      this.validationInterval = null;
+    }
+    
+    this.clearCallbacks();
+    this.isValidating = false;
     this.refreshPromise = null;
     this.config = {} as TokenManagerConfig;
+    
+    // Remove activity listeners
+    if (typeof window !== 'undefined') {
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+        window.removeEventListener(event, this.updateLastActivity.bind(this));
+      });
+    }
   }
 }
 
@@ -287,10 +426,26 @@ class TokenManager {
 let tokenManagerInstance: TokenManager | null = null;
 
 export const getTokenManager = (config?: TokenManagerConfig): TokenManager => {
-  if (!tokenManagerInstance) {
-    tokenManagerInstance = new TokenManager(config);
+  try {
+    if (!tokenManagerInstance) {
+      tokenManagerInstance = new TokenManager(config);
+    }
+    
+    // If callbacks are provided, set them
+    if (config && (config.onTokenExpired || config.onAuthError || config.onTokenRefresh)) {
+      const callbacks: TokenManagerCallbacks = {};
+      if (config.onTokenExpired) callbacks.onTokenExpired = config.onTokenExpired;
+      if (config.onAuthError) callbacks.onAuthError = config.onAuthError;
+      tokenManagerInstance.setCallbacks(callbacks);
+    }
+    
+    return tokenManagerInstance;
+  } catch (error) {
+    console.error('Error creating TokenManager instance:', error);
+    // Create a minimal fallback instance
+    tokenManagerInstance = new TokenManager(config || {});
+    return tokenManagerInstance;
   }
-  return tokenManagerInstance;
 };
 
 // Destroy token manager (useful for testing)
@@ -307,14 +462,23 @@ export const setTokens = (tokens: AuthResponse): void => {
   manager.setTokens(tokens);
 };
 
-export const getValidToken = (): Promise<string> => {
+export const getValidToken = (): Promise<string | null> => {
   const manager = getTokenManager();
   return manager.getValidToken();
 };
 
 export const isAuthenticationValid = (): boolean => {
-  const manager = getTokenManager();
-  return manager.isAuthenticationValid();
+  try {
+    const manager = getTokenManager();
+    if (!manager) {
+      console.warn('TokenManager instance is null');
+      return false;
+    }
+    return manager.isAuthenticationValid();
+  } catch (error) {
+    console.error('Error in isAuthenticationValid:', error);
+    return false;
+  }
 };
 
 export const clearTokens = (): void => {

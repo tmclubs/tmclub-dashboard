@@ -16,6 +16,32 @@ NC='\033[0m' # No Color
 PROJECT_NAME="TMC Frontend"
 PORT=5173
 
+# Cleanup function to kill processes on port
+cleanup_port() {
+    local port_to_clean=$1
+    if [ -n "$port_to_clean" ]; then
+        echo -e "${YELLOW}🛑 Cleaning up processes on port $port_to_clean...${NC}"
+        local pids=$(lsof -ti:$port_to_clean 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            echo -e "${YELLOW}Killing processes: $pids${NC}"
+            kill -9 $pids 2>/dev/null || true
+            echo -e "${GREEN}✅ Port $port_to_clean cleaned up${NC}"
+        else
+            echo -e "${BLUE}ℹ️  No processes found on port $port_to_clean${NC}"
+        fi
+    fi
+}
+
+# Signal trap for cleanup
+trap cleanup_and_exit SIGINT SIGTERM
+
+cleanup_and_exit() {
+    echo -e "\n${YELLOW}🛑 Interrupt received. Cleaning up...${NC}"
+    cleanup_port $PORT
+    echo -e "${GREEN}✅ Cleanup completed. Exiting.${NC}"
+    exit 0
+}
+
 # Helper functions
 print_header() {
     echo -e "${BLUE}"
@@ -87,11 +113,25 @@ start_dev() {
     check_bun
     check_dependencies
 
+    # Clean up any existing processes on the port first
+    cleanup_port $PORT
+
+    print_info "Press Ctrl+C to stop the server and clean up port $PORT"
+
     if [ -z "$1" ] || [ "$1" = "--open" ]; then
         bun run dev -- --open --host
     else
         bun run dev -- --host
     fi
+}
+
+stop_dev() {
+    print_header
+    print_info "Stopping development server on port $PORT..."
+
+    cleanup_port $PORT
+
+    print_success "Development server stopped!"
 }
 
 build_project() {

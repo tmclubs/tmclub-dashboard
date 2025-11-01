@@ -4,21 +4,30 @@ import {
   X,
   Eye,
   Save,
-  Bold,
-  Italic,
-  List,
-  Link,
   Image as ImageIcon,
   Hash,
   Plus,
   Calendar,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
 import { BlogFormData } from '@/types/api';
 import { ContentScheduler } from './ContentScheduler';
+import { TiptapEditor } from './TiptapEditor';
+import { validateFile, createImagePreview, cleanupImagePreview } from '@/lib/utils/file-upload';
+import { blogApi } from '@/lib/api/blog';
 
 export interface EnhancedBlogFormData extends BlogFormData {
+  tags: string[];
+  category: string;
+  status: 'draft' | 'published' | 'archived';
+  meta_description?: string;
+  meta_keywords?: string;
+  og_title?: string;
+  og_description?: string;
+  og_image?: string;
+  canonical_url?: string;
   seo_data?: {
     slug?: string;
     meta_description?: string;
@@ -89,29 +98,77 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
     setFormData(prev => ({
       ...prev,
       status: status as 'draft' | 'published' | 'archived',
-      published_at: publishDate || prev.published_at
+      published_at: publishDate
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setFormData(prev => ({ ...prev, main_image: result }));
-      };
-      reader.readAsDataURL(files[0]);
+    if (!files || !files[0]) return;
+
+    const file = files[0];
+    
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      alert(validation.error);
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+
+      // Create preview
+      const preview = await createImagePreview(file);
+      setImagePreview(preview);
+
+      // Upload file
+      const result = await blogApi.uploadMainImage(file);
+      
+      clearInterval(progressInterval);
+      
+      // Update form data with file ID
+      setFormData(prev => ({ 
+        ...prev, 
+        main_image: result.data?.file_id || '' 
+      }));
+
+      setUploadProgress(100);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Upload gagal. Silakan coba lagi.');
+      removeImage();
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
 
   const removeImage = () => {
+    if (imagePreview) {
+      cleanupImagePreview(imagePreview);
+    }
     setImagePreview('');
     setFormData(prev => ({ ...prev, main_image: '' }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    setUploadProgress(0);
   };
 
   const addTag = () => {
@@ -166,31 +223,7 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
       .trim();
   };
 
-  const insertText = (before: string, after: string = '') => {
-    const textarea = document.getElementById('content-editor') as HTMLTextAreaElement;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const selectedText = textarea.value.substring(start, end);
-      const newText = before + selectedText + after;
 
-      const newContent =
-        textarea.value.substring(0, start) +
-        newText +
-        textarea.value.substring(end);
-
-      setFormData(prev => ({ ...prev, content: newContent }));
-
-      // Set cursor position
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(
-          start + before.length,
-          start + before.length + selectedText.length
-        );
-      }, 0);
-    }
-  };
 
   const calculateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
@@ -345,15 +378,34 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                         onChange={handleImageUpload}
                         className="hidden"
                         id="featured-image-upload"
+                        disabled={isUploading}
                       />
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        leftIcon={<Upload className="w-4 h-4" />}
+                        disabled={isUploading}
+                        leftIcon={isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       >
-                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                        {isUploading ? 'Uploading...' : (imagePreview ? 'Change Image' : 'Upload Image')}
                       </Button>
+                      
+                      {/* Upload Progress */}
+                      {isUploading && uploadProgress > 0 && (
+                        <div className="mt-2">
+                          <div className="flex justify-between text-xs text-gray-600 mb-1">
+                            <span>Uploading image...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
                       <p className="text-xs text-gray-500 mt-2">
                         Recommended: 16:9 ratio, at least 1200x675px
                       </p>
@@ -448,64 +500,19 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Content *
                   </label>
-
-                  {/* Editor Toolbar */}
-                  <div className="border border-gray-300 rounded-t-md bg-gray-50 p-2 flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => insertText('**', '**')}
-                      title="Bold"
-                    >
-                      <Bold className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => insertText('*', '*')}
-                      title="Italic"
-                    >
-                      <Italic className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => insertText('\n- ')}
-                      title="Bullet List"
-                    >
-                      <List className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => insertText('[', '](url)')}
-                      title="Link"
-                    >
-                      <Link className="w-4 h-4" />
-                    </Button>
-                    <div className="h-4 w-px bg-gray-300 mx-1" />
-                    <span className="text-xs text-gray-500">
-                      Reading time: {calculateReadingTime(formData.content || '')} min
-                    </span>
-                  </div>
-
-                  {/* Content Textarea */}
-                  <textarea
-                    id="content-editor"
+                  <TiptapEditor
+                    content={formData.content || ''}
+                    onChange={(content) => handleInputChange('content', content)}
                     placeholder="Write your article content here..."
-                    value={formData.content || ''}
-                    onChange={(e) => handleInputChange('content', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-b-md border-t-0 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono text-sm"
-                    rows={15}
-                    required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {(formData.content || '').length} characters
-                  </p>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-gray-500">
+                      {(formData.content || '').length} characters
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Reading time: {calculateReadingTime(formData.content || '')} min
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

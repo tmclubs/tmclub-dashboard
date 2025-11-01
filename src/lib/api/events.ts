@@ -1,5 +1,7 @@
 import { apiClient } from './client';
 import { Event, EventFormData, EventRegistration } from '@/types/api';
+import { FileUploadResult } from '@/lib/utils/file-upload';
+import { filesApi } from './files';
 
 export const eventsApi = {
   // Get all events
@@ -44,7 +46,11 @@ export const eventsApi = {
 
   // Get event QR code
   async getEventQRCode(eventId: number): Promise<{ qr_code: string }> {
-    return apiClient.get(`/event/${eventId}/qrcode/`);
+    const response = await apiClient.get(`/event/${eventId}/qrcode/`) as { qr_url: string };
+    // Backend returns qr_url, but frontend expects qr_code
+    return {
+      qr_code: response.qr_url
+    };
   },
 
   // Get event registrants
@@ -82,6 +88,11 @@ export const eventsApi = {
     return apiClient.post(`/event/${eventId}/upload-media/`, { files: fileIds });
   },
 
+  // Upload main image untuk event
+  async uploadMainImage(file: File, caption?: string): Promise<FileUploadResult> {
+    return filesApi.uploadMainImage(file, caption);
+  },
+
   // Set surveys for event
   async setEventSurveys(eventId: number, surveyIds: number[]): Promise<void> {
     return apiClient.post(`/event/${eventId}/survey-set/`, { surveys: surveyIds });
@@ -90,5 +101,53 @@ export const eventsApi = {
   // Get event surveys
   async getEventSurveys(eventId: number): Promise<any[]> {
     return apiClient.get(`/event/${eventId}/survey-list/`);
+  },
+
+  // Get survey responses for event
+  async getEventSurveyResponses(eventId: number): Promise<any[]> {
+    return apiClient.get(`/event/${eventId}/survey-list-response/`);
+  },
+
+  // Send survey to participants
+  async sendEventSurvey(eventId: number): Promise<void> {
+    return apiClient.post(`/event/${eventId}/survey-send/`);
+  },
+
+  // Mark event as done
+  async setEventDone(eventId: number): Promise<void> {
+    return apiClient.post(`/event/${eventId}/set-done/`);
+  },
+
+  // Event reference management
+  async createEventReference(eventId: number, referenceData: any): Promise<any> {
+    return apiClient.post(`/event/${eventId}/create-event-reference/`, referenceData);
+  },
+
+  async getEventReferences(eventId: number): Promise<any[]> {
+    return apiClient.get(`/event/${eventId}/list-event-reference/`);
+  },
+
+  async updateEventReference(eventId: number, referenceId: number, referenceData: any): Promise<any> {
+    return apiClient.patch(`/event/${eventId}/update-event-reference/`, { 
+      reference_id: referenceId, 
+      ...referenceData 
+    });
+  },
+
+  async deleteEventReference(eventId: number, referenceId: number): Promise<void> {
+    return apiClient.delete(`/event/${eventId}/delete-event-reference/?reference_id=${referenceId}`);
+  },
+
+  // PIC registration management
+  async registerParticipantByPIC(eventId: number, participantData: any): Promise<void> {
+    return apiClient.post(`/event/${eventId}/registration-pic/`, participantData);
+  },
+
+  async getRegistrantsByPIC(eventId: number): Promise<any[]> {
+    return apiClient.get(`/event/${eventId}/register-list-by-pic/`);
+  },
+
+  async deleteRegistration(eventId: number, registrationId: number): Promise<void> {
+    return apiClient.delete(`/event/${eventId}/registration-delete/?registration_id=${registrationId}`);
   },
 };

@@ -59,12 +59,22 @@ export const apiClient = {
     let token = getAuthTokenSync();
 
     // If no token or token is expired, try to refresh
-    if (!token || tokenManager.isTokenExpired(token)) {
+    if (!token) {
       try {
         token = await getAuthToken();
       } catch (error) {
         // Token refresh failed, proceed without auth for public endpoints
         console.warn('Token refresh failed, proceeding without authentication:', error);
+      }
+    } else {
+      // Check if token is expired using the token manager instance
+      try {
+        const manager = await getTokenManagerInstance();
+        if (manager && manager.isTokenExpired()) {
+          token = await getAuthToken();
+        }
+      } catch (error) {
+        console.warn('Token expiry check failed, proceeding with current token:', error);
       }
     }
 
@@ -112,28 +122,49 @@ export const apiClient = {
           }
 
           // Auto logout on 401 response
+          console.log('401 Unauthorized - clearing tokens and redirecting to login');
           logout();
           throw new ApiError('Session expired. Please login again.', 401);
         }
+
+        if (response.status === 403) {
+          // Handle forbidden access - token might be invalid
+          console.log('403 Forbidden - clearing tokens and redirecting to login');
+          logout();
+          throw new ApiError('Access denied. Please login again.', 403);
+        }
+
         const errorText = await response.text();
         throw new ApiError(`HTTP ${response.status}: ${errorText}`, response.status);
       }
 
-      const result: TMCResponse<T> = await response.json();
+      const result = await response.json();
 
-      // Handle TMC API response format
-      if (result.status === 'error') {
-        // Use specific error message based on error code if available
-        const errorMessage = result.code && isErrorCode(result.code) 
-          ? getAuthErrorMessage(result.code)
-          : (result.message?.id || result.message?.en || 'API Error');
-        throw new Error(errorMessage);
+      // Handle different response formats
+      // Check if it's a TMCResponse format with status and data properties
+      if (result && typeof result === 'object' && 'status' in result) {
+        const tmcResult = result as TMCResponse<T>;
+        
+        // Handle TMC API response format
+        if (tmcResult.status === 'error') {
+          // Use specific error message based on error code if available
+          const errorMessage = tmcResult.code && isErrorCode(tmcResult.code) 
+            ? getAuthErrorMessage(tmcResult.code)
+            : (tmcResult.message?.id || tmcResult.message?.en || 'API Error');
+          throw new Error(errorMessage);
+        }
+
+        // Update activity on successful request
+        tokenManager.updateLastActivity();
+
+        return tmcResult.data;
+      } else {
+        // Handle direct response (e.g., arrays or objects without TMC wrapper)
+        // Update activity on successful request
+        tokenManager.updateLastActivity();
+
+        return result as T;
       }
-
-      // Update activity on successful request
-      tokenManager.updateLastActivity();
-
-      return result.data;
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -177,7 +208,7 @@ export const apiClient = {
   // File upload (formdata)
   async upload<T>(endpoint: string, formData: FormData): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = getAuthToken();
+    const token = await getAuthToken();
 
     const response = await fetch(url, {
       method: 'POST',
@@ -269,7 +300,13 @@ export const logout = (): void => {
 
   // Clear any session data
   if (typeof window !== 'undefined') {
+    // Get current path for return URL (exclude login page)
+    const currentPath = window.location.pathname;
+    const returnUrl = currentPath !== '/login' && currentPath !== '/' 
+      ? `?returnUrl=${encodeURIComponent(currentPath)}` 
+      : '';
+    
     // Force reload to clear any in-memory state
-    window.location.href = '/login';
+    window.location.href = `/login${returnUrl}`;
   }
 };

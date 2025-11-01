@@ -1,44 +1,19 @@
 import React from 'react';
-import { Calendar, MapPin, Users, Eye, Edit, Trash2, Wifi, Monitor, Map } from 'lucide-react';
+import { Calendar, MapPin, Users, Eye, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { formatDate } from '@/lib/utils/date';
+import { Event } from '@/types/api';
 
 export interface EventCardProps {
-  event: {
-    id: string;
-    title: string;
-    description: string;
-    date: string;
-    venue: string;
-    price: number;
-    isFree: boolean;
-    eventType: 'offline' | 'online' | 'hybrid';
-    maxParticipants?: number;
-    currentRegistrants?: number;
-    mainImage?: {
-      id: string;
-      image: string;
-      caption?: string;
-    };
-    isRegistrationClose: boolean;
-    isPast: boolean;
-    organizer?: {
-      id: string;
-      name: string;
-      avatar?: string;
-    };
-    rating?: number;
-    reviewsCount?: number;
-    status: 'draft' | 'published' | 'cancelled';
-  };
+  event: Event;
   variant?: 'default' | 'compact' | 'featured' | 'grid';
   showActions?: boolean;
   showOrganizer?: boolean;
-  onView?: (event: any) => void;
-  onEdit?: (event: any) => void;
-  onDelete?: (event: any) => void;
-  onRegister?: (event: any) => void;
+  onView?: (event: Event) => void;
+  onEdit?: (event: Event) => void;
+  onDelete?: (event: Event) => void;
+  onRegister?: (event: Event) => void;
   className?: string;
 }
 
@@ -53,53 +28,52 @@ export const EventCard: React.FC<EventCardProps> = ({
   onRegister,
   className,
 }) => {
-  const getEventTypeIcon = (type: string) => {
-    switch (type) {
-      case 'online': return <Wifi className="w-4 h-4" />;
-      case 'offline': return <Map className="w-4 h-4" />;
-      case 'hybrid': return <Monitor className="w-4 h-4" />;
-      default: return <MapPin className="w-4 h-4" />;
-    }
+  const getEventTypeIcon = () => {
+    // Since we don't have eventType anymore, we'll use default icon
+    return <MapPin className="w-4 h-4" />;
   };
 
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'online': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'offline': return 'bg-green-100 text-green-800 border-green-200';
-      case 'hybrid': return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const getEventTypeColor = (level?: string) => {
+    // Map level to colors
+    if (!level) return 'bg-gray-100 text-gray-800 border-gray-200';
+    const lowerLevel = level.toLowerCase();
+    if (lowerLevel.includes('beginner')) return 'bg-green-100 text-green-800 border-green-200';
+    if (lowerLevel.includes('intermediate')) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    if (lowerLevel.includes('advanced')) return 'bg-red-100 text-red-800 border-red-200';
+    return 'bg-blue-100 text-blue-800 border-blue-200';
   };
 
-  const getStatusColor = (status: string, isPast: boolean) => {
+  const getStatusColor = (isRegistrationClose: boolean, isPast?: boolean) => {
     if (isPast) return 'bg-gray-100 text-gray-800 border-gray-200';
-    if (status === 'cancelled') return 'bg-red-100 text-red-800 border-red-200';
-    if (status === 'draft') return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    if (isRegistrationClose) return 'bg-red-100 text-red-800 border-red-200';
     return 'bg-green-100 text-green-800 border-green-200';
   };
 
   const isGrid = variant === 'grid';
   const isCompact = variant === 'compact';
+  const isPast = new Date(event.date) < new Date();
 
   if (isGrid) {
     return (
       <Card className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 overflow-hidden", className)}>
         {/* Image Section */}
-        {event.mainImage ? (
+        {event.main_image_url ? (
           <div className="relative h-48 overflow-hidden">
             <img
-              src={event.mainImage.image}
+              src={event.main_image_url}
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-black bg-opacity-40" />
             <div className="absolute top-3 left-3 flex gap-2">
-              <Badge className={cn("text-xs border backdrop-blur-sm", getEventTypeColor(event.eventType))}>
-                {getEventTypeIcon(event.eventType)}
-                <span className="ml-1 capitalize">{event.eventType}</span>
-              </Badge>
-              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(event.status, event.isPast))}>
-                {event.isPast ? 'Past' : event.status}
+              {event.level && (
+                <Badge className={cn("text-xs border backdrop-blur-sm", getEventTypeColor(event.level))}>
+                  {getEventTypeIcon()}
+                  <span className="ml-1">{event.level}</span>
+                </Badge>
+              )}
+              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(event.is_registration_close, isPast))}>
+                {isPast ? 'Past' : event.is_registration_close ? 'Closed' : 'Open'}
               </Badge>
             </div>
           </div>
@@ -107,12 +81,14 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="h-48 bg-gradient-to-br from-orange-400 to-pink-400 relative">
             <div className="absolute inset-0 bg-black bg-opacity-40" />
             <div className="absolute top-3 left-3 flex gap-2">
-              <Badge className={cn("text-xs border backdrop-blur-sm", getEventTypeColor(event.eventType))}>
-                {getEventTypeIcon(event.eventType)}
-                <span className="ml-1 capitalize">{event.eventType}</span>
-              </Badge>
-              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(event.status, event.isPast))}>
-                {event.isPast ? 'Past' : event.status}
+              {event.level && (
+                <Badge className={cn("text-xs border backdrop-blur-sm", getEventTypeColor(event.level))}>
+                  {getEventTypeIcon()}
+                  <span className="ml-1">{event.level}</span>
+                </Badge>
+              )}
+              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(event.is_registration_close, isPast))}>
+                {isPast ? 'Past' : event.is_registration_close ? 'Closed' : 'Open'}
               </Badge>
             </div>
           </div>
@@ -142,285 +118,220 @@ export const EventCard: React.FC<EventCardProps> = ({
               <div className="flex items-center gap-2">
                 <span className={cn(
                   "font-semibold",
-                  event.isFree ? "text-green-600" : "text-orange-600"
+                  event.is_free ? "text-green-600" : "text-orange-600"
                 )}>
-                  {event.isFree ? 'Free' : `Rp ${event.price.toLocaleString()}`}
+                  {event.is_free ? 'Free' : `Rp ${(event.price || 0).toLocaleString()}`}
                 </span>
               </div>
-              {event.currentRegistrants !== undefined && (
-                <div className="flex items-center gap-1 text-sm text-gray-600">
+              {event.registrant_count !== undefined && (
+                <div className="flex items-center gap-1 text-sm text-gray-500">
                   <Users className="w-4 h-4" />
-                  <span>{event.currentRegistrants}</span>
-                  {event.maxParticipants && (
-                    <span className="text-gray-400">/{event.maxParticipants}</span>
-                  )}
+                  <span>{event.registrant_count}</span>
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            {showActions && (
-              <div className="flex gap-2 pt-3 border-t">
+            <div className="flex gap-2 pt-2">
+              {onView && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onView?.(event)}
+                  onClick={() => onView(event)}
                   className="flex-1"
                 >
                   <Eye className="w-4 h-4 mr-1" />
                   View
                 </Button>
-                {onEdit && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEdit(event)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onDelete(event)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {/* Register Button */}
-            {onRegister && !event.isPast && !event.isRegistrationClose && (
-              <Button
-                size="sm"
-                onClick={() => onRegister(event)}
-                className="w-full mt-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium"
-              >
-                Register Now
-              </Button>
-            )}
+              )}
+              {onRegister && !isPast && !event.is_registration_close && (
+                <Button
+                  size="sm"
+                  onClick={() => onRegister(event)}
+                  className="flex-1 bg-orange-500 hover:bg-orange-600"
+                >
+                  Register
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (isCompact) {
-    return (
-      <Card className={cn("hover:shadow-md transition-shadow", className)}>
-        <CardContent className="p-4">
-          <div className="flex gap-4">
-            {event.mainImage ? (
+  // Default/Compact/Featured variants
+  return (
+    <Card className={cn(
+      "group hover:shadow-lg transition-all duration-300 border-gray-200",
+      isCompact ? "p-4" : "overflow-hidden",
+      className
+    )}>
+      <div className={cn(
+        "flex",
+        isCompact ? "gap-4" : "flex-col md:flex-row"
+      )}>
+        {/* Image Section */}
+        {!isCompact && (
+          <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
+            {event.main_image_url ? (
               <img
-                src={event.mainImage.image}
+                src={event.main_image_url}
                 alt={event.title}
-                className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
-              <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-orange-400 to-pink-400 flex-shrink-0" />
+              <div className="w-full h-full bg-gradient-to-br from-orange-400 to-pink-400" />
             )}
+            <div className="absolute top-3 left-3 flex gap-2">
+              {event.level && (
+                <Badge className={cn("text-xs border backdrop-blur-sm", getEventTypeColor(event.level))}>
+                  {getEventTypeIcon()}
+                  <span className="ml-1">{event.level}</span>
+                </Badge>
+              )}
+              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(event.is_registration_close, isPast))}>
+                {isPast ? 'Past' : event.is_registration_close ? 'Closed' : 'Open'}
+              </Badge>
+            </div>
+          </div>
+        )}
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 line-clamp-1">
+        {/* Content Section */}
+        <CardContent className={cn(
+          "flex-1",
+          isCompact ? "p-0" : "p-6"
+        )}>
+          <div className="h-full flex flex-col justify-between">
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className={cn(
+                    "font-semibold text-gray-900 group-hover:text-orange-600 transition-colors",
+                    isCompact ? "text-base line-clamp-1" : "text-xl line-clamp-2"
+                  )}>
                     {event.title}
                   </h3>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>{formatDate(event.date)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      <span className="line-clamp-1">{event.venue}</span>
-                    </div>
-                  </div>
+                  {isCompact && event.level && (
+                    <Badge className={cn("text-xs flex-shrink-0", getEventTypeColor(event.level))}>
+                      {event.level}
+                    </Badge>
+                  )}
                 </div>
 
-                <div className="flex gap-1">
-                  <Badge className={cn("text-xs", getEventTypeColor(event.eventType))}>
-                    {event.eventType}
-                  </Badge>
-                  <Badge className={cn("text-xs", getStatusColor(event.status, event.isPast))}>
-                    {event.isPast ? 'Past' : event.status}
-                  </Badge>
-                </div>
+                {!isCompact && (
+                  <p className="text-gray-600 line-clamp-2">
+                    {event.description}
+                  </p>
+                )}
               </div>
 
-              <div className="flex items-center justify-between mt-3">
-                <span className={cn(
-                  "font-semibold text-sm",
-                  event.isFree ? "text-green-600" : "text-orange-600"
-                )}>
-                  {event.isFree ? 'Free' : `Rp ${event.price.toLocaleString()}`}
-                </span>
+              {/* Event Details */}
+              <div className={cn(
+                "space-y-2 text-sm text-gray-600",
+                isCompact && "space-y-1"
+              )}>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                  <span className="font-medium">{formatDate(event.date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className={cn(isCompact ? "line-clamp-1" : "line-clamp-2")}>
+                    {event.venue}
+                  </span>
+                </div>
+                {event.registrant_count !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span>{event.registrant_count} registered</span>
+                  </div>
+                )}
+              </div>
 
+              {/* Organizer */}
+              {showOrganizer && event.owned_by_email && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Avatar className="w-8 h-8">
+                    <span className="text-xs font-medium">
+                      {event.owned_by_email.charAt(0).toUpperCase()}
+                    </span>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {event.owned_by_email.split('@')[0]}
+                    </p>
+                    <p className="text-xs text-gray-500">Organizer</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className={cn(
+              "flex items-center justify-between",
+              isCompact ? "mt-2" : "mt-6"
+            )}>
+              <div className="flex items-center gap-4">
+                <span className={cn(
+                  "font-semibold",
+                  event.is_free ? "text-green-600" : "text-orange-600",
+                  isCompact ? "text-sm" : "text-lg"
+                )}>
+                  {event.is_free ? 'Free' : `Rp ${(event.price || 0).toLocaleString()}`}
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
                 {showActions && (
-                  <div className="flex gap-1">
+                  <>
                     {onEdit && (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => onEdit(event)}
-                        className="h-8 w-8 p-0"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                     )}
                     {onDelete && (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => onDelete(event)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:border-red-300"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     )}
-                  </div>
+                  </>
+                )}
+                {onView && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onView(event)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                )}
+                {onRegister && !isPast && !event.is_registration_close && (
+                  <Button
+                    size="sm"
+                    onClick={() => onRegister(event)}
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
+                    Register
+                  </Button>
                 )}
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
-    );
-  }
-
-  // Featured/Default variant
-  return (
-    <Card className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200", className)}>
-      <CardContent className="p-6">
-        <div className="flex gap-6">
-          {/* Image */}
-          {event.mainImage ? (
-            <div className="flex-shrink-0">
-              <img
-                src={event.mainImage.image}
-                alt={event.title}
-                className="w-32 h-32 rounded-xl object-cover"
-              />
-            </div>
-          ) : (
-            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-orange-400 to-pink-400 flex-shrink-0" />
-          )}
-
-          <div className="flex-1 min-w-0">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className={cn("text-xs", getEventTypeColor(event.eventType))}>
-                    {getEventTypeIcon(event.eventType)}
-                    <span className="ml-1 capitalize">{event.eventType}</span>
-                  </Badge>
-                  <Badge className={cn("text-xs", getStatusColor(event.status, event.isPast))}>
-                    {event.isPast ? 'Past' : event.status}
-                  </Badge>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 line-clamp-2 group-hover:text-orange-600 transition-colors">
-                  {event.title}
-                </h3>
-              </div>
-
-              {showActions && (
-                <div className="flex gap-2 flex-shrink-0">
-                  {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(event)}
-                      className="h-9 w-9 p-0"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDelete(event)}
-                      className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-600 line-clamp-2 mb-4 text-sm">
-              {event.description}
-            </p>
-
-            {/* Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-orange-500" />
-                <span className="font-medium">{formatDate(event.date)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="line-clamp-1">{event.venue}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span className={cn(
-                  "font-semibold",
-                  event.isFree ? "text-green-600" : "text-orange-600"
-                )}>
-                  {event.isFree ? 'Free' : `Rp ${event.price.toLocaleString()}`}
-                </span>
-              </div>
-              {event.currentRegistrants !== undefined && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="w-4 h-4 text-blue-500" />
-                  <span>{event.currentRegistrants} registered</span>
-                </div>
-              )}
-            </div>
-
-            {/* Organizer */}
-            {showOrganizer && event.organizer && (
-              <div className="flex items-center gap-2 mb-4">
-                <Avatar
-                  src={event.organizer.avatar}
-                  name={event.organizer.name}
-                  size="sm"
-                />
-                <span className="text-sm text-gray-600">by {event.organizer.name}</span>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-3">
-              {onView && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onView(event)}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
-                </Button>
-              )}
-              {onRegister && !event.isPast && !event.isRegistrationClose && (
-                <Button
-                  size="sm"
-                  onClick={() => onRegister(event)}
-                  className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium"
-                >
-                  Register Now
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

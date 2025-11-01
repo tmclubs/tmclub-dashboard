@@ -58,3 +58,6 @@ export type { EmptyStateProps } from './EmptyState';
 export { MobileGrid } from './MobileGrid';
 
 export { BottomNavigation } from './BottomNavigation';
+
+export { default as ComingSoon } from './ComingSoon';
+export type { ComingSoonProps } from './ComingSoon';
