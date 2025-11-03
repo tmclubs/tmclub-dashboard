@@ -6,7 +6,8 @@ export { EventForm } from './EventForm';
 export type { EventFormProps } from './EventForm';
 
 export { EventList } from './EventList';
-export type { EventListProps, Event } from './EventList';
+export type { EventListProps } from './EventList';
+export type { Event } from '@/types/api';
 
 export { EventRegistration } from './EventRegistration';
 export type { EventRegistrationProps } from './EventRegistration';

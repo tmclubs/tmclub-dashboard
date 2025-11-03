@@ -152,7 +152,7 @@ export const BlogPage: React.FC = () => {
   };
 
   const handleArticleSubmit = async (data: BlogFormData) => {
-    let apiPayload = toApiPayload(data);
+    const apiPayload = toApiPayload(data);
 
     // Upload featured image first if a new file is provided
     if (data.featuredImageFile) {

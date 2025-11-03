@@ -122,7 +122,7 @@ export interface SearchInputProps extends Omit<InputProps, 'leftIcon'> {
 }
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ onSearch, loading, ...props }, ref) => {
+  ({ onSearch, ...props }, ref) => {
     const [query, setQuery] = React.useState(String(props.defaultValue || ''));
 
     const handleSubmit = (e: React.FormEvent) => {

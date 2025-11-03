@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { UserProfile } from '@/types/api';
 import { setTokens, clearTokens } from '@/lib/auth/token-manager';
+import { env } from '@/lib/config/env';
 
 export interface AuthState {
   user: UserProfile | null;
@@ -36,7 +37,11 @@ export const useAuthStore = create<AuthState>()(
             password: credentials.password,
           };
 
-          const response = await fetch(`/api/authentication/manual-login/`, {
+          const loginUrl = `${env.apiUrl}/authentication/manual-login/`;
+          console.log('AuthStore: Attempting login to:', loginUrl);
+          console.log('AuthStore: Login data:', { username: loginData.username, password: '[REDACTED]' });
+
+          const response = await fetch(loginUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -44,7 +49,35 @@ export const useAuthStore = create<AuthState>()(
             body: JSON.stringify(loginData),
           });
 
-          const apiResponse = await response.json();
+          // Check if response is ok before parsing JSON
+          if (!response.ok) {
+            console.error('AuthStore: HTTP Error:', {
+              status: response.status,
+              statusText: response.statusText,
+              url: response.url
+            });
+
+            // Try to get error message from response body
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.message?.en || errorData.message?.id || errorMessage;
+            } catch (jsonError) {
+              // Response body is not JSON, use HTTP status
+              console.warn('AuthStore: Could not parse error response as JSON:', jsonError);
+            }
+
+            throw new Error(errorMessage);
+          }
+
+          // Parse successful response
+          let apiResponse;
+          try {
+            apiResponse = await response.json();
+          } catch (jsonError) {
+            console.error('AuthStore: Failed to parse successful response as JSON:', jsonError);
+            throw new Error('Invalid response format from server');
+          }
           
           console.log('AuthStore: Response dari API:', {
             httpStatus: response.status,

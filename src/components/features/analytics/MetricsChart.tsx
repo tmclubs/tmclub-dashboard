@@ -70,7 +70,7 @@ export const MetricsChart: React.FC<MetricsChartProps> = ({
           </div>
         );
 
-      case 'pie':
+      case 'pie': {
         const total = data.reduce((sum, point) => sum + point.value, 0);
         return (
           <div className="flex items-center gap-8">
@@ -113,6 +113,7 @@ export const MetricsChart: React.FC<MetricsChartProps> = ({
             </div>
           </div>
         );
+      }
 
       default:
         return null;

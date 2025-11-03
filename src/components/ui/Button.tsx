@@ -25,11 +25,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      xs: 'h-8 px-2 py-1 text-xs min-w-[2rem]',
-      sm: 'h-9 px-3 py-2 text-sm min-w-[2.25rem]',
-      default: 'h-10 px-4 py-2 text-sm sm:text-base min-w-[2.5rem]',
-      lg: 'h-11 px-6 sm:px-8 py-2 text-base min-w-[2.75rem]',
-      icon: 'h-10 w-10 min-w-[2.5rem] p-0',
+      xs: 'h-11 px-3 py-2 text-xs min-w-[3rem] sm:h-8 sm:px-2 sm:py-1 sm:min-w-[2rem]', // Mobile 44px, desktop 32px
+      sm: 'h-12 px-4 py-2 text-sm min-w-[3rem] sm:h-9 sm:px-3 sm:min-w-[2.25rem]',  // Mobile 48px, desktop 36px
+      default: 'h-12 px-4 py-3 text-sm sm:text-base min-w-[4rem] sm:h-10 sm:py-2 sm:min-w-[2.5rem]', // Mobile 48px, desktop 40px
+      lg: 'h-14 px-6 py-3 text-base min-w-[4rem] sm:h-11 sm:px-6 sm:py-2 sm:min-w-[2.75rem]', // Mobile 56px, desktop 44px
+      icon: 'h-12 w-12 min-w-[3rem] p-0 sm:h-10 sm:w-10 sm:min-w-[2.5rem]', // Mobile 48px, desktop 40px
     };
 
     const widthClass = fullWidth ? 'w-full' : '';

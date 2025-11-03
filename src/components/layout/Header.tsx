@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, User, Menu, ChevronDown, LogOut, Settings, UserIcon } from 'lucide-react';
+import { Bell, Menu, ChevronDown, LogOut, Settings, UserIcon } from 'lucide-react';
 import { Button, Badge, Avatar } from '@/components/ui';
 import { useAuth, useLogout } from '@/lib/hooks/useAuth';
 import { useUnreadNotificationCount } from '@/lib/hooks/useNotifications';

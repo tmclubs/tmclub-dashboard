@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getTokenManager } from '../auth/token-manager';
 import { isAuthenticated as checkAuthentication } from '../api/client';
 
@@ -34,7 +34,6 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
   } = options;
 
   const navigate = useNavigate();
-  const location = useLocation();
   const tokenManager = getTokenManager();
   
   // Use refs for stable references

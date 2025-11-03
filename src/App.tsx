@@ -17,6 +17,8 @@ import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { OAuthCallback } from './pages/auth/OAuthCallback';
 import { NotFound } from './pages/NotFound';
+import { MarkdownTest } from './components/test/MarkdownTest';
+import { BlogDetailTest } from './components/test/BlogDetailTest';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/callback" element={<OAuthCallback />} />
+        <Route path="/test/markdown" element={<MarkdownTest />} />
+        <Route path="/test/blog-detail" element={<BlogDetailTest />} />
         <Route path="/" element={
           <ProtectedRoute>
             <Layout />

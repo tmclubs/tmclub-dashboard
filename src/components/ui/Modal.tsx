@@ -27,6 +27,8 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
 }) => {
   const modalRef = React.useRef<HTMLDivElement>(null);
+  const firstFocusableRef = React.useRef<HTMLElement | null>(null);
+  const lastFocusableRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -35,13 +37,61 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
 
+    // Focus management - set focus to first focusable element when modal opens
+    const setInitialFocus = () => {
+      if (modalRef.current && open) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>;
+
+        if (focusableElements.length > 0) {
+          firstFocusableRef.current = focusableElements[0];
+          lastFocusableRef.current = focusableElements[focusableElements.length - 1];
+          firstFocusableRef.current.focus();
+        }
+      }
+    };
+
+    // Focus trap - keep focus within modal
+    const handleTabKey = (event: KeyboardEvent) => {
+      if (event.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>;
+
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey) {
+          // Shift + Tab
+          if (document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          // Tab
+          if (document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
     if (open) {
       document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleTabKey);
       document.body.style.overflow = 'hidden';
+
+      // Set initial focus after a small delay to ensure DOM is ready
+      setTimeout(setInitialFocus, 100);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleTabKey);
       document.body.style.overflow = 'unset';
     };
   }, [open, onClose, preventClose]);
@@ -63,12 +113,19 @@ export const Modal: React.FC<ModalProps> = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-[60] overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
+      aria-describedby={description ? 'modal-description' : undefined}
+    >
       <div className="flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
           onClick={handleBackdropClick}
+          aria-hidden="true"
         />
 
         {/* Modal */}
@@ -84,10 +141,10 @@ export const Modal: React.FC<ModalProps> = ({
             <div className="flex items-center justify-between p-3 sm:p-4 lg:p-6 border-b border-gray-200">
               <div className="flex-1 min-w-0 pr-2">
                 {title && (
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">{title}</h2>
+                  <h2 id="modal-title" className="text-lg sm:text-xl font-semibold text-gray-900 truncate">{title}</h2>
                 )}
                 {description && (
-                  <p className="mt-1 text-sm sm:text-base text-gray-600 line-clamp-2">{description}</p>
+                  <p id="modal-description" className="mt-1 text-sm sm:text-base text-gray-600 line-clamp-2">{description}</p>
                 )}
               </div>
               {showCloseButton && (
