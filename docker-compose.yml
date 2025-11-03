@@ -12,7 +12,7 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:1338
+      - VITE_API_URL=https://api.tmclub.id
     volumes:
       - .:/app
       - /app/node_modules

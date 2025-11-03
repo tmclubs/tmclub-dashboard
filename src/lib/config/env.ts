@@ -101,7 +101,7 @@ const getEnvEnum = <T extends string>(
 // Export validated environment configuration
 export const env: EnvConfig = {
   // API Configuration
-  apiUrl: getEnvVar('VITE_API_URL', 'http://localhost:8000'),
+  apiUrl: getEnvVar('VITE_API_URL', 'https://api.tmclub.id'),
   apiVersion: getEnvVar('VITE_API_VERSION', 'v1'),
   appUrl: getEnvVar('VITE_APP_URL', 'http://localhost:5173'),
   apiTimeout: getEnvNumber('VITE_API_TIMEOUT', 10000),

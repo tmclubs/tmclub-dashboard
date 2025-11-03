@@ -13,7 +13,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://api.tmclub.id',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
