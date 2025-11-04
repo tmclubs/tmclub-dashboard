@@ -48,6 +48,13 @@ const getAuthTokenSync = (): string | null => {
 };
 
 // API Client with TMC response format handling
+// Request deduplication cache
+const pendingRequests = new Map<string, Promise<any>>();
+
+const createRequestKey = (endpoint: string, method: string, data?: any): string => {
+  return `${method}:${endpoint}:${data ? JSON.stringify(data) : ''}`;
+};
+
 export const apiClient = {
   async request<T>(
     endpoint: string,
@@ -184,12 +191,31 @@ export const apiClient = {
     return this.request<T>(endpoint, { method: 'GET' });
   },
 
-  // POST request
+  // POST request with deduplication
   async post<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
+    const requestKey = createRequestKey(endpoint, 'POST', data);
+    
+    // Check if the same request is already pending
+    if (pendingRequests.has(requestKey)) {
+      console.log('Deduplicating POST request:', endpoint);
+      return pendingRequests.get(requestKey);
+    }
+    
+    // Create new request
+    const requestPromise = this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     });
+    
+    // Store in pending requests
+    pendingRequests.set(requestKey, requestPromise);
+    
+    // Clean up after request completes (success or failure)
+    requestPromise.finally(() => {
+      pendingRequests.delete(requestKey);
+    });
+    
+    return requestPromise;
   },
 
   // PATCH request

@@ -143,12 +143,26 @@ export const EventForm: React.FC<EventFormProps> = ({
     setUploadProgress(0);
   };
 
+  // Add request deduplication
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (loading) return;
+    // Prevent double submission
+    if (loading || isSubmitting) {
+      console.log('Form submission blocked - already in progress');
+      return;
+    }
     
     setLoading(true);
+    setIsSubmitting(true);
+    
+    // Clear any existing timeout
+    if (submitTimeoutRef.current) {
+      clearTimeout(submitTimeoutRef.current);
+    }
     
     try {
       let result: Event;
@@ -173,8 +187,22 @@ export const EventForm: React.FC<EventFormProps> = ({
       // You can add toast notification here if available
     } finally {
       setLoading(false);
+      
+      // Reset submission state after a delay to prevent rapid resubmission
+      submitTimeoutRef.current = setTimeout(() => {
+        setIsSubmitting(false);
+      }, 2000);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (submitTimeoutRef.current) {
+        clearTimeout(submitTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -466,18 +494,21 @@ export const EventForm: React.FC<EventFormProps> = ({
       <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
         <Button
           type="submit"
-          loading={loading}
-          disabled={loading}
-          className="w-full sm:flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium py-3"
+          loading={loading || isSubmitting}
+          disabled={loading || isSubmitting}
+          className="w-full sm:flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {event ? 'Update Event' : 'Create Event'}
+          {loading || isSubmitting 
+            ? (event ? 'Updating...' : 'Creating...') 
+            : (event ? 'Update Event' : 'Create Event')
+          }
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
-          disabled={loading}
-          className="w-full sm:w-auto"
+          disabled={loading || isSubmitting}
+          className="w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
         </Button>
