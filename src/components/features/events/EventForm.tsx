@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, MapPin, DollarSign, Upload, X, Loader2 } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, Textarea } from '@/components/ui';
+import { formatEventPrice } from '@/lib/utils/money';
+import { toISOWithLocalOffset } from '@/lib/utils/date';
 import { EventFormData, Event } from '@/types/api';
 import { validateFile, createImagePreview, cleanupImagePreview } from '@/lib/utils/file-upload';
 import { eventsApi } from '@/lib/api/events';
@@ -145,7 +147,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   // Add request deduplication
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const submitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const submitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,21 +167,34 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
     
     try {
-      let result: Event;
-      
-      if (mode === 'edit' && event?.pk) {
-        // Update existing event
-        result = await eventsApi.updateEvent(event.pk, formData);
-      } else {
-        // Create new event
-        result = await eventsApi.createEvent(formData);
+      // Normalisasi payload sesuai status gratis/berbayar
+      const payload: EventFormData = {
+        ...formData,
+        is_free: !!formData.is_free,
+        price: formData.is_free ? 0 : Number(formData.price || 0),
+        billing_deadline: formData.is_free ? undefined : (formData.billing_deadline ?? undefined),
+        // Pastikan date dikirim dalam ISO (UTC) agar tidak bergeser 7 jam di display
+        date: formData.date ? toISOWithLocalOffset(formData.date) : formData.date,
+      };
+
+      // Jika parent menyediakan onSubmit, delegasikan submit ke parent
+      // agar tidak terjadi pemanggilan API ganda.
+      if (onSubmit) {
+        onSubmit(payload);
+        return;
       }
-      
-      // Call success callback if provided
+
+      // Jika tidak ada onSubmit dari parent, lakukan submit langsung via API
+      let result: Event;
+      if (mode === 'edit' && event?.pk) {
+        result = await eventsApi.updateEvent(event.pk, payload);
+      } else {
+        result = await eventsApi.createEvent(payload);
+      }
+
+      // Panggil onSuccess bila tersedia
       if (onSuccess) {
         onSuccess(result);
-      } else if (onSubmit) {
-        onSubmit(formData);
       }
       
     } catch (error) {
@@ -475,7 +490,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Price</span>
                 <span className="font-medium">
-                  {formData.is_free ? 'Free' : `Rp ${(formData.price || 0).toLocaleString()}`}
+                  {formatEventPrice({ is_free: formData.is_free, price: formData.price })}
                 </span>
               </div>
 

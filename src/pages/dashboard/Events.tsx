@@ -13,6 +13,7 @@ import {
   EventCard,
   EventForm,
   EventRegistration,
+  EventDetail,
   QRScanner
 } from '@/components/features/events';
 import { Event as EventType } from '@/types/api';
@@ -28,6 +29,7 @@ export const EventsPage: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<EventType | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
+  const [showEventDetail, setShowEventDetail] = useState(false);
 
   // API hooks
   const { data: events = [], isLoading, error } = useMyEvents();
@@ -42,9 +44,20 @@ export const EventsPage: React.FC = () => {
     console.log('🔍 Events Debug - Event titles:', events?.map(e => e.title));
   }, [events]);
 
+  // Deduplikasi berdasarkan pk untuk mencegah tampilan event duplikat
+  const uniqueEvents = useMemo(() => {
+    const map = new Map<number, EventType>();
+    events.forEach(e => {
+      if (e?.pk != null && !map.has(e.pk)) {
+        map.set(e.pk, e);
+      }
+    });
+    return Array.from(map.values());
+  }, [events]);
+
   // Enhanced filtering with search functionality
   const filteredEvents = useMemo(() => {
-    return events.filter(event => {
+    return uniqueEvents.filter(event => {
       const isPast = new Date(event.date) < new Date();
       const now = new Date();
       const eventDate = new Date(event.date);
@@ -77,7 +90,7 @@ export const EventsPage: React.FC = () => {
 
       return passesDateFilter && passesSearchFilter;
     });
-  }, [events, filter, searchQuery]);
+  }, [uniqueEvents, filter, searchQuery]);
 
   const handleCreateEvent = () => {
     setSelectedEvent(null);
@@ -103,6 +116,11 @@ export const EventsPage: React.FC = () => {
         }
       });
     }
+  };
+
+  const handleViewEvent = (event: EventType) => {
+    setSelectedEvent(event);
+    setShowEventDetail(true);
   };
 
   const handleRegister = (event: EventType) => {
@@ -135,26 +153,36 @@ export const EventsPage: React.FC = () => {
     isPast: new Date(event.date) < new Date(),
   });
 
-  const handleEventSubmit = (data: any) => {
+  const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
+
+  const handleEventSubmit = async (data: any) => {
+    if (isSubmittingEvent || createEventMutation.isPending || updateEventMutation.isPending) {
+      console.log('🔒 Preventing double submit: mutation in progress');
+      return;
+    }
+    setIsSubmittingEvent(true);
     if (selectedEvent) {
       // Update existing event
-      updateEventMutation.mutate(
-        { eventId: selectedEvent.pk, data },
-        {
-          onSuccess: () => {
-            setShowCreateModal(false);
-            setSelectedEvent(null);
-          }
-        }
-      );
+      try {
+        await updateEventMutation.mutateAsync({ eventId: selectedEvent.pk, data });
+        setShowCreateModal(false);
+        setSelectedEvent(null);
+      } catch (err) {
+        console.error('Update event failed:', err);
+      } finally {
+        setIsSubmittingEvent(false);
+      }
     } else {
       // Create new event
-      createEventMutation.mutate(data, {
-        onSuccess: () => {
-          setShowCreateModal(false);
-          setSelectedEvent(null);
-        }
-      });
+      try {
+        await createEventMutation.mutateAsync(data);
+        setShowCreateModal(false);
+        setSelectedEvent(null);
+      } catch (err) {
+        console.error('Create event failed:', err);
+      } finally {
+        setIsSubmittingEvent(false);
+      }
     }
   };
 
@@ -241,7 +269,7 @@ export const EventsPage: React.FC = () => {
                 event={enhanceEventForCard(event)}
                 variant="grid"
                 showActions={true}
-                onView={() => setSelectedEvent(event)}
+                onView={() => handleViewEvent(event)}
                 onRegister={() => handleRegister(event)}
                 onEdit={() => handleEditEvent(event)}
                 onDelete={() => handleDeleteEvent(event)}
@@ -261,7 +289,7 @@ export const EventsPage: React.FC = () => {
               variant="featured"
               showActions={true}
               showOrganizer={true}
-              onView={() => setSelectedEvent(event)}
+              onView={() => handleViewEvent(event)}
               onRegister={() => handleRegister(event)}
               onEdit={() => handleEditEvent(event)}
               onDelete={() => handleDeleteEvent(event)}
@@ -544,6 +572,36 @@ export const EventsPage: React.FC = () => {
               setSelectedEvent(null);
             }}
             onCancel={() => setShowRegistration(false)}
+          />
+        )}
+      </Modal>
+
+      {/* Event Detail Modal */}
+      <Modal
+        open={showEventDetail}
+        onClose={() => {
+          setShowEventDetail(false);
+          setSelectedEvent(null);
+        }}
+        title=""
+        size="full"
+        showCloseButton={true}
+      >
+        {selectedEvent && (
+          <EventDetail
+            event={enhanceEventForCard(selectedEvent)}
+            onBack={() => {
+              setShowEventDetail(false);
+              setSelectedEvent(null);
+            }}
+            onEdit={(event: EventType) => {
+              setShowEventDetail(false);
+              handleEditEvent(event);
+            }}
+            onDelete={(event: EventType) => {
+              setShowEventDetail(false);
+              handleDeleteEvent(event);
+            }}
           />
         )}
       </Modal>

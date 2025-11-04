@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, Building, Check, AlertCircle, CreditCard } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge } from '@/components/ui';
+import { formatEventDateTime } from '@/lib/utils/date';
+import { formatEventPrice } from '@/lib/utils/money';
 
 export interface EventRegistrationProps {
   event: {
@@ -92,7 +94,7 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
               <div className="mt-4 space-y-2">
                 <div className="flex items-center text-gray-600">
                   <Calendar className="h-4 w-4 mr-2" />
-                  {new Date(event.date).toLocaleString()}
+                  {formatEventDateTime(event.date)}
                 </div>
 
                 <div className="flex items-center text-gray-600">
@@ -109,7 +111,7 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
 
               <div className="mt-4">
                 <Badge variant={event.isFree ? 'success' : 'default'} className="text-sm">
-                  {event.isFree ? 'FREE' : `$${event.price}`}
+                  {event.isFree ? 'FREE' : formatEventPrice({ is_free: false, price: event.price })}
                 </Badge>
 
                 {!canRegister && (
@@ -277,7 +279,7 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Registration Fee:</span>
-                        <span className="text-xl font-bold text-orange-600">${event.price}</span>
+                        <span className="text-xl font-bold text-orange-600">{formatEventPrice({ is_free: event.isFree, price: event.price })}</span>
                       </div>
                       <p className="text-sm text-gray-500 mt-2">
                         Payment will be processed after you complete the registration

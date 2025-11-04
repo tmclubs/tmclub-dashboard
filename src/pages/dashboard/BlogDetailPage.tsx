@@ -24,10 +24,14 @@ export const BlogDetailPage: React.FC = () => {
 
   // Map BlogPost (API) to BlogArticle (UI)
   const mapPostToArticle = (post: BlogPost): BlogArticle => {
+    // Handle owned_by as ID (number) based on API response
+    const computedName = (post.author_name && post.author_name.trim())
+      || 'TMC Admin'; // Fallback since owned_by is just an ID
+
     const author: BlogAuthor = {
-      id: String(post.owned_by?.id || '1'),
-      name: post.owned_by ? `${post.owned_by.first_name || ''} ${post.owned_by.last_name || ''}`.trim() || post.owned_by.username : 'Admin TMC',
-      avatar: '/api/placeholder/100/100',
+      id: String(post.owned_by || '1'),
+      name: computedName,
+      avatar: undefined,
       role: 'Author',
     };
 

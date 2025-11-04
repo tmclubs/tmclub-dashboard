@@ -12,6 +12,9 @@ export type { Event } from '@/types/api';
 export { EventRegistration } from './EventRegistration';
 export type { EventRegistrationProps } from './EventRegistration';
 
+export { EventDetail } from './EventDetail';
+export type { EventDetailProps } from './EventDetail';
+
 export { QRScanner } from './QRScanner';
 export type { QRScannerProps, AttendeeInfo } from './QRScanner';
 

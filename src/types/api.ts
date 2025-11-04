@@ -233,6 +233,9 @@ export interface BlogPost {
   published_at?: string;
   read_time?: number;
   view_count?: number;
+  // Author convenience fields from backend serializer
+  author_name?: string;
+  author_email?: string;
 }
 
 export interface BlogFormData {

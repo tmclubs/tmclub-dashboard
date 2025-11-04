@@ -4,6 +4,8 @@ import { Table, Badge, Button, StatusBadge } from '@/components/ui';
 import { Column } from '@/components/ui/Table';
 import { Event } from '@/types/api';
 import { useExportRegistrants } from '@/lib/hooks/useEvents';
+import { formatEventPrice, formatCurrencyIDR } from '@/lib/utils/money';
+import { formatEventDateTime } from '@/lib/utils/date';
 
 // Extended Column type to allow non-Event keys
 interface ExtendedColumn<T> extends Omit<Column<T>, 'key'> {
@@ -75,14 +77,11 @@ export const EventList: React.FC<EventListProps> = ({
       render: (value) => (
         <div>
           <div className="text-sm text-gray-900">
-            {new Date(value).toLocaleDateString()}
-          </div>
-          <div className="text-xs text-gray-500">
-            {new Date(value).toLocaleTimeString()}
+            {formatEventDateTime(value)}
           </div>
         </div>
       ),
-      width: '150px',
+      width: '180px',
     },
     {
       key: 'venue',
@@ -114,7 +113,7 @@ export const EventList: React.FC<EventListProps> = ({
         <div className="flex items-center">
           <DollarSign className="h-4 w-4 text-gray-400 mr-1" />
           <span className="text-sm text-gray-900">
-            {record.is_free ? 'Free' : `Rp ${record.price?.toLocaleString()}`}
+            {formatEventPrice({ is_free: record.is_free, price: record.price })}
           </span>
         </div>
       ),
@@ -300,7 +299,12 @@ export const EventList: React.FC<EventListProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Revenue</p>
               <p className="text-2xl font-bold text-gray-900">
-                Rp {events.reduce((sum, event) => sum + (event.is_free ? 0 : (event.price || 0) * (event.registrant_count || 0)), 0).toLocaleString()}
+                {formatCurrencyIDR(
+                  events.reduce(
+                    (sum, event) => sum + (event.is_free ? 0 : (event.price || 0) * (event.registrant_count || 0)),
+                    0
+                  )
+                )}
               </p>
             </div>
           </div>

@@ -1,105 +1,80 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
-  Upload,
   X,
   Eye,
   Save,
-  Plus,
   Image as ImageIcon,
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
-import { type BlogArticle, type BlogCategory } from './BlogArticleCard';
+import { Button, Input, Textarea } from '@/components/ui';
+import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
+import { MarkdownRenderer } from './MarkdownRenderer';
 import { TiptapEditor } from './TiptapEditor';
 
-export interface BlogFormData {
-  title: string;
-  excerpt: string;
-  content: string;
-  featuredImage?: string;
-  // Add optional file for backend upload
-  featuredImageFile?: File;
-  categoryId: string;
-  tags: string[];
-  status: 'draft' | 'published' | 'archived';
-  featured: boolean;
+export interface BlogFormData extends ApiBlogFormData {
+  // For UI state management
+  mainImageFile?: File;
+  previewImage?: string;
 }
 
 export interface BlogFormProps {
-  article?: Partial<BlogArticle>;
-  categories: BlogCategory[];
+  article?: Partial<BlogPost>;
   onSubmit: (data: BlogFormData) => void;
-  onPreview?: (data: BlogFormData) => void;
   loading?: boolean;
   onCancel?: () => void;
   title?: string;
+  mode?: 'create' | 'edit';
 }
 
 export const BlogForm: React.FC<BlogFormProps> = ({
   article,
-  categories,
   onSubmit,
-  onPreview,
   loading = false,
   onCancel,
   title = article ? 'Edit Article' : 'Create New Article',
+  mode = 'create',
 }) => {
   const [formData, setFormData] = useState<BlogFormData>({
     title: article?.title || '',
-    excerpt: article?.excerpt || '',
+    summary: article?.summary || '',
     content: article?.content || '',
-    featuredImage: article?.featuredImage || '',
-    categoryId: article?.category?.id || categories[0]?.id || '',
-    tags: article?.tags || [],
-    status: article?.status || 'draft',
-    featured: article?.featured || false,
+    slug: article?.slug || '',
+    main_image: article?.main_image ? (typeof article.main_image === 'string' ? article.main_image : String(article.main_image)) : undefined,
+    youtube_id: article?.youtube_id || '',
+    albums_id: article?.albums_id || [],
+    mainImageFile: undefined,
+    previewImage: article?.main_image_url || '',
   });
 
-  const [newTag, setNewTag] = useState('');
-  const [imagePreview, setImagePreview] = useState<string>(article?.featuredImage || '');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleInputChange = (field: keyof BlogFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      const file = files[0];
-      // store raw File for backend upload in parent
-      setFormData(prev => ({ ...prev, featuredImageFile: file }));
+    const file = e.target.files?.[0];
+    if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setFormData(prev => ({ ...prev, featuredImage: result }));
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          mainImageFile: file,
+          previewImage: reader.result as string,
+        }));
       };
       reader.readAsDataURL(file);
     }
   };
 
   const removeImage = () => {
-    setImagePreview('');
-    setFormData(prev => ({ ...prev, featuredImage: '', featuredImageFile: undefined }));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      mainImageFile: undefined,
+      previewImage: '',
+      main_image: undefined,
     }));
   };
 
@@ -109,283 +84,220 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   };
 
   const handlePreview = () => {
-    onPreview?.(formData);
-  };
-
-
-
-  const calculateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const words = content.trim().split(/\s+/).length;
-    return Math.ceil(words / wordsPerMinute);
+    setShowPreview(true);
   };
 
   return (
-    <div className="w-full space-y-4 sm:space-y-6">
-      <Card>
-        <CardHeader className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-            <CardTitle className="text-lg sm:text-xl truncate">{title}</CardTitle>
-            <div className="flex flex-col sm:flex-row gap-2">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePreview}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Preview
+          </Button>
+          <Button
+            type="submit"
+            form="blog-form"
+            disabled={loading}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {loading ? 'Saving...' : (mode === 'create' ? 'Create' : 'Update')}
+          </Button>
+        </div>
+      </div>
+
+      <form id="blog-form" onSubmit={handleSubmit} className="space-y-6">
+        {/* Title */}
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            Title *
+          </label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => handleInputChange('title', e.target.value)}
+            placeholder="Enter article title"
+            required
+          />
+        </div>
+
+        {/* Summary */}
+        <div>
+          <label htmlFor="summary" className="block text-sm font-medium text-gray-700 mb-2">
+            Summary *
+          </label>
+          <Textarea
+            id="summary"
+            value={formData.summary}
+            onChange={(e) => handleInputChange('summary', e.target.value)}
+            placeholder="Brief description of the article"
+            rows={3}
+            required
+          />
+        </div>
+
+        {/* Slug */}
+        <div>
+          <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
+            URL Slug
+          </label>
+          <Input
+            id="slug"
+            value={formData.slug}
+            onChange={(e) => handleInputChange('slug', e.target.value)}
+            placeholder="url-friendly-article-title"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Leave empty to auto-generate from title
+          </p>
+        </div>
+
+        {/* Main Image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Featured Image
+          </label>
+          {formData.previewImage ? (
+            <div className="relative">
+              <img
+                src={formData.previewImage}
+                alt="Featured image preview"
+                className="w-full h-64 object-cover rounded-lg"
+              />
               <Button
+                type="button"
                 variant="outline"
-                onClick={handlePreview}
-                leftIcon={<Eye className="w-4 h-4" />}
-                className="w-full sm:w-auto text-sm touch-manipulation"
-                aria-label="Preview article"
+                size="sm"
+                onClick={removeImage}
+                className="absolute top-2 right-2 bg-white/90 hover:bg-white"
               >
-                Preview
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                loading={loading}
-                leftIcon={<Save className="w-4 h-4" />}
-                className="w-full sm:w-auto text-sm touch-manipulation"
-                aria-label={article ? "Update article" : "Publish article"}
-              >
-                {loading ? 'Saving...' : article ? 'Update Article' : 'Publish Article'}
+                <X className="w-4 h-4" />
               </Button>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            {/* Title */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Article Title *
-              </label>
-              <Input
-                placeholder="Enter article title"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                required
-                className="text-base sm:text-lg font-medium"
-              />
-            </div>
-
-            {/* Excerpt */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Excerpt *
-              </label>
-              <textarea
-                placeholder="Brief description of the article (appears in article cards)"
-                value={formData.excerpt}
-                onChange={(e) => handleInputChange('excerpt', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
-                rows={3}
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.excerpt.length}/200 characters
-              </p>
-            </div>
-
-            {/* Featured Image */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Featured Image
-              </label>
-              <div className="space-y-3">
-                {imagePreview ? (
-                  <div className="relative w-full h-32 sm:h-48 rounded-lg overflow-hidden">
-                    <img
-                      src={imagePreview}
-                      alt="Featured image preview"
-                      className="w-full h-full object-cover"
+          ) : (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <div className="text-center">
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="mt-4">
+                  <label htmlFor="main-image" className="cursor-pointer">
+                    <span className="mt-2 block text-sm font-medium text-gray-900">
+                      Upload an image
+                    </span>
+                    <input
+                      id="main-image"
+                      name="main-image"
+                      type="file"
+                      className="sr-only"
+                      accept="image/*"
+                      onChange={handleImageUpload}
                     />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 touch-manipulation"
-                      aria-label="Remove featured image"
-                    >
-                      <X className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-6 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
-                      <p className="text-xs sm:text-sm text-gray-600">Upload a featured image for your article</p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="featured-image-input"
-                        />
-                        <label htmlFor="featured-image-input">
-                          <Button 
-                            variant="outline" 
-                            leftIcon={<Upload className="w-3 h-3 sm:w-4 sm:h-4" />} 
-                            className="text-xs sm:text-sm touch-manipulation"
-                            aria-label="Choose featured image"
-                          >
-                            Choose Image
-                          </Button>
-                        </label>
-                      </div>
-                    </div>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">
+                    PNG, JPG, GIF up to 10MB
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* YouTube ID */}
+        <div>
+          <label htmlFor="youtube_id" className="block text-sm font-medium text-gray-700 mb-2">
+            YouTube Video ID
+          </label>
+          <Input
+            id="youtube_id"
+            value={formData.youtube_id}
+            onChange={(e) => handleInputChange('youtube_id', e.target.value)}
+            placeholder="YouTube video ID (optional)"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Enter the YouTube video ID (e.g., dQw4w9WgXcQ)
+          </p>
+        </div>
+
+        {/* Content */}
+        <div>
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+            Content *
+          </label>
+          <TiptapEditor
+            content={formData.content}
+            onChange={(content) => handleInputChange('content', content)}
+            placeholder="Write your article content using the rich text editor"
+            className="w-full"
+            disabled={loading}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Use the rich text editor to format your article content. Content will be rendered as HTML.
+          </p>
+        </div>
+
+        {/* Form Actions */}
+        <div className="flex justify-end gap-3 pt-6 border-t">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : (mode === 'create' ? 'Create Article' : 'Update Article')}
+          </Button>
+        </div>
+      </form>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black opacity-25" onClick={() => setShowPreview(false)} />
+            <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold">Preview</h3>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPreview(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <article className="prose prose-lg max-w-none">
+                <h1>{formData.title || 'Article Title'}</h1>
+                {formData.summary && (
+                  <div className="text-gray-600 text-lg mb-4">{formData.summary}</div>
+                )}
+                {formData.previewImage && (
+                  <img
+                    src={formData.previewImage}
+                    alt="Featured image"
+                    className="w-full h-64 object-cover rounded-lg mb-6"
+                  />
+                )}
+                {formData.content && (
+                  <div className="mt-6">
+                    <MarkdownRenderer content={formData.content} />
                   </div>
                 )}
-              </div>
+              </article>
             </div>
-
-            {/* Category */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Category
-              </label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) => handleInputChange('categoryId', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
-              >
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>{category.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Content Editor */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Content *
-              </label>
-              <div className="border border-gray-300 rounded-md min-h-[200px] sm:min-h-[300px]">
-                <TiptapEditor
-                  content={formData.content}
-                  onChange={(content) => handleInputChange('content', content)}
-                  placeholder="Write your article content here..."
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Estimated reading time: {calculateReadingTime(formData.content)} mins</p>
-            </div>
-
-            {/* Tags */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Tags
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2 mb-2">
-                <Input
-                  placeholder="Add a tag"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addTag();
-                    }
-                  }}
-                  className="flex-1 text-sm sm:text-base"
-                />
-                <Button 
-                  type="button" 
-                  onClick={addTag} 
-                  leftIcon={<Plus className="w-3 h-3 sm:w-4 sm:h-4" />}
-                  className="w-full sm:w-auto text-xs sm:text-sm touch-manipulation"
-                  aria-label="Add tag"
-                >
-                  Add Tag
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
-                {formData.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1 text-xs sm:text-sm">
-                    {tag}
-                    <button 
-                      type="button" 
-                      onClick={() => removeTag(tag)} 
-                      className="text-red-500 hover:text-red-600 touch-manipulation p-0.5"
-                      aria-label={`Remove ${tag} tag`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Status & Featured */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <label className="text-xs sm:text-sm font-medium text-gray-700">
-                    Published
-                  </label>
-                  <p className="text-xs text-gray-500">
-                    Make this article visible to readers
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={formData.status === 'published'}
-                  onChange={(e) => handleInputChange('status', e.target.checked ? 'published' : 'draft')}
-                  className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <label className="text-xs sm:text-sm font-medium text-gray-700">
-                    Featured
-                  </label>
-                  <p className="text-xs text-gray-500">
-                    Highlight this article on homepage
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => handleInputChange('featured', e.target.checked)}
-                  className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t">
-              {onCancel && (
-                <Button 
-                  variant="outline" 
-                  onClick={onCancel} 
-                  className="w-full sm:w-auto text-sm touch-manipulation"
-                  aria-label="Cancel editing"
-                >
-                  Cancel
-                </Button>
-              )}
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => {
-                  const draftData = { ...formData, status: 'draft' as const };
-                  onSubmit(draftData);
-                }} 
-                loading={loading}
-                className="w-full sm:w-auto text-sm touch-manipulation"
-                aria-label="Save as draft"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                type="submit" 
-                loading={loading} 
-                leftIcon={<Save className="w-4 h-4" />}
-                className="w-full sm:w-auto text-sm touch-manipulation"
-                aria-label={article ? "Update article" : "Publish article"}
-              >
-                {loading ? 'Saving...' : article ? 'Update Article' : 'Publish Article'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

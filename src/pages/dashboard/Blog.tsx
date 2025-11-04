@@ -1,28 +1,25 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  BlogArticleCard,
   BlogForm,
   BlogList,
   type BlogArticle,
   type BlogAuthor,
   type BlogCategory,
-  type BlogFormData,
 } from '@/components/features/blog';
 import { Button, Modal, ConfirmDialog, EmptyState, LoadingSpinner } from '@/components/ui';
 import { Plus } from 'lucide-react';
 import { useBlogPosts, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost } from '@/lib/hooks/useBlog';
 import { blogApi } from '@/lib/api/blog';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
+import { type BlogFormData } from '@/components/features/blog';
 
 export const BlogPage: React.FC = () => {
-  const [view, setView] = useState<'list' | 'create' | 'edit' | 'preview'>('list');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<BlogArticle | null>(null);
-  const [previewData, setPreviewData] = useState<BlogFormData | null>(null);
-
+  
   // Navigation hook
   const navigate = useNavigate();
 
@@ -42,34 +39,28 @@ export const BlogPage: React.FC = () => {
     { id: '6', name: 'Tutorials', color: '#ef4444' },
   ];
 
-  // Mock authors - in real app, this would come from API
-  const authors: BlogAuthor[] = [
-    {
-      id: '1',
-      name: 'Admin TMC',
-      avatar: '/api/placeholder/100/100',
-      role: 'Administrator',
-    },
-    {
-      id: '2',
-      name: 'John Doe',
-      avatar: '/api/placeholder/100/100',
-      role: 'Content Manager',
-    },
-    {
-      id: '3',
-      name: 'Jane Smith',
-      role: 'Editor',
-      avatar: '/api/placeholder/100/100',
-    },
-  ];
-
+  
   // Map BlogPost (API) to BlogArticle (UI)
   const mapPostToArticle = (post: BlogPost): BlogArticle => {
+    // Debug logging untuk melihat data yang diterima
+    console.log('Blog post data:', post);
+    console.log('Owned by:', post.owned_by);
+    console.log('Author name:', post.author_name);
+
+    // owned_by kadang berupa object (id, username, first_name, last_name) dan kadang berupa number (ID saja)
+    const ownedBy = post.owned_by as any;
+    const ownedNameFromObject = ownedBy && typeof ownedBy === 'object'
+      ? (`${ownedBy.first_name || ''} ${ownedBy.last_name || ''}`.trim() || ownedBy.username)
+      : undefined;
+
+    const computedName = (post.author_name && post.author_name.trim())
+      || (ownedNameFromObject && ownedNameFromObject.trim())
+      || 'TMC Admin';
+
     const author: BlogAuthor = {
-      id: String(post.owned_by?.id || '1'),
-      name: post.owned_by ? `${post.owned_by.first_name || ''} ${post.owned_by.last_name || ''}`.trim() || post.owned_by.username : 'Admin TMC',
-      avatar: '/api/placeholder/100/100',
+      id: String((ownedBy && typeof ownedBy === 'object') ? (ownedBy.id ?? '1') : (ownedBy ?? '1')),
+      name: computedName,
+      avatar: undefined,
       role: 'Author',
     };
 
@@ -126,11 +117,7 @@ export const BlogPage: React.FC = () => {
     }
   };
 
-  const handlePreview = (data: BlogFormData) => {
-    setPreviewData(data);
-    setView('preview');
-  };
-
+  
   const slugify = (text: string) =>
     text
       .toLowerCase()
@@ -141,26 +128,25 @@ export const BlogPage: React.FC = () => {
   const toApiPayload = (data: BlogFormData): ApiBlogFormData => {
     return {
       title: data.title,
-      summary: data.excerpt,
-      slug: slugify(data.title),
-      main_image: data.featuredImage || '',
+      summary: data.summary,
+      slug: data.slug || slugify(data.title),
+      main_image: data.main_image || '',
       content: data.content,
-      status: data.status,
-      tags: data.tags,
-      category: categories.find(c => c.id === data.categoryId)?.name || '',
+      youtube_id: data.youtube_id || '',
+      albums_id: data.albums_id || [],
     };
   };
 
   const handleArticleSubmit = async (data: BlogFormData) => {
     const apiPayload = toApiPayload(data);
 
-    // Upload featured image first if a new file is provided
-    if (data.featuredImageFile) {
+    // Upload main image first if a new file is provided
+    if (data.mainImageFile) {
       try {
-        const uploadRes = await blogApi.uploadBlogImage(data.featuredImageFile);
+        const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
         apiPayload.main_image = uploadRes.image;
       } catch (err) {
-        console.error('Failed to upload featured image', err);
+        console.error('Failed to upload main image', err);
       }
     }
 
@@ -172,7 +158,6 @@ export const BlogPage: React.FC = () => {
           onSuccess: () => {
             setShowEditModal(false);
             setSelectedArticle(null);
-            setView('list');
           }
         }
       );
@@ -182,7 +167,6 @@ export const BlogPage: React.FC = () => {
         onSuccess: () => {
           setShowCreateModal(false);
           setSelectedArticle(null);
-          setView('list');
         }
       });
     }
@@ -206,7 +190,7 @@ export const BlogPage: React.FC = () => {
     );
   }
 
-  if (view === 'list') {
+  {
     return (
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
@@ -256,10 +240,9 @@ export const BlogPage: React.FC = () => {
         >
           <BlogForm
             onSubmit={handleArticleSubmit}
-            onPreview={handlePreview}
             loading={createBlogMutation.isPending}
             onCancel={() => setShowCreateModal(false)}
-            categories={categories}
+            mode="create"
           />
         </Modal>
 
@@ -272,15 +255,23 @@ export const BlogPage: React.FC = () => {
           preventClose={updateBlogMutation.isPending}
         >
           <BlogForm
-            article={selectedArticle || undefined}
+            article={selectedArticle ? {
+              pk: selectedArticle.pk,
+              title: selectedArticle.title,
+              summary: selectedArticle.excerpt,
+              content: selectedArticle.content,
+              slug: selectedArticle.slug,
+              main_image: selectedArticle.featuredImage ? (typeof selectedArticle.featuredImage === 'string' ? undefined : { image: selectedArticle.featuredImage }) : undefined,
+              youtube_id: '',
+              albums_id: [],
+            } : undefined}
             onSubmit={handleArticleSubmit}
-            onPreview={handlePreview}
             loading={updateBlogMutation.isPending}
             onCancel={() => {
               setShowEditModal(false);
               setSelectedArticle(null);
             }}
-            categories={categories}
+            mode="edit"
           />
         </Modal>
 
@@ -298,69 +289,4 @@ export const BlogPage: React.FC = () => {
       </div>
     );
   }
-
-  if (view === 'preview' && previewData) {
-    // Build UI article for preview
-    const previewCategory = categories.find(c => c.id === previewData.categoryId) || categories[0];
-    const previewAuthor: BlogAuthor = authors[0];
-    const wordCount = (previewData.content || '').trim().split(/\s+/).length;
-    const readTime = Math.max(1, Math.ceil(wordCount / 200));
-
-    const previewArticle: BlogArticle = {
-      id: 'preview',
-      pk: 0,
-      title: previewData.title,
-      excerpt: previewData.excerpt,
-      content: previewData.content,
-      slug: 'preview',
-      featuredImage: previewData.featuredImage,
-      author: previewAuthor,
-      category: previewCategory,
-      tags: previewData.tags,
-      status: previewData.status,
-      publishedAt: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      readTime,
-      views: 0,
-      likes: 0,
-      comments: 0,
-      featured: previewData.featured,
-    };
-
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Preview</h1>
-            <p className="text-gray-600">Review your article before publishing</p>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setView('list')}>
-              Back to List
-            </Button>
-            <Button onClick={() => handleArticleSubmit(previewData)}>
-              Publish Article
-            </Button>
-          </div>
-        </div>
-
-        {/* Preview Content */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8">
-          <BlogArticleCard
-            article={previewArticle}
-            variant="featured"
-            showActions={false}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex justify-center items-center h-64">
-      <p className="text-gray-500">Invalid view state</p>
-    </div>
-  );
 };

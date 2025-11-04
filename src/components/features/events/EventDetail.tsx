@@ -39,7 +39,8 @@ import {
   useDeleteEvent,
   useDownloadCertificate
 } from '@/lib/hooks/useEvents';
-import { formatDate } from '@/lib/utils/date';
+import { formatEventDateTime } from '@/lib/utils/date';
+import { formatEventPrice } from '@/lib/utils/money';
 import { cn } from '@/lib/utils/cn';
 
 export interface EventDetailProps {
@@ -248,10 +249,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-orange-500" />
                   <div>
-                    <p className="font-medium">{formatDate(event.date)}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(event.date).toLocaleTimeString()}
-                    </p>
+                    <p className="font-medium">{formatEventDateTime(event.date)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -266,7 +264,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
                   <div>
                     <p className="font-medium">Price</p>
                     <p className="text-sm text-gray-500">
-                      {event.is_free ? 'Free' : `Rp ${event.price?.toLocaleString()}`}
+                      {formatEventPrice({ is_free: event.is_free, price: event.price })}
                     </p>
                   </div>
                 </div>
@@ -338,7 +336,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
                       <p className="text-2xl font-bold text-gray-900">
-                        {event.is_free ? 'Free' : `Rp ${event.price?.toLocaleString()}`}
+                        {formatEventPrice({ is_free: event.is_free, price: event.price })}
                       </p>
                       <p className="text-sm text-gray-500">Price</p>
                     </div>

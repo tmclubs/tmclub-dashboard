@@ -20,6 +20,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { formatEventPrice } from '@/lib/utils/money';
 import { format } from 'date-fns';
 
 export interface PromotionTemplate {
@@ -169,7 +170,7 @@ export function EventPromotion({
               <div className="text-sm text-gray-600">Event Date</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{isFree ? 'FREE' : `$${price}`}</div>
+              <div className="text-2xl font-bold text-orange-600">{formatEventPrice({ is_free: isFree, price })}</div>
               <div className="text-sm text-gray-600">Ticket Price</div>
             </div>
           </div>

@@ -2,7 +2,8 @@ import React from 'react';
 import { Calendar, MapPin, Users, Eye, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
-import { formatDate } from '@/lib/utils/date';
+import { formatEventDateTime } from '@/lib/utils/date';
+import { formatEventPrice } from '@/lib/utils/money';
 import { Event } from '@/types/api';
 
 export interface EventCardProps {
@@ -105,7 +106,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             <div className="space-y-2 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span className="font-medium">{formatDate(event.date)}</span>
+                <span className="font-medium">{formatEventDateTime(event.date)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -120,7 +121,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                   "font-semibold",
                   event.is_free ? "text-green-600" : "text-orange-600"
                 )}>
-                  {event.is_free ? 'Free' : `Rp ${(event.price || 0).toLocaleString()}`}
+                  {formatEventPrice({ is_free: event.is_free, price: event.price })}
                 </span>
               </div>
               {event.registrant_count !== undefined && (
@@ -234,7 +235,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               )}>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                  <span className="font-medium">{formatDate(event.date)}</span>
+                  <span className="font-medium">{formatEventDateTime(event.date)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -279,7 +280,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                   event.is_free ? "text-green-600" : "text-orange-600",
                   isCompact ? "text-sm" : "text-lg"
                 )}>
-                  {event.is_free ? 'Free' : `Rp ${(event.price || 0).toLocaleString()}`}
+                  {formatEventPrice({ is_free: event.is_free, price: event.price })}
                 </span>
               </div>
 

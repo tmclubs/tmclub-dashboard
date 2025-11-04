@@ -74,3 +74,26 @@ export const formatEventDateRange = (startDate: string | Date, endDate?: string 
   // Different days
   return `${formatDate(start, 'dd MMM yyyy')} - ${formatDate(end, 'dd MMM yyyy')}`;
 };
+
+// Helper standar tampilan tanggal/waktu event
+export const formatEventDateTime = (date: string | Date) => {
+  const d = typeof date === 'string' ? (date.includes('Z') || /[+-]\d{2}:?\d{2}$/.test(date) ? new Date(date) : parseISO(date)) : date;
+  const formatter = new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  return formatter.format(d);
+};
+
+// Konversi input datetime-local (tanpa timezone) menjadi ISO UTC string
+export const toISOWithLocalOffset = (input: string) => {
+  if (!input) return input;
+  const d = new Date(input);
+  if (isNaN(d.getTime())) return input;
+  return d.toISOString();
+};
