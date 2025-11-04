@@ -272,7 +272,7 @@ docker_prod() {
 
     COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d
     print_success "Production container started!"
-    print_info "App is running at http://localhost:8082"
+    print_info "App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
 }
 
 docker_down() {
@@ -325,7 +325,7 @@ docker_deploy() {
     DOCKER_BUILDKIT=0 docker build -t tmc-frontend:latest .
     COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d
     print_success "Production deployment complete!"
-    print_info "App is running at http://localhost:8082"
+    print_info "App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
 }
 
 show_status() {

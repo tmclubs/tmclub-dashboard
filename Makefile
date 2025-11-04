@@ -120,7 +120,7 @@ deploy: docker-build
 	@echo "🚀 Deploying to production..."
 	docker-compose --profile production up -d
 	@echo "✅ Production deployment complete!"
-	@echo "🌐 App is running at http://localhost:8080"
+	@echo "🌐 App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
 
 # Quick start for new developers
 setup: install
