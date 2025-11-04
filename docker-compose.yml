@@ -30,7 +30,7 @@ services:
         VITE_APP_URL: ${VITE_APP_URL}
     container_name: tmc-frontend-prod
     ports:
-      - "8080:5173"
+      - "8082:5175"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
