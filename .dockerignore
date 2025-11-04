@@ -130,3 +130,9 @@ prettierrc.*
 
 # Development scripts
 Makefile
+
+# Allow essential configs for Docker build
+!vite.config.ts
+!tsconfig.json
+!tsconfig.node.json
+!tailwind.config.ts

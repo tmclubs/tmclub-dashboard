@@ -11,24 +11,12 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - VITE_API_URL=https://api.tmclub.id
     volumes:
       - .:/app
       - /app/node_modules
     restart: unless-stopped
-    develop:
-      watch:
-        - path: ./src
-          action: sync
-          target: /app/src
-          ignore:
-            - node_modules/
-        - path: ./public
-          action: sync
-          target: /app/public
-          ignore:
-            - node_modules/
     command: bun run dev --host 0.0.0.0
 
   # Production Environment
@@ -37,12 +25,14 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_APP_URL: ${VITE_APP_URL}
     container_name: tmc-frontend-prod
     ports:
       - "8080:5173"
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=https://api.tmc.id
     restart: unless-stopped
     profiles:
       - production

@@ -6,7 +6,7 @@ FROM oven/bun:1.1-alpine AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json* bun.lockb* ./
+COPY package.json bun.lock* ./
 
 # Install dependencies with Bun
 RUN bun install --frozen-lockfile
@@ -16,11 +16,17 @@ FROM oven/bun:1.1-alpine AS builder
 WORKDIR /app
 
 # Copy dependency files
-COPY package.json bun.lockb* package-lock.json* ./
+COPY package.json bun.lock* ./
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
 COPY . .
+
+# Build-time environment for Vite
+ARG VITE_API_URL
+ARG VITE_APP_URL
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_APP_URL=$VITE_APP_URL
 
 # Build the application
 RUN bun run build
