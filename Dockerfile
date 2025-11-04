@@ -6,17 +6,17 @@ FROM oven/bun:1.1-alpine AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lock* ./
+COPY package.json ./
 
-# Install dependencies with Bun
-RUN bun install --frozen-lockfile
+# Always fresh install without lockfile
+RUN bun install
 
 # Stage 2: Build the application
 FROM oven/bun:1.1-alpine AS builder
 WORKDIR /app
 
 # Copy dependency files
-COPY package.json bun.lock* ./
+COPY package.json ./
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
