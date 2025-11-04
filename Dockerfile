@@ -47,6 +47,7 @@ RUN adduser --system --uid 1001 node
 COPY --from=builder --chown=node:nodejs /app/dist ./dist
 COPY --from=builder --chown=node:nodejs /app/public ./public
 COPY --from=builder --chown=node:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=node:nodejs /app/package.json ./package.json
 
 # Switch to non-root user
 USER node
