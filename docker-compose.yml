@@ -19,34 +19,20 @@ services:
     restart: unless-stopped
     command: bun run dev --host 0.0.0.0
 
-  # Production Environment
-  tmc-frontend-prod:
+  # Nginx Reverse Proxy (Production Only)
+  nginx:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
+      target: web
       args:
         VITE_API_URL: ${VITE_API_URL}
         VITE_APP_URL: ${VITE_APP_URL}
-    container_name: tmc-frontend-prod
-    expose:
-      - "5173"
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
-    profiles:
-      - production
-
-  # Nginx Reverse Proxy (Production Only)
-  nginx:
-    image: nginx:alpine
     container_name: tmc-nginx
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - tmc-frontend-prod
     restart: unless-stopped
     profiles:
       - production

@@ -31,7 +31,7 @@ ENV VITE_APP_URL=$VITE_APP_URL
 # Build the application
 RUN bun run build
 
-# Stage 3: Production image
+# Stage 3: Production image (preview mode - legacy, not used in production now)
 FROM oven/bun:1.1-alpine AS runner
 WORKDIR /app
 
@@ -61,3 +61,15 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Run the application with Bun
 CMD ["bun", "run", "preview"]
+
+# Stage 4: Nginx static server for production
+FROM nginx:alpine AS web
+
+# Remove default content
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built assets to Nginx html directory
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose default HTTP port
+EXPOSE 80
