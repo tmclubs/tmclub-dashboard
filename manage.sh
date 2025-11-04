@@ -270,7 +270,7 @@ docker_prod() {
 
     check_docker
 
-    docker-compose --profile production up -d
+    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d
     print_success "Production container started!"
     print_info "App is running at http://localhost:8082"
 }
@@ -322,8 +322,8 @@ docker_deploy() {
 
     check_docker
 
-    docker build -t tmc-frontend:latest .
-    docker-compose --profile production up -d
+    DOCKER_BUILDKIT=0 docker build -t tmc-frontend:latest .
+    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d
     print_success "Production deployment complete!"
     print_info "App is running at http://localhost:8082"
 }
