@@ -11,6 +11,8 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Izinkan akses via reverse proxy / container hostname saat pengembangan
+    allowedHosts: ['localhost', '127.0.0.1', '::1', 'frontend_app', 'tmc-frontend-prod'],
     proxy: {
       '/api': {
         target: 'https://api.tmclub.id',
@@ -21,7 +23,9 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Gunakan 'hidden' agar sourcemap tetap dihasilkan tanpa direferensikan di bundle
+    // Menghindari request devtools ke path seperti /node_modules/.vite/deps/* di produksi
+    sourcemap: 'hidden',
     rollupOptions: {
       output: {
         manualChunks: {

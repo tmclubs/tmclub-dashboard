@@ -270,7 +270,7 @@ docker_prod() {
 
     check_docker
 
-    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d
+    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d --build
     print_success "Production container started!"
     print_info "App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
 }
