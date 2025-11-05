@@ -17,7 +17,7 @@ import {
   QRScanner
 } from '@/components/features/events';
 import { Event as EventType } from '@/types/api';
-import { useMyEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/lib/hooks/useEvents';
+import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useRegisterForEvent } from '@/lib/hooks/useEvents';
 
 export const EventsPage: React.FC = () => {
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -32,10 +32,12 @@ export const EventsPage: React.FC = () => {
   const [showEventDetail, setShowEventDetail] = useState(false);
 
   // API hooks
-  const { data: events = [], isLoading, error } = useMyEvents();
+  // Ambil semua event (bukan hanya milik user) agar konsisten dengan backend /event/
+  const { data: events = [], isLoading, error } = useEvents();
   const createEventMutation = useCreateEvent();
   const updateEventMutation = useUpdateEvent();
   const deleteEventMutation = useDeleteEvent();
+  const registerEventMutation = useRegisterForEvent();
 
   // Debug logging
   React.useEffect(() => {
@@ -566,11 +568,9 @@ export const EventsPage: React.FC = () => {
       >
         {selectedEvent && (
           <EventRegistration
+            eventId={selectedEvent.pk}
             event={convertEventForRegistration(selectedEvent)}
-            onSuccess={() => {
-              setShowRegistration(false);
-              setSelectedEvent(null);
-            }}
+            registerMutation={registerEventMutation}
             onCancel={() => setShowRegistration(false)}
           />
         )}

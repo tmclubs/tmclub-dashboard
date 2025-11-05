@@ -61,12 +61,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
 
           {/* Article Header */}
           <div className="p-4 sm:p-6 md:p-8 lg:p-10">
-            {/* Category Badge */}
-            <div className="mb-3 sm:mb-4">
-              <span className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-orange-100 text-orange-800">
-                {article.category.name}
-              </span>
-            </div>
+            {/* Category removed */}
 
             {/* Title */}
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 leading-tight">

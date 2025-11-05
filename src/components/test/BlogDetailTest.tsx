@@ -1,6 +1,6 @@
 import React from 'react';
 import { BlogDetail } from '../features/blog/BlogDetail';
-import { type BlogArticle, type BlogAuthor, type BlogCategory } from '../features/blog';
+import { type BlogArticle, type BlogAuthor } from '../features/blog';
 
 export const BlogDetailTest: React.FC = () => {
   // Mock author
@@ -11,12 +11,6 @@ export const BlogDetailTest: React.FC = () => {
     role: 'Content Manager',
   };
 
-  // Mock category
-  const mockCategory: BlogCategory = {
-    id: '1',
-    name: 'Technology',
-    color: '#3B82F6',
-  };
 
   // Mock article with HTML content from TiptapEditor
   const mockArticle: BlogArticle = {
@@ -111,7 +105,6 @@ export const BlogDetailTest: React.FC = () => {
     slug: 'test-blog-post-html-markdown',
     featuredImage: '/api/placeholder/800/400',
     author: mockAuthor,
-    category: mockCategory,
     tags: ['Testing', 'Markdown', 'HTML', 'TiptapEditor', 'React'],
     status: 'published',
     publishedAt: new Date().toISOString(),

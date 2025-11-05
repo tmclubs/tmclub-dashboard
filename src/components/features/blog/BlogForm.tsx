@@ -9,6 +9,7 @@ import { Button, Input, Textarea } from '@/components/ui';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { TiptapEditor } from './TiptapEditor';
+import { validateFile, createImagePreview } from '@/lib/utils/file-upload';
 
 export interface BlogFormData extends ApiBlogFormData {
   // For UI state management
@@ -40,18 +41,38 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     slug: article?.slug || '',
     main_image: article?.main_image ? (typeof article.main_image === 'string' ? article.main_image : String(article.main_image)) : undefined,
     youtube_id: article?.youtube_id || '',
+    youtube_embeded: article?.youtube_embeded || '',
     albums_id: article?.albums_id || [],
     mainImageFile: undefined,
     previewImage: article?.main_image_url || '',
   });
 
   const [showPreview, setShowPreview] = useState(false);
+  const [albumsFiles, setAlbumsFiles] = useState<File[]>([]); // Used for future API implementation - prevent TS error with console.log
+  // Prevent TypeScript unused variable error
+  void albumsFiles;
+  const [albumsPreviews, setAlbumsPreviews] = useState<string[]>([]);
 
   const handleInputChange = (field: keyof BlogFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const updatedData = {
+        ...prev,
+        [field]: value
+      };
+
+      // Auto-generate youtube_embeded when youtube_id changes
+      if (field === 'youtube_id') {
+        if (value && value.trim()) {
+          // Extract YouTube video ID and generate embed URL
+          const embedUrl = `https://www.youtube.com/embed/${value}`;
+          updatedData.youtube_embeded = embedUrl;
+        } else {
+          updatedData.youtube_embeded = '';
+        }
+      }
+
+      return updatedData;
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +97,36 @@ export const BlogForm: React.FC<BlogFormProps> = ({
       previewImage: '',
       main_image: undefined,
     }));
+  };
+
+  // Albums management functions
+  const handleAlbumsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newAlbumsFiles = Array.from(files);
+    const newPreviews: string[] = [];
+
+    for (const file of newAlbumsFiles) {
+      // Validate file
+      const validation = validateFile(file);
+      if (!validation.isValid) {
+        alert(`Invalid file: ${file.name} - ${validation.error}`);
+        continue;
+      }
+
+      // Create preview
+      const preview = await createImagePreview(file);
+      newPreviews.push(preview);
+    }
+
+    setAlbumsFiles(prev => [...prev, ...newAlbumsFiles]);
+    setAlbumsPreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeAlbum = (index: number) => {
+    setAlbumsFiles(prev => prev.filter((_, i) => i !== index));
+    setAlbumsPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -123,7 +174,11 @@ export const BlogForm: React.FC<BlogFormProps> = ({
             onChange={(e) => handleInputChange('title', e.target.value)}
             placeholder="Enter article title"
             required
+            maxLength={200}
           />
+          <p className="mt-1 text-sm text-gray-500">
+            {formData.title.length}/200 characters
+          </p>
         </div>
 
         {/* Summary */}
@@ -138,7 +193,11 @@ export const BlogForm: React.FC<BlogFormProps> = ({
             placeholder="Brief description of the article"
             rows={3}
             required
+            maxLength={255}
           />
+          <p className="mt-1 text-sm text-gray-500">
+            {formData.summary.length}/255 characters
+          </p>
         </div>
 
         {/* Slug */}
@@ -220,6 +279,64 @@ export const BlogForm: React.FC<BlogFormProps> = ({
           <p className="mt-1 text-sm text-gray-500">
             Enter the YouTube video ID (e.g., dQw4w9WgXcQ)
           </p>
+        </div>
+
+        {/* Albums Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Additional Images (Albums)
+          </label>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+            <div className="text-center">
+              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="mt-4">
+                <label htmlFor="albums-upload" className="cursor-pointer">
+                  <span className="mt-2 block text-sm font-medium text-gray-900">
+                    Upload additional images
+                  </span>
+                  <input
+                    id="albums-upload"
+                    name="albums-upload"
+                    type="file"
+                    className="sr-only"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAlbumsUpload}
+                  />
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                  PNG, JPG, GIF up to 10MB per file. Multiple files allowed.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Albums Previews */}
+          {albumsPreviews.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Uploaded Images ({albumsPreviews.length})
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {albumsPreviews.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={preview}
+                      alt={`Album image ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeAlbum(index)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Content */}

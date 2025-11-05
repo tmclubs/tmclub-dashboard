@@ -11,7 +11,11 @@ export const useEvents = () => {
     queryFn: () => eventsApi.getEvents(),
     enabled: isAuthenticated(),
     retry: 1,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    // Lebih realtime: refresh berkala dan saat focus/reconnect
+    staleTime: 15 * 1000, // 15 seconds
+    refetchInterval: 15 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };
 

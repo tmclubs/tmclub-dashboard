@@ -7,18 +7,15 @@ import { isAuthenticated } from '@/lib/api/client';
 // Hook for getting all blog posts
 export const useBlogPosts = (params?: {
   status?: 'draft' | 'published' | 'archived';
-  category?: string;
   author?: number;
   search?: string;
   ordering?: string;
 }) => {
   const isAuth = isAuthenticated();
-  console.log('useBlogPosts - isAuthenticated:', isAuth);
   
   return useQuery({
     queryKey: ['blog-posts', params],
     queryFn: () => {
-      console.log('useBlogPosts - queryFn called');
       return blogApi.getBlogPosts(params);
     },
     enabled: true, // Blog posts should be publicly accessible
@@ -49,16 +46,6 @@ export const useBlogPostBySlug = (slug: string) => {
   });
 };
 
-// Hook for getting blog categories
-export const useBlogCategories = () => {
-  return useQuery({
-    queryKey: ['blog-categories'],
-    queryFn: () => blogApi.getBlogCategories(),
-    enabled: isAuthenticated(),
-    retry: 1,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-};
 
 // Hook for getting blog tags
 export const useBlogTags = () => {
@@ -93,7 +80,6 @@ export const useCreateBlogPost = () => {
     mutationFn: (data: BlogFormData) => blogApi.createBlogPost(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
-      queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
       queryClient.invalidateQueries({ queryKey: ['blog-tags'] });
       toast.success('Artikel berhasil dibuat!');
     },
@@ -113,7 +99,6 @@ export const useUpdateBlogPost = () => {
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       queryClient.invalidateQueries({ queryKey: ['blog-posts', postId] });
-      queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
       queryClient.invalidateQueries({ queryKey: ['blog-tags'] });
       toast.success('Artikel berhasil diperbarui!');
     },

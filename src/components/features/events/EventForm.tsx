@@ -23,16 +23,25 @@ export const EventForm: React.FC<EventFormProps> = ({
   mode = 'create',
 }) => {
   const [formData, setFormData] = useState<EventFormData>({
+    // Required fields from EventSerializer
     title: event?.title || '',
-    description: event?.description || '',
     date: event?.date || '',
     venue: event?.venue || '',
-    main_image: event?.main_image || undefined,
+    description: event?.description || '',
     is_free: event?.is_free || false,
     is_registration_close: event?.is_registration_close || false,
     is_list_attendees: event?.is_list_attendees || true,
-    price: event?.price || undefined,
-    billing_deadline: event?.billing_deadline || undefined,
+
+    // Optional fields from EventSerializer
+    main_image: event?.main_image || null,
+    price: event?.price || null,
+    billing_deadline: event?.billing_deadline || null,
+
+    // Fields not in EventSerializer (hidden for now)
+    level: event?.level || undefined,
+    published_at: event?.published_at || undefined,
+    references: [], // Hidden for now
+    medias: [], // Hidden for now
   });
 
   const [imagePreview, setImagePreview] = useState<string>(event?.main_image_url || '');
@@ -45,16 +54,25 @@ export const EventForm: React.FC<EventFormProps> = ({
   useEffect(() => {
     if (event) {
       setFormData({
+        // Required fields from EventSerializer
         title: event.title || '',
-        description: event.description || '',
         date: event.date || '',
         venue: event.venue || '',
-        main_image: event.main_image || undefined,
+        description: event.description || '',
         is_free: event.is_free || false,
         is_registration_close: event.is_registration_close || false,
         is_list_attendees: event.is_list_attendees || true,
-        price: event.price || undefined,
-        billing_deadline: event.billing_deadline || undefined,
+
+        // Optional fields from EventSerializer
+        main_image: event.main_image || null,
+        price: event.price || null,
+        billing_deadline: event.billing_deadline || null,
+
+        // Fields not in EventSerializer (hidden for now)
+        level: event.level || undefined,
+        published_at: event.published_at || undefined,
+        references: [], // Hidden for now
+        medias: [], // Hidden for now
       });
       setImagePreview(event.main_image_url || '');
     }
@@ -63,11 +81,14 @@ export const EventForm: React.FC<EventFormProps> = ({
   const handleInputChange = (field: keyof EventFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
+    const value = e.target.value;
     setFormData(prev => ({
       ...prev,
       [field]: field === 'price' || field === 'billing_deadline'
-        ? Number(e.target.value) || undefined
-        : e.target.value
+        ? (value === '' ? null : Number(value) || null)
+        : field === 'main_image'
+        ? (value === '' ? null : value)
+        : value
     }));
   };
 
@@ -140,7 +161,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
     setFormData(prev => ({
       ...prev,
-      main_image: undefined
+      main_image: null
     }));
     setUploadProgress(0);
   };
@@ -151,13 +172,28 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prevent double submission
     if (loading || isSubmitting) {
       console.log('Form submission blocked - already in progress');
       return;
     }
-    
+
+    // Form validation - required fields dari EventSerializer
+    const requiredFields = ['title', 'date', 'venue', 'description'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof EventFormData]);
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Price validation - required jika is_free=false
+    if (!formData.is_free && (!formData.price || formData.price <= 0)) {
+      alert('Price is required for paid events');
+      return;
+    }
+
     setLoading(true);
     setIsSubmitting(true);
     
@@ -167,14 +203,21 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
     
     try {
-      // Normalisasi payload sesuai status gratis/berbayar
-      const payload: EventFormData = {
-        ...formData,
-        is_free: !!formData.is_free,
-        price: formData.is_free ? 0 : Number(formData.price || 0),
-        billing_deadline: formData.is_free ? undefined : (formData.billing_deadline ?? undefined),
-        // Pastikan date dikirim dalam ISO (UTC) agar tidak bergeser 7 jam di display
+      // Payload untuk EventSerializer - hanya fields yang ada di serializer
+      const payload = {
+        // Required fields
+        title: formData.title,
         date: formData.date ? toISOWithLocalOffset(formData.date) : formData.date,
+        venue: formData.venue,
+        description: formData.description,
+        is_free: !!formData.is_free,
+        is_registration_close: formData.is_registration_close,
+        is_list_attendees: formData.is_list_attendees,
+
+        // Optional fields (null=True di serializer)
+        main_image: formData.main_image, // FileModel ID atau null
+        price: formData.is_free ? null : (formData.price ?? null), // null jika gratis
+        billing_deadline: formData.billing_deadline, // deprecated tapi masih ada di serializer
       };
 
       // Jika parent menyediakan onSubmit, delegasikan submit ke parent
@@ -289,6 +332,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             </div>
           </div>
 
+          
           {/* Pricing */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -331,22 +375,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               </div>
             )}
 
-            {!formData.is_free && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Billing Deadline (days before event)
-                </label>
-                <Input
-                  type="number"
-                  value={formData.billing_deadline || ''}
-                  onChange={handleInputChange('billing_deadline')}
-                  placeholder="e.g., 7"
-                  min="0"
-                  className="w-full"
-                />
-              </div>
-            )}
-          </div>
+            </div>
 
           {/* Registration Settings */}
           <div className="space-y-4">
@@ -493,13 +522,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                   {formatEventPrice({ is_free: formData.is_free, price: formData.price })}
                 </span>
               </div>
-
-              {formData.billing_deadline && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Billing Deadline</span>
-                  <span className="font-medium">{formData.billing_deadline} days</span>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

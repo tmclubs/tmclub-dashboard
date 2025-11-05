@@ -108,34 +108,55 @@ export interface Event {
   price?: number;
   is_registration_close: boolean;
   is_list_attendees: boolean;
-  billing_deadline?: number; // IntegerField
+  billing_deadline?: number; // IntegerField (deprecated, tidak digunakan)
   published_at?: string; // DateTimeField
   registrant_count?: number;
   owned_by?: string; // User ID
   owned_by_email?: string; // Dari DetailEventSerializer
   is_registered?: boolean; // Dari DetailEventSerializer
-  references?: string[]; // Array of reference IDs
+  references?: ReferenceEvent[]; // ManyToMany ke ReferenceEventModel
+  medias?: string[]; // ManyToMany ke FileModel (array of file IDs)
+  is_done?: boolean; // BooleanField(default=False)
+  created_at?: string; // DateTimeField(auto_now_add=True)
+  updated_at?: string; // DateTimeField(auto_now=True)
+  // Field tambahan dari serializer
+  reference_ids?: string[]; // Array of reference IDs
   medias_id?: string[]; // Array of file IDs
   medias_url?: string[]; // Array of URLs dari serializer
   surveys_id?: string[]; // Array of survey IDs
 }
 
 export interface EventRegistration {
-  email: string;
-  company_id?: number;
+  // Backend uses token authentication, so most data is auto-populated
+  // Empty object is usually sufficient, but we can include optional fields
+  company_id?: number; // Optional - if user wants to override default company
 }
 
 export interface EventFormData {
+  // Required fields from EventSerializer
   title: string;
-  date: string; // DateTimeField di backend
+  date: string; // DateTimeField di backend (timezone-aware)
   venue: string;
-  main_image?: string; // File ID untuk backend
   description: string;
   is_free: boolean;
   is_registration_close: boolean;
   is_list_attendees: boolean;
-  price?: number;
-  billing_deadline?: number; // IntegerField di backend serializer
+
+  // Optional fields from EventSerializer
+  main_image?: string | null; // FileModel ID atau null (allow_blank=True, allow_null=True)
+  price?: number | null; // Required hanya jika is_free=False, otherwise null
+  billing_deadline?: number | null; // Deprecated tapi masih ada di serializer (allow_null=True)
+
+  // Fields not in EventSerializer (for future use or separate endpoints)
+  level?: string; // CharField(max_length=200, null=True) - not in EventSerializer
+  published_at?: string; // DateField(null=True) - not in EventSerializer
+  references?: ReferenceEvent[]; // ManyToMany to ReferenceEventModel - not in EventSerializer
+  medias?: string[]; // ManyToMany to FileModel - not in EventSerializer
+}
+
+export interface ReferenceEvent {
+  display_name: string; // CharField(max_length=250)
+  url: string; // TextField
 }
 
 // Company Types
@@ -227,7 +248,7 @@ export interface BlogPost {
     first_name?: string;
     last_name?: string;
   };
-  category?: string;
+  owned_by_username?: string;
   tags?: string[];
   status?: 'draft' | 'published' | 'archived';
   published_at?: string;
@@ -249,7 +270,6 @@ export interface BlogFormData {
   albums_id?: number[]; // Sesuai dengan backend serializer
   status?: 'draft' | 'published' | 'archived'; // Status for blog post
   tags?: string[]; // Tags for blog post
-  category?: string; // Category for blog post
 }
 
 // SEO Types

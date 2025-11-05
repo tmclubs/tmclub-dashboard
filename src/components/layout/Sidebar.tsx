@@ -24,7 +24,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Events', href: '/events', icon: Calendar },
   { name: 'Companies', href: '/companies', icon: Building2 },
-  { name: 'Surveys', href: '/surveys', icon: ClipboardList },
+  { name: 'Surveys (Coming Soon)', href: '/surveys', icon: ClipboardList },
   { name: 'Blog', href: '/blog', icon: FileText },
   { name: 'Members', href: '/members', icon: Users },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },

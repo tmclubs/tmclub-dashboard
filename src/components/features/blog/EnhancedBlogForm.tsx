@@ -20,7 +20,6 @@ import { blogApi } from '@/lib/api/blog';
 
 export interface EnhancedBlogFormData extends BlogFormData {
   tags: string[];
-  category: string;
   status: 'draft' | 'published' | 'archived';
   meta_description?: string;
   meta_keywords?: string;
@@ -42,7 +41,6 @@ export interface EnhancedBlogFormData extends BlogFormData {
 
 export interface EnhancedBlogFormProps {
   article?: Partial<EnhancedBlogFormData>;
-  categories: string[];
   onSubmit: (data: EnhancedBlogFormData) => void;
   onPreview?: (data: EnhancedBlogFormData) => void;
   loading?: boolean;
@@ -53,7 +51,6 @@ export interface EnhancedBlogFormProps {
 
 export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
   article,
-  categories,
   onSubmit,
   onPreview,
   loading = false,
@@ -69,7 +66,6 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
     main_image: article?.main_image || '',
     youtube_id: article?.youtube_id || '',
     tags: article?.tags || [],
-    category: article?.category || categories[0] || '',
     status: article?.status || 'draft',
     published_at: article?.published_at || '',
     seo_data: article?.seo_data || {
@@ -413,39 +409,19 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                   </div>
                 </div>
 
-                {/* Category and YouTube ID */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category *
-                    </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      required
-                    >
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      YouTube Video ID
-                    </label>
-                    <Input
-                      placeholder="YouTube video ID (optional)"
-                      value={formData.youtube_id || ''}
-                      onChange={(e) => handleInputChange('youtube_id', e.target.value)}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Extract from YouTube URL: youtube.com/watch?v=VIDEO_ID
-                    </p>
-                  </div>
+                {/* YouTube Video ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    YouTube Video ID
+                  </label>
+                  <Input
+                    placeholder="YouTube video ID (optional)"
+                    value={formData.youtube_id || ''}
+                    onChange={(e) => handleInputChange('youtube_id', e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Extract from YouTube URL: youtube.com/watch?v=VIDEO_ID
+                  </p>
                 </div>
 
                 {/* Tags */}

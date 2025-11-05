@@ -4,7 +4,7 @@ import { BlogDetail } from '@/components/features/blog';
 import { LoadingSpinner } from '@/components/ui';
 import { blogApi } from '@/lib/api/blog';
 import { type BlogPost } from '@/types/api';
-import { type BlogArticle, type BlogAuthor, type BlogCategory } from '@/components/features/blog';
+import { type BlogArticle, type BlogAuthor } from '@/components/features/blog';
 
 export const BlogDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -13,20 +13,13 @@ export const BlogDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock categories - same as in Blog.tsx
-  const categories: BlogCategory[] = [
-    { id: '1', name: 'Technology', color: '#3B82F6' },
-    { id: '2', name: 'Business', color: '#10B981' },
-    { id: '3', name: 'Design', color: '#8B5CF6' },
-    { id: '4', name: 'Marketing', color: '#F59E0B' },
-    { id: '5', name: 'Development', color: '#EF4444' },
-  ];
 
   // Map BlogPost (API) to BlogArticle (UI)
   const mapPostToArticle = (post: BlogPost): BlogArticle => {
     // Handle owned_by as ID (number) based on API response
-    const computedName = (post.author_name && post.author_name.trim())
-      || 'TMC Admin'; // Fallback since owned_by is just an ID
+    const computedName = (post.owned_by_username && post.owned_by_username.trim())
+      || (post.author_name && post.author_name.trim())
+      || 'TMC Admin'; // Fallback
 
     const author: BlogAuthor = {
       id: String(post.owned_by || '1'),
@@ -34,8 +27,6 @@ export const BlogDetailPage: React.FC = () => {
       avatar: undefined,
       role: 'Author',
     };
-
-    const category: BlogCategory = categories.find(c => c.name === (post.category || '')) || categories[0];
 
     return {
       id: String(post.pk || post.slug || Math.random()),
@@ -46,7 +37,6 @@ export const BlogDetailPage: React.FC = () => {
       slug: post.slug,
       featuredImage: typeof post.main_image === 'string' ? post.main_image : (typeof post.main_image === 'object' && post.main_image?.image ? post.main_image.image : undefined),
       author,
-      category,
       tags: post.tags || [],
       status: post.status || 'draft',
       publishedAt: post.published_at,

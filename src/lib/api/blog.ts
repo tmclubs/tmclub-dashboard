@@ -7,7 +7,6 @@ export const blogApi = {
   // Get all blog posts
   async getBlogPosts(params?: {
     status?: 'draft' | 'published' | 'archived';
-    category?: string;
     author?: number;
     search?: string;
     ordering?: string;
@@ -86,10 +85,6 @@ export const blogApi = {
     return apiClient.get(`/blog/${postId}/analytics/${qs ? `?${qs}` : ''}`);
   },
 
-  // Get blog categories
-  async getBlogCategories(): Promise<string[]> {
-    return apiClient.get('/blog/categories/');
-  },
 
   // Get blog tags
   async getBlogTags(): Promise<string[]> {

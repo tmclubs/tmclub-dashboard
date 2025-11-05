@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils/cn';
 import { formatEventDateTime } from '@/lib/utils/date';
 import { formatEventPrice } from '@/lib/utils/money';
 import { Event } from '@/types/api';
+import { env } from '@/lib/config/env';
 
 export interface EventCardProps {
   event: Event;
@@ -53,15 +54,20 @@ export const EventCard: React.FC<EventCardProps> = ({
   const isGrid = variant === 'grid';
   const isCompact = variant === 'compact';
   const isPast = new Date(event.date) < new Date();
+  const imageSrc = event.main_image_url
+    ? (event.main_image_url.startsWith('http')
+        ? event.main_image_url
+        : `${env.apiUrl}${event.main_image_url}`)
+    : null;
 
   if (isGrid) {
     return (
       <Card className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 overflow-hidden", className)}>
         {/* Image Section */}
-        {event.main_image_url ? (
+        {imageSrc ? (
           <div className="relative h-48 overflow-hidden">
             <img
-              src={event.main_image_url}
+              src={imageSrc}
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
@@ -175,9 +181,9 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Image Section */}
         {!isCompact && (
           <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
-            {event.main_image_url ? (
+            {imageSrc ? (
               <img
-                src={event.main_image_url}
+                src={imageSrc}
                 alt={event.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />

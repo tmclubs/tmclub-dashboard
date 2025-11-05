@@ -5,10 +5,8 @@ import {
   BlogList,
   type BlogArticle,
   type BlogAuthor,
-  type BlogCategory,
 } from '@/components/features/blog';
-import { Button, Modal, ConfirmDialog, EmptyState, LoadingSpinner } from '@/components/ui';
-import { Plus } from 'lucide-react';
+import {Modal, ConfirmDialog, EmptyState, LoadingSpinner } from '@/components/ui';
 import { useBlogPosts, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost } from '@/lib/hooks/useBlog';
 import { blogApi } from '@/lib/api/blog';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
@@ -24,37 +22,43 @@ export const BlogPage: React.FC = () => {
   const navigate = useNavigate();
 
   // API hooks
-  const { data: blogPosts = [], isLoading, error } = useBlogPosts();
+  // Controlled filters (sinkron dengan API): search, status, ordering
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published' | 'archived'>('all');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'publishedAt' | 'views'>('createdAt');
+
+  const mapOrdering = (sort: 'createdAt' | 'publishedAt' | 'views') => {
+    switch (sort) {
+      case 'publishedAt':
+        return '-published_at';
+      case 'views':
+        return '-view_count';
+      case 'createdAt':
+      default:
+        return '-created_at';
+    }
+  };
+
+  const { data: blogPosts = [], isLoading, error } = useBlogPosts({
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    search: searchQuery || undefined,
+    ordering: mapOrdering(sortBy),
+  });
   const createBlogMutation = useCreateBlogPost();
   const updateBlogMutation = useUpdateBlogPost();
   const deleteBlogMutation = useDeleteBlogPost();
 
-  // Mock categories - in real app, this would come from API
-  const categories: BlogCategory[] = [
-    { id: '1', name: 'Automotive News', color: '#ea580c' },
-    { id: '2', name: 'Technology', color: '#3b82f6' },
-    { id: '3', name: 'Industry Insights', color: '#10b981' },
-    { id: '4', name: 'Company Updates', color: '#8b5cf6' },
-    { id: '5', name: 'Events', color: '#f59e0b' },
-    { id: '6', name: 'Tutorials', color: '#ef4444' },
-  ];
+  // Kategori dari API berupa string; gunakan fallback sederhana tanpa filter kategori
 
   
   // Map BlogPost (API) to BlogArticle (UI)
   const mapPostToArticle = (post: BlogPost): BlogArticle => {
-    // Debug logging untuk melihat data yang diterima
-    console.log('Blog post data:', post);
-    console.log('Owned by:', post.owned_by);
-    console.log('Author name:', post.author_name);
+    // Hilangkan debug logging di browser
 
     // owned_by kadang berupa object (id, username, first_name, last_name) dan kadang berupa number (ID saja)
     const ownedBy = post.owned_by as any;
-    const ownedNameFromObject = ownedBy && typeof ownedBy === 'object'
-      ? (`${ownedBy.first_name || ''} ${ownedBy.last_name || ''}`.trim() || ownedBy.username)
-      : undefined;
-
-    const computedName = (post.author_name && post.author_name.trim())
-      || (ownedNameFromObject && ownedNameFromObject.trim())
+    const computedName = (post.owned_by_username && post.owned_by_username.trim())
+      || (post.author_name && post.author_name.trim())
       || 'TMC Admin';
 
     const author: BlogAuthor = {
@@ -63,8 +67,6 @@ export const BlogPage: React.FC = () => {
       avatar: undefined,
       role: 'Author',
     };
-
-    const category: BlogCategory = categories.find(c => c.name === (post.category || '')) || categories[0];
 
     return {
       id: String(post.pk || post.slug || Math.random()),
@@ -75,7 +77,6 @@ export const BlogPage: React.FC = () => {
       slug: post.slug,
       featuredImage: typeof post.main_image === 'string' ? post.main_image : (typeof post.main_image === 'object' && post.main_image?.image ? post.main_image.image : undefined),
       author,
-      category,
       tags: post.tags || [],
       status: post.status || 'draft',
       publishedAt: post.published_at,
@@ -133,6 +134,7 @@ export const BlogPage: React.FC = () => {
       main_image: data.main_image || '',
       content: data.content,
       youtube_id: data.youtube_id || '',
+      youtube_embeded: data.youtube_embeded || '',
       albums_id: data.albums_id || [],
     };
   };
@@ -193,40 +195,28 @@ export const BlogPage: React.FC = () => {
   {
     return (
       <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Blog</h1>
-            <p className="text-sm sm:text-base text-gray-600">Manage and publish blog articles</p>
-          </div>
-          <Button onClick={handleCreateArticle} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Create Article</span>
-            <span className="sm:hidden">Create</span>
-          </Button>
-        </div>
-
         {/* Blog List */}
         {articlesUI.length === 0 ? (
           <EmptyState
             type="articles"
             title="No articles yet"
             description="Start creating content for your community blog."
-            action={{
-              text: 'Create Article',
-              onClick: handleCreateArticle,
-              icon: <Plus className="h-4 w-4" />,
-            }}
           />
         ) : (
           <BlogList
             articles={articlesUI}
-            categories={categories}
             loading={isLoading}
             onView={handleViewArticle}
             onEdit={handleEditArticle}
             onDelete={handleDeleteArticle}
             onCreate={handleCreateArticle}
+            // Controlled filters
+            searchQuery={searchQuery}
+            statusFilter={statusFilter}
+            sortBy={sortBy}
+            onSearchChange={setSearchQuery}
+            onStatusChange={setStatusFilter}
+            onSortChange={setSortBy}
           />
         )}
 

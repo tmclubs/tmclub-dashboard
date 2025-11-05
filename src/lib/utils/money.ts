@@ -12,7 +12,7 @@ export const formatCurrencyIDR = (amount: number): string => {
   }
 };
 
-export const formatEventPrice = (opts: { is_free?: boolean; price?: number } | null | undefined): string => {
+export const formatEventPrice = (opts: { is_free?: boolean; price?: number | null } | null | undefined): string => {
   const isFree = !!opts?.is_free || Number(opts?.price || 0) === 0;
   if (isFree) return 'Gratis';
   return formatCurrencyIDR(Number(opts?.price || 0));

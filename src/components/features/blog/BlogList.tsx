@@ -3,7 +3,6 @@ import {
   Search,
   Plus,
   Filter,
-  Download,
   Calendar,
   Eye,
   BookOpen,
@@ -16,7 +15,6 @@ import { BlogArticleCard } from './BlogArticleCard';
 
 export interface BlogListProps {
   articles: BlogArticle[];
-  categories: Array<{ id: string; name: string; color: string }>;
   loading?: boolean;
   onCreate?: () => void;
   onEdit?: (article: BlogArticle) => void;
@@ -24,51 +22,34 @@ export interface BlogListProps {
   onView?: (article: BlogArticle) => void;
   onExport?: () => void;
   onToggleFeatured?: (article: BlogArticle) => void;
+  // Controlled filter props (sinkron dengan API)
+  searchQuery?: string;
+  statusFilter?: 'all' | 'draft' | 'published' | 'archived';
+  sortBy?: 'createdAt' | 'publishedAt' | 'views';
+  onSearchChange?: (value: string) => void;
+  onStatusChange?: (value: 'all' | 'draft' | 'published' | 'archived') => void;
+  onSortChange?: (value: 'createdAt' | 'publishedAt' | 'views') => void;
 }
 
 export const BlogList: React.FC<BlogListProps> = ({
   articles,
-  categories,
   loading = false,
   onCreate,
   onEdit,
   onDelete,
   onView,
-  onExport,
   onToggleFeatured,
+  searchQuery = '',
+  statusFilter = 'all',
+  sortBy = 'createdAt',
+  onSearchChange,
+  onStatusChange,
+  onSortChange,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published' | 'archived'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'createdAt' | 'publishedAt' | 'views' | 'likes'>('createdAt');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         article.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesStatus = statusFilter === 'all' || article.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || article.category.id === categoryFilter;
-
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
-
-  const sortedArticles = [...filteredArticles].sort((a, b) => {
-    switch (sortBy) {
-      case 'views':
-        return b.views - a.views;
-      case 'likes':
-        return b.likes - a.likes;
-      case 'publishedAt':
-        if (!a.publishedAt) return 1;
-        if (!b.publishedAt) return -1;
-        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-      case 'createdAt':
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
+  // Sorting diserahkan ke API melalui parameter `ordering`; tampilkan data apa adanya
+  const sortedArticles = articles;
 
   
   const stats = [
@@ -117,15 +98,6 @@ export const BlogList: React.FC<BlogListProps> = ({
         </div>
         <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-3">
           <Button 
-            variant="outline" 
-            onClick={onExport} 
-            leftIcon={<Download className="w-4 h-4" />} 
-            className="w-full sm:w-auto justify-center sm:justify-start"
-          >
-            <span className="sm:hidden">Export Data</span>
-            <span className="hidden sm:inline">Export</span>
-          </Button>
-          <Button 
             leftIcon={<Plus className="w-4 h-4" />} 
             onClick={onCreate} 
             className="w-full sm:w-auto justify-center sm:justify-start"
@@ -167,18 +139,18 @@ export const BlogList: React.FC<BlogListProps> = ({
               placeholder="Search articles by title, content, or tags..."
               leftIcon={<Search className="w-4 h-4" />}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => onSearchChange?.(e.target.value)}
               className="w-full text-sm sm:text-base"
             />
           </div>
 
           {/* Filter Controls - Better responsive layout */}
-          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 mb-4 sm:mb-6">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 mb-4 sm:mb-6">
             <div className="space-y-1">
               <label className="block text-xs sm:text-sm font-medium text-gray-700">Status</label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => onStatusChange?.(e.target.value as any)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
               >
                 <option value="all">All Status</option>
@@ -188,31 +160,15 @@ export const BlogList: React.FC<BlogListProps> = ({
               </select>
             </div>
             <div className="space-y-1">
-              <label className="block text-xs sm:text-sm font-medium text-gray-700">Category</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1">
               <label className="block text-xs sm:text-sm font-medium text-gray-700">Sort By</label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => onSortChange?.(e.target.value as any)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
               >
                 <option value="createdAt">Date Created</option>
                 <option value="publishedAt">Date Published</option>
                 <option value="views">Most Views</option>
-                <option value="likes">Most Likes</option>
               </select>
             </div>
           </div>
@@ -241,7 +197,7 @@ export const BlogList: React.FC<BlogListProps> = ({
             </div>
 
             <div className="text-sm text-gray-500 text-center sm:text-right">
-              <span className="font-medium">{filteredArticles.length}</span> article{filteredArticles.length !== 1 ? 's' : ''} found
+              <span className="font-medium">{articles.length}</span> article{articles.length !== 1 ? 's' : ''} found
             </div>
           </div>
         </CardContent>
@@ -253,18 +209,18 @@ export const BlogList: React.FC<BlogListProps> = ({
           <CardContent className="p-8 sm:p-12 text-center">
             <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-              {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all'
+              {searchQuery || statusFilter !== 'all'
                 ? 'No articles found'
                 : 'No articles yet'
               }
             </h3>
             <p className="text-sm sm:text-base text-gray-600 mb-6 max-w-md mx-auto">
-              {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all'
+              {searchQuery || statusFilter !== 'all'
                 ? 'Try adjusting your filters or search terms.'
                 : 'Get started by creating your first article.'
               }
             </p>
-            {!searchQuery && statusFilter === 'all' && categoryFilter === 'all' && onCreate && (
+            {!searchQuery && statusFilter === 'all' && onCreate && (
               <Button onClick={onCreate} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Article
@@ -291,7 +247,7 @@ export const BlogList: React.FC<BlogListProps> = ({
 
               <BlogArticleCard
                 article={article}
-                variant={viewMode === 'list' ? 'compact' : 'default'}
+                variant={viewMode === 'list' ? 'compact' : 'grid'}
                 onView={onView}
                 onEdit={onEdit}
                 onDelete={onDelete}

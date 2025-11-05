@@ -1,4 +1,4 @@
-import '@/lib/utils/console-redirect';
+import '@/console-silence';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -49,7 +49,7 @@ const initEnvironment = () => {
   // Log environment in development
   if (import.meta.env.DEV) {
     logEnvironment();
-    console.log('✅ Environment validation passed');
+    // Jangan tampilkan di browser; gunakan info dev server saja
   }
 
   return true;

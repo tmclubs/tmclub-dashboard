@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, Building, Check, AlertCircle, CreditCard } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge } from '@/components/ui';
+import React, { useState, useEffect } from 'react';
+import { User, Calendar, MapPin, Users, Check, AlertCircle, CreditCard } from 'lucide-react';
+import { Button, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
 import { formatEventDateTime } from '@/lib/utils/date';
 import { formatEventPrice } from '@/lib/utils/money';
+import { EventRegistration as EventRegistrationData } from '@/types/api';
+import { useAuthStore } from '@/lib/stores/authStore';
 
 export interface EventRegistrationProps {
+  eventId: number; // Required for API call
   event: {
     id: string;
     title: string;
@@ -17,22 +20,26 @@ export interface EventRegistrationProps {
     isRegistrationClose: boolean;
     isPast: boolean;
   };
-  onSuccess?: () => void;
+  registerMutation?: {
+    mutate: (data: { eventId: number; data: EventRegistrationData }) => void;
+    isPending: boolean;
+    error?: Error | null;
+  };
   onCancel?: () => void;
   loading?: boolean;
 }
 
 export const EventRegistration: React.FC<EventRegistrationProps> = ({
+  eventId,
   event,
-  onSuccess,
+  registerMutation,
   onCancel,
   loading = false,
 }) => {
+  // Get authenticated user data
+  const { user } = useAuthStore();
+
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
     company: '',
     jobTitle: '',
     notes: '',
@@ -40,16 +47,34 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submissionError, setSubmissionError] = useState<string>('');
+
+  // Use loading from registerMutation if available, otherwise use prop loading
+  const isLoading = registerMutation?.isPending || loading;
+
+  // Handle mutation success and error
+  useEffect(() => {
+    if (registerMutation?.error) {
+      setSubmissionError(registerMutation.error.message || 'Registration failed. Please try again.');
+    }
+    // Note: onSuccess will be called by the parent component
+    // The useRegisterForEvent hook already handles success with toast notification
+  }, [registerMutation?.error]);
+
+  // Clear submission error when user starts typing again
+  useEffect(() => {
+    if (submissionError && isLoading) {
+      setSubmissionError('');
+    }
+  }, [isLoading, submissionError]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newErrors.email = 'Invalid email format';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms';
+    // Only validate terms agreement since user data comes from authentication
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'You must agree to the terms';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -58,8 +83,23 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle registration logic here
-      onSuccess?.();
+      // Backend uses token authentication - minimal data needed
+      const registrationData: EventRegistrationData = {
+        // Empty object or optional company_id if needed
+        // Backend will identify user from JWT token
+      };
+
+      // Call API through registerMutation
+      if (registerMutation) {
+        registerMutation.mutate({
+          eventId: eventId,
+          data: registrationData,
+        });
+      } else {
+        // Fallback if no registerMutation provided
+        console.error('registerMutation prop is required for registration');
+        return;
+      }
     }
   };
 
@@ -168,82 +208,51 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="First Name *"
-                  placeholder="Enter your first name"
-                  value={formData.firstName}
-                  onChange={handleInputChange('firstName')}
-                  error={errors.firstName}
-                  required
-                />
-
-                <Input
-                  label="Last Name *"
-                  placeholder="Enter your last name"
-                  value={formData.lastName}
-                  onChange={handleInputChange('lastName')}
-                  error={errors.lastName}
-                  required
-                />
+              {/* User Information - Display from authenticated user */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-3">Your Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Name:</span>
+                    <p className="font-medium text-gray-900">
+                      {user?.first_name} {user?.last_name || user?.username}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Email:</span>
+                    <p className="font-medium text-gray-900">{user?.email}</p>
+                  </div>
+                  {user?.phone_number && (
+                    <div>
+                      <span className="text-gray-600">Phone:</span>
+                      <p className="font-medium text-gray-900">{user.phone_number}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-gray-600">Role:</span>
+                    <p className="font-medium text-gray-900 capitalize">{user?.role}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  Information retrieved from your authenticated account
+                </p>
               </div>
 
-              {/* Contact Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Email Address *"
-                  type="email"
-                  placeholder="your.email@example.com"
-                  leftIcon={<Mail className="h-4 w-4" />}
-                  value={formData.email}
-                  onChange={handleInputChange('email')}
-                  error={errors.email}
-                  required
-                />
-
-                <Input
-                  label="Phone Number *"
-                  type="tel"
-                  placeholder="+62 812-3456-7890"
-                  leftIcon={<Phone className="h-4 w-4" />}
-                  value={formData.phone}
-                  onChange={handleInputChange('phone')}
-                  error={errors.phone}
-                  required
-                />
-              </div>
-
-              {/* Professional Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Company"
-                  placeholder="Your company name"
-                  leftIcon={<Building className="h-4 w-4" />}
-                  value={formData.company}
-                  onChange={handleInputChange('company')}
-                />
-
-                <Input
-                  label="Job Title"
-                  placeholder="Your job title"
-                  value={formData.jobTitle}
-                  onChange={handleInputChange('jobTitle')}
-                />
-              </div>
-
-              {/* Additional Notes */}
+              {/* Optional Additional Information */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Notes
+                  Additional Notes (Optional)
                 </label>
                 <textarea
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   rows={4}
-                  placeholder="Any special requirements or notes..."
+                  placeholder="Any special requirements or notes for the event organizer..."
                   value={formData.notes}
                   onChange={handleInputChange('notes')}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  This information is for event organizer reference only
+                </p>
               </div>
 
               {/* Terms and Conditions */}
@@ -289,14 +298,27 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
                 </Card>
               )}
 
+              {/* Error Display */}
+              {submissionError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-red-800">Registration Error</h4>
+                      <p className="text-sm text-red-700 mt-1">{submissionError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-6 border-t">
                 {onCancel && (
-                  <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
+                  <Button variant="outline" type="button" onClick={onCancel} disabled={isLoading}>
                     Cancel
                   </Button>
                 )}
-                <Button type="submit" loading={loading} disabled={!canRegister}>
+                <Button type="submit" loading={isLoading} disabled={!canRegister || isLoading}>
                   Complete Registration
                 </Button>
               </div>
@@ -327,5 +349,3 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
   );
 };
 
-// Import Calendar and MapPin icons
-import { Calendar, MapPin, Users } from 'lucide-react';

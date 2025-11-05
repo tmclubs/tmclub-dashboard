@@ -11,7 +11,6 @@ export { MarkdownRenderer } from './MarkdownRenderer';
 export type {
   BlogArticle,
   BlogAuthor,
-  BlogCategory,
   BlogArticleCardProps
 } from './BlogArticleCard';
 export type { BlogFormData, BlogFormProps } from './BlogForm';
