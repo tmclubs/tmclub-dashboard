@@ -12,7 +12,6 @@ interface EnvConfig {
 
   // Google OAuth2
   googleClientId: string;
-  googleClientSecret: string;
   googleRedirectUri: string;
 
   // Faspay Payment
@@ -108,7 +107,6 @@ export const env: EnvConfig = {
 
   // Google OAuth2
   googleClientId: getEnvVar('VITE_GOOGLE_CLIENT_ID'),
-  googleClientSecret: getEnvVar('VITE_GOOGLE_CLIENT_SECRET'),
   googleRedirectUri: getEnvVar('VITE_GOOGLE_REDIRECT_URI', `${getEnvVar('VITE_APP_URL')}/auth/callback`),
 
   // Faspay Payment

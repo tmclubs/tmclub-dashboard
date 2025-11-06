@@ -13,6 +13,11 @@ export const authApi = {
     return apiClient.post('/google-token', { access_token });
   },
 
+  // Google OAuth2 callback: tukar authorization code menjadi token via backend
+  async googleCallback(code: string, redirect_uri: string): Promise<AuthResponse> {
+    return apiClient.post('/authenticate/google-callback/', { code, redirect_uri });
+  },
+
   // Manual registration
   async register(data: {
     username: string;

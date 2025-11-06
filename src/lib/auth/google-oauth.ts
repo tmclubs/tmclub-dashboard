@@ -38,24 +38,8 @@ export const generateGoogleAuthUrl = (): string => {
 // Exchange authorization code for tokens
 export const exchangeCodeForTokens = async (code: string): Promise<AuthResponse> => {
   try {
-    // This would typically be done on the backend for security
-    // For now, we'll simulate the token exchange
-    const response = await fetch(`${env.apiUrl}/authenticate/google-callback/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        code,
-        redirect_uri: GOOGLE_AUTH_CONFIG.redirectUri,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to exchange code for tokens: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Tukar authorization code ke token via backend API
+    const data = await authApi.googleCallback(code, GOOGLE_AUTH_CONFIG.redirectUri);
     return data;
   } catch (error) {
     console.error('Error exchanging code for tokens:', error);

@@ -11,7 +11,6 @@ export const useBlogPosts = (params?: {
   search?: string;
   ordering?: string;
 }) => {
-  const isAuth = isAuthenticated();
   
   return useQuery({
     queryKey: ['blog-posts', params],

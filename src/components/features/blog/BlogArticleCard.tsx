@@ -59,7 +59,6 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
   variant = 'default',
   showActions = false,
   showAuthor = true,
-  showStats = true,
   onView,
   onEdit,
   onDelete,
