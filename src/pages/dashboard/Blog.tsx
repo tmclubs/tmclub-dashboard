@@ -6,7 +6,7 @@ import {
   type BlogArticle,
   type BlogAuthor,
 } from '@/components/features/blog';
-import {Modal, ConfirmDialog, EmptyState, LoadingSpinner } from '@/components/ui';
+import {Modal, ConfirmDialog, LoadingSpinner } from '@/components/ui';
 import { useBlogPosts, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost } from '@/lib/hooks/useBlog';
 import { blogApi } from '@/lib/api/blog';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
@@ -196,29 +196,21 @@ export const BlogPage: React.FC = () => {
     return (
       <div className="space-y-4 sm:space-y-6">
         {/* Blog List */}
-        {articlesUI.length === 0 ? (
-          <EmptyState
-            type="articles"
-            title="No articles yet"
-            description="Start creating content for your community blog."
-          />
-        ) : (
-          <BlogList
-            articles={articlesUI}
-            loading={isLoading}
-            onView={handleViewArticle}
-            onEdit={handleEditArticle}
-            onDelete={handleDeleteArticle}
-            onCreate={handleCreateArticle}
-            // Controlled filters
-            searchQuery={searchQuery}
-            statusFilter={statusFilter}
-            sortBy={sortBy}
-            onSearchChange={setSearchQuery}
-            onStatusChange={setStatusFilter}
-            onSortChange={setSortBy}
-          />
-        )}
+        <BlogList
+          articles={articlesUI}
+          loading={isLoading}
+          onView={handleViewArticle}
+          onEdit={handleEditArticle}
+          onDelete={handleDeleteArticle}
+          onCreate={handleCreateArticle}
+          // Controlled filters
+          searchQuery={searchQuery}
+          statusFilter={statusFilter}
+          sortBy={sortBy}
+          onSearchChange={setSearchQuery}
+          onStatusChange={setStatusFilter}
+          onSortChange={setSortBy}
+        />
 
         {/* Create Article Modal */}
         <Modal
