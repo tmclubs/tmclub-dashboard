@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TMC Frontend Management Script
-# This script helps manage the TMC Frontend project with Bun
+# This script helps manage the TMC Frontend project with npm (Vite)
 
 set -e
 
@@ -68,9 +68,11 @@ print_info() {
 }
 
 check_bun() {
-    if ! command -v bun &> /dev/null; then
-        print_error "Bun is not installed. Please install Bun first:"
-        echo "curl -fsSL https://bun.sh/install | bash"
+    # Repurpose to check Node & npm availability
+    if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+        print_error "Node.js atau npm belum terpasang. Mohon install terlebih dahulu."
+        echo "macOS (Homebrew): brew install node"
+        echo "Atau unduh dari: https://nodejs.org/"
         exit 1
     fi
 }
@@ -94,34 +96,69 @@ check_docker() {
     fi
 }
 
+# Read env var from .env or use default
+get_env_var() {
+    local var_name="$1"
+    local default_value="$2"
+    local value="$default_value"
+    if [ -f ".env" ]; then
+        local found=$(grep -E "^${var_name}=" .env | tail -n 1 | cut -d '=' -f2-)
+        if [ -n "$found" ]; then
+            value="$found"
+        fi
+    fi
+    echo "$value"
+}
+
+# Prompt to kill processes on a given port if in use (respecting confirmation)
+prompt_port_cleanup_if_busy() {
+    local port="$1"
+    local label="${2:-Port}"
+    if lsof -ti:"$port" >/dev/null 2>&1; then
+        print_warning "${label} (port ${port}) sedang digunakan."
+        echo -n "Anda ingin kill proses pada port ${port}? [y/N]: "
+        read -r ans
+        if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
+            cleanup_port "$port"
+        else
+            print_error "${label} (port ${port}) masih digunakan. Ubah NGINX_PORT/APP_PORT atau bebaskan port tersebut."
+            exit 1
+        fi
+    fi
+}
+
 # Menu functions
 install_deps() {
     print_header
-    print_info "Installing dependencies with Bun..."
+    print_info "Menginstal dependencies dengan npm..."
 
     check_bun
     check_dependencies
 
-    bun install
-    print_success "Dependencies installed successfully!"
+    if [ -f "package-lock.json" ]; then
+        npm ci
+    else
+        npm install
+    fi
+    print_success "Dependencies berhasil diinstal!"
 }
 
 start_dev() {
     print_header
-    print_info "Starting development server on port $PORT..."
+    print_info "Menjalankan development server di port $PORT..."
 
     check_bun
     check_dependencies
 
-    # Clean up any existing processes on the port first
+    # Bersihkan proses pada port bila ada
     cleanup_port $PORT
 
-    print_info "Press Ctrl+C to stop the server and clean up port $PORT"
+    print_info "Tekan Ctrl+C untuk menghentikan server dan membersihkan port $PORT"
 
     if [ -z "$1" ] || [ "$1" = "--open" ]; then
-        bun run dev -- --open --host
+        npm run dev -- --open --host
     else
-        bun run dev -- --host
+        npm run dev -- --host
     fi
 }
 
@@ -136,70 +173,70 @@ stop_dev() {
 
 build_project() {
     print_header
-    print_info "Building project for production..."
+    print_info "Build project untuk produksi..."
 
     check_bun
     check_dependencies
 
-    bun run build
-    print_success "Build completed! Files are in ./dist/"
+    npm run build
+    print_success "Build selesai! File berada di ./dist/"
 }
 
 preview_build() {
     print_header
-    print_info "Previewing production build on port $PORT..."
+    print_info "Preview build produksi pada port $PORT..."
 
     if [ ! -d "dist" ]; then
-        print_error "Build directory not found. Please build the project first:"
+        print_error "Direktori build tidak ditemukan. Silakan build terlebih dahulu:"
         echo "./manage.sh build"
         exit 1
     fi
 
-    bun run preview
+    npm run preview
 }
 
 lint_code() {
     print_header
-    print_info "Running ESLint..."
+    print_info "Menjalankan ESLint..."
 
     check_bun
     check_dependencies
 
-    bun run lint
-    print_success "Linting completed!"
+    npm run lint
+    print_success "Linting selesai!"
 }
 
 lint_fix() {
     print_header
-    print_info "Running ESLint with auto-fix..."
+    print_info "Menjalankan ESLint dengan auto-fix..."
 
     check_bun
     check_dependencies
 
-    bun run lint:fix
-    print_success "Linting and auto-fix completed!"
+    npm run lint:fix
+    print_success "Linting dan perbaikan otomatis selesai!"
 }
 
 format_code() {
     print_header
-    print_info "Formatting code with Prettier..."
+    print_info "Memformat kode dengan Prettier..."
 
     check_bun
     check_dependencies
 
-    bun run format
-    print_success "Code formatted successfully!"
+    npm run format
+    print_success "Kode berhasil diformat!"
 }
 
 type_check() {
     print_header
-    print_info "Running TypeScript type checking..."
+    print_info "Menjalankan TypeScript type-checking..."
 
     check_bun
     check_dependencies
 
-    bun run type-check
-    print_success "Type checking completed!"
+    npm run type-check
+    print_success "Type checking selesai!"
 }
 
 clean_project() {
@@ -270,9 +307,15 @@ docker_prod() {
 
     check_docker
 
-    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d --build
+    # Check ports from .env with defaults
+    local nginx_port
+    nginx_port=$(get_env_var "NGINX_PORT" "8080")
+    print_info "Memeriksa port: Nginx ${nginx_port}"
+    prompt_port_cleanup_if_busy "$nginx_port" "Nginx"
+    
+    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose up -d --build nginx
     print_success "Production container started!"
-    print_info "App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
+    print_info "App tersedia via Nginx di http://localhost:${nginx_port}"
 }
 
 docker_down() {
@@ -318,14 +361,19 @@ docker_clean() {
 
 docker_deploy() {
     print_header
-    print_info "Deploying to production with Docker..."
+    print_info "Deploying with Docker (production setup)..."
 
     check_docker
 
-    DOCKER_BUILDKIT=0 docker build -t tmc-frontend:latest .
-    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose --profile production up -d
-    print_success "Production deployment complete!"
-    print_info "App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
+    # Check ports from .env with defaults
+    local nginx_port
+    nginx_port=$(get_env_var "NGINX_PORT" "8080")
+    print_info "Memeriksa port: Nginx ${nginx_port}"
+    prompt_port_cleanup_if_busy "$nginx_port" "Nginx"
+    
+    COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 docker-compose up -d --build nginx
+    print_success "Deployment complete!"
+    print_info "App tersedia via Nginx di http://localhost:${nginx_port}"
 }
 
 show_status() {
@@ -334,12 +382,19 @@ show_status() {
     echo "📊 Project Status:"
     echo ""
 
-    # Check if bun is installed
-    if command -v bun &> /dev/null; then
-        BUN_VERSION=$(bun --version)
-        echo "🟢 Bun: $BUN_VERSION"
+    # Check Node & npm
+    if command -v node &> /dev/null; then
+        NODE_VERSION=$(node --version)
+        echo "🟢 Node: $NODE_VERSION"
     else
-        echo "🔴 Bun: Not installed"
+        echo "🔴 Node: Not installed"
+    fi
+
+    if command -v npm &> /dev/null; then
+        NPM_VERSION=$(npm --version)
+        echo "🟢 npm: $NPM_VERSION"
+    else
+        echo "🔴 npm: Not installed"
     fi
 
     # Check if dependencies are installed

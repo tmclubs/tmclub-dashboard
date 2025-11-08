@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryProvider } from '@/lib/providers/QueryProvider';
-import { validateEnvironment, logEnvironment } from '@/lib/config/env';
+import { validateEnvironment, logEnvironment, logEnvLoadStatus } from '@/lib/config/env';
 import App from './App';
 import './styles/globals.css';
 
@@ -11,6 +11,9 @@ import './styles/globals.css';
 
 // Initialize environment
 const initEnvironment = () => {
+  // Log raw env terlebih dahulu untuk memverifikasi pemuatan .env
+  logEnvLoadStatus();
+
   const validation = validateEnvironment();
 
   if (!validation.isValid) {

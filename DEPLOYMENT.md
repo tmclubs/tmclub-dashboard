@@ -4,6 +4,7 @@
 
 - **Vercel** ⭐ (Recommended)
 - **Netlify** ⭐ (Alternative)
+- **Docker + Nginx** ⭐ (Self-hosted, Production)
 
 ---
 
@@ -51,8 +52,10 @@ VITE_APP_URL=https://your-domain.vercel.app
 VITE_API_TIMEOUT=10000
 ```
 
-#### Google OAuth (if enabled):
+#### Google OAuth (opsional):
 ```bash
+VITE_ENABLE_GOOGLE_AUTH=false # default: nonaktif
+# Jika diaktifkan (true), wajib set variabel di bawah:
 VITE_GOOGLE_CLIENT_ID=your-google-client-id
 VITE_GOOGLE_CLIENT_SECRET=your-google-client-secret
 VITE_GOOGLE_REDIRECT_URI=https://your-domain.vercel.app/auth/callback
@@ -134,6 +137,8 @@ VITE_API_URL=https://api.tmclub.id
 VITE_API_VERSION=v1
 VITE_APP_URL=https://your-netlify-site.netlify.app
 VITE_API_TIMEOUT=10000
+VITE_ENABLE_GOOGLE_AUTH=false # default: nonaktif
+# Jika diaktifkan (true), wajib set variabel Google berikut:
 VITE_GOOGLE_CLIENT_ID=your-google-client-id-production
 VITE_GOOGLE_CLIENT_SECRET=your-google-client-secret-production
 VITE_GOOGLE_REDIRECT_URI=https://your-netlify-site.netlify.app/auth/callback
@@ -249,6 +254,82 @@ bun run type-check
 
 # Linting
 bun run lint
+
+---
+
+# Docker + Nginx Deployment Guide
+
+## Prerequisites
+
+- Docker dan Docker Compose terpasang
+- Port untuk Nginx tersedia (default `80`, override via `NGINX_HTTP_PORT`)
+- Environment file `.env` berisi variabel Vite yang diperlukan
+
+## Build & Run (Production)
+
+1. Periksa status proyek dan ketersediaan port:
+
+```bash
+./manage.sh status
+```
+
+2. Jalankan produksi dengan Nginx (build otomatis menggunakan multi-stage Dockerfile):
+
+```bash
+./manage.sh docker-prod
+```
+
+Atau menggunakan Makefile:
+
+```bash
+make deploy
+```
+
+3. Akses aplikasi:
+
+- `http://localhost:${NGINX_PORT:-8080}`
+
+## Konfigurasi yang Digunakan
+
+- `docker-compose.yml` menjalankan satu service utama produksi:
+  - `nginx`: build target `web` dari `Dockerfile` yang otomatis membangun aplikasi (stage `builder`) dan menyalin `dist` ke `/usr/share/nginx/html` untuk dilayani secara statik.
+- `nginx/nginx.conf` berisi konfigurasi server statik untuk SPA:
+  - Fallback `try_files $uri $uri/ /index.html;` agar routing SPA bekerja.
+  - Caching untuk `/assets/` dengan header `immutable`.
+  - Header keamanan (`HSTS`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `CSP`).
+- Stage `web` pada `Dockerfile` bertindak sebagai image Nginx produksi dengan healthcheck aktif.
+
+## Environment Variables
+
+Tambahkan variabel ini pada `.env` untuk build:
+
+```env
+VITE_API_URL=https://api.tmclub.id
+VITE_APP_URL=https://your-domain
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+VITE_GOOGLE_REDIRECT_URI=https://your-domain/auth/callback
+NGINX_PORT=8080
+```
+
+Variabel `VITE_*` diteruskan sebagai build args ke image `nginx` (target `web`) pada `docker-compose.yml` sehingga build Vite mengambil nilai yang benar.
+
+## Keamanan
+
+- Header keamanan diaktifkan: `HSTS`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `CSP`.
+- Healthcheck container Nginx aktif via `curl` ke `http://localhost/`.
+
+## Perintah Operasional
+
+```bash
+# Stop containers
+./manage.sh docker-stop
+
+# Lihat log
+./manage.sh docker-logs
+
+# Bersihkan resources
+./manage.sh docker-clean
+```
 bun run lint:fix
 
 # Formatting

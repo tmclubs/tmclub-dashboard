@@ -85,7 +85,7 @@ docker-up:
 
 docker-prod:
 	@echo "Starting production container..."
-	docker-compose --profile production up -d
+	docker-compose up -d
 
 docker-down:
 	@echo "Stopping and removing containers..."
@@ -116,11 +116,13 @@ docker-dev: docker-build docker-up
 	@echo "📋 View logs with: make docker-logs"
 
 # Production deployment
-deploy: docker-build
+deploy:
+	@echo "🏗️ Building frontend assets (dist/)..."
+	npm run build
 	@echo "🚀 Deploying to production..."
-	docker-compose --profile production up -d
+	docker-compose up -d --build app nginx
 	@echo "✅ Production deployment complete!"
-	@echo "🌐 App tersedia via Nginx di http://localhost:${NGINX_HTTP_PORT:-80}"
+	@echo "🌐 App tersedia via Nginx di http://localhost:${NGINX_PORT:-8080}"
 
 # Quick start for new developers
 setup: install

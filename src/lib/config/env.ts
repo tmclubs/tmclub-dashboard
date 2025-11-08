@@ -106,8 +106,11 @@ export const env: EnvConfig = {
   apiTimeout: getEnvNumber('VITE_API_TIMEOUT', 10000),
 
   // Google OAuth2
-  googleClientId: getEnvVar('VITE_GOOGLE_CLIENT_ID'),
-  googleRedirectUri: getEnvVar('VITE_GOOGLE_REDIRECT_URI', `${getEnvVar('VITE_APP_URL')}/auth/callback`),
+  googleClientId: getEnvVar('VITE_GOOGLE_CLIENT_ID', ''),
+  googleRedirectUri: getEnvVar(
+    'VITE_GOOGLE_REDIRECT_URI',
+    `${getEnvVar('VITE_APP_URL', import.meta.env.PROD ? 'http://localhost:8080' : 'http://localhost:5173')}/auth/callback`
+  ),
 
   // Faspay Payment
   faspayApiUrl: getEnvVar('VITE_FASPAY_API_URL', 'https://api.faspay.id'),
@@ -122,10 +125,10 @@ export const env: EnvConfig = {
   appSupportEmail: getEnvVar('VITE_APP_SUPPORT_EMAIL', 'support@tmclub.id'),
 
   // Feature Flags
-  enableGoogleAuth: getEnvBoolean('VITE_ENABLE_GOOGLE_AUTH', true),
+  enableGoogleAuth: getEnvBoolean('VITE_ENABLE_GOOGLE_AUTH', false),
   enableAnalytics: getEnvBoolean('VITE_ENABLE_ANALYTICS', false),
   enableNotifications: getEnvBoolean('VITE_ENABLE_NOTIFICATIONS', true),
-  enablePayment: getEnvBoolean('VITE_ENABLE_PAYMENT', true),
+  enablePayment: getEnvBoolean('VITE_ENABLE_PAYMENT', false),
   enableQrScanner: getEnvBoolean('VITE_ENABLE_QR_SCANNER', true),
 
   // Development
@@ -143,9 +146,13 @@ export const validateEnvironment = (): { isValid: boolean; errors: string[] } =>
 
   // Check required variables for production
   if (import.meta.env.PROD) {
-    if (!env.googleClientId) errors.push('VITE_GOOGLE_CLIENT_ID is required in production');
-    if (!env.faspayMerchantId) errors.push('VITE_FASPAY_MERCHANT_ID is required in production');
-    if (!env.faspayMerchantSecret) errors.push('VITE_FASPAY_MERCHANT_SECRET is required in production');
+    // Only require Google Client ID when Google Auth is enabled
+    if (env.enableGoogleAuth && !env.googleClientId) {
+      errors.push('VITE_GOOGLE_CLIENT_ID is required in production when Google Auth is enabled');
+    }
+    // Only require Faspay credentials when Payment is enabled
+    if (env.enablePayment && !env.faspayMerchantId) errors.push('VITE_FASPAY_MERCHANT_ID is required in production when Payment is enabled');
+    if (env.enablePayment && !env.faspayMerchantSecret) errors.push('VITE_FASPAY_MERCHANT_SECRET is required in production when Payment is enabled');
   }
 
   // Check feature dependencies
@@ -184,6 +191,34 @@ export const logEnvironment = (): void => {
     console.log('Development Tools:', env.devTools);
     console.log('Log Level:', env.logLevel);
     console.groupEnd();
+  }
+};
+
+// Raw env loader status: bantu verifikasi apakah .env dimuat
+export const logEnvLoadStatus = (): void => {
+  try {
+    const raw = import.meta.env as Record<string, any>;
+    const redact = (val?: string) => {
+      if (!val) return '(undefined)';
+      if (val.length <= 6) return '***';
+      return `${val.slice(0,3)}***${val.slice(-2)}`;
+    };
+
+    console.group('🔎 Env Load Status');
+    console.log('MODE:', raw.MODE);
+    console.log('DEV:', raw.DEV, 'PROD:', raw.PROD);
+    console.log('VITE_APP_URL:', raw.VITE_APP_URL ?? '(undefined)');
+    console.log('VITE_API_URL:', raw.VITE_API_URL ?? '(undefined)');
+    console.log('VITE_APP_NAME:', raw.VITE_APP_NAME ?? '(undefined)');
+    console.log('VITE_APP_VERSION:', raw.VITE_APP_VERSION ?? '(undefined)');
+    console.log('VITE_ENABLE_GOOGLE_AUTH:', raw.VITE_ENABLE_GOOGLE_AUTH ?? '(undefined)');
+    console.log('VITE_GOOGLE_CLIENT_ID:', redact(raw.VITE_GOOGLE_CLIENT_ID));
+    console.log('VITE_ENABLE_PAYMENT:', raw.VITE_ENABLE_PAYMENT ?? '(undefined)');
+    console.log('VITE_FASPAY_MERCHANT_ID:', redact(raw.VITE_FASPAY_MERCHANT_ID));
+    console.log('VITE_FASPAY_MERCHANT_SECRET:', redact(raw.VITE_FASPAY_MERCHANT_SECRET));
+    console.groupEnd();
+  } catch (e) {
+    console.error('Failed to log raw env status:', e);
   }
 };
 

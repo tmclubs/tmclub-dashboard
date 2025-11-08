@@ -162,7 +162,10 @@ Create a `.env.local` file (copy from `.env.example`):
 VITE_API_URL=http://localhost:1338
 VITE_APP_URL=http://localhost:5173
 
-# Google OAuth
+# Google OAuth (opsional)
+# Set ke true bila ingin mengaktifkan Google Login
+VITE_ENABLE_GOOGLE_AUTH=false
+# Jika true, wajib isi client id
 VITE_GOOGLE_CLIENT_ID=your-google-client-id
 VITE_GOOGLE_CLIENT_SECRET=your-google-client-secret
 
@@ -202,6 +205,7 @@ If you encounter any issues:
 2. Run `./manage.sh status` to check project status
 3. Ensure the backend API is running on `http://localhost:1338`
 4. Check that all environment variables are properly set
+   - Bila tidak menggunakan Google Login, pastikan `VITE_ENABLE_GOOGLE_AUTH=false` agar aplikasi tidak memerlukan `VITE_GOOGLE_CLIENT_ID`
 
 ## 🛣️ Roadmap
 

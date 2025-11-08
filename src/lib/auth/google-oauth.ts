@@ -23,6 +23,11 @@ export const generateGoogleAuthUrl = (): string => {
     throw new Error('Google OAuth2 is not enabled');
   }
 
+  // Guard: clientId harus tersedia ketika fitur diaktifkan
+  if (!GOOGLE_AUTH_CONFIG.clientId) {
+    throw new Error('Google OAuth2 clientId is not configured');
+  }
+
   const params = new URLSearchParams({
     client_id: GOOGLE_AUTH_CONFIG.clientId,
     redirect_uri: GOOGLE_AUTH_CONFIG.redirectUri,
