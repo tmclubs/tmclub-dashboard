@@ -9,7 +9,7 @@ help:
 	@echo "======================================="
 	@echo ""
 	@echo "Development Commands:"
-	@echo "  install      Install dependencies with Bun"
+	@echo "  install      Install dependencies with npm"
 	@echo "  dev          Start development server"
 	@echo "  build        Build for production"
 	@echo "  preview      Preview production build"
@@ -33,39 +33,39 @@ help:
 
 # Dependencies
 install:
-	@echo "Installing dependencies with Bun..."
-	bun install
+	@echo "Installing dependencies with npm..."
+	npm install
 
 # Development
 dev:
 	@echo "Starting development server..."
-	bun run dev
+	npm run dev
 
 # Build & Production
 build:
 	@echo "Building for production..."
-	bun run build
+	npm run build
 
 preview:
 	@echo "Starting preview server..."
-	bun run preview
+	npm run preview
 
 # Code Quality
 type-check:
 	@echo "Running TypeScript type checking..."
-	bun run type-check
+	npm run type-check
 
 lint:
 	@echo "Running ESLint..."
-	bun run lint
+	npm run lint
 
 format:
 	@echo "Formatting code with Prettier..."
-	bun run format
+	npm run format
 
 test:
 	@echo "Running tests..."
-	bun run test
+	npm run test
 
 # Cleanup
 clean:
@@ -117,8 +117,10 @@ docker-dev: docker-build docker-up
 
 # Production deployment
 deploy:
+	@echo "📦 Installing dependencies..."
+	@$(MAKE) install
 	@echo "🏗️ Building frontend assets (dist/)..."
-	npm run build
+	@$(MAKE) build
 	@echo "🚀 Deploying to production..."
 	docker-compose up -d --build app nginx
 	@echo "✅ Production deployment complete!"
@@ -135,7 +137,7 @@ status:
 	@echo "📊 TMC Frontend Status"
 	@echo "===================="
 	@echo "Node version: $(shell node --version)"
-	@echo "Bun version: $(shell bun --version)"
+	@echo "NPM version: $(shell npm --version)"
 	@echo "Docker version: $(shell docker --version)"
 	@echo "Docker Compose version: $(shell docker-compose --version)"
 	@if [ -d "node_modules" ]; then echo "✅ Dependencies installed"; else echo "❌ Dependencies not installed"; fi
@@ -148,22 +150,22 @@ migrate:
 # Generate assets
 assets:
 	@echo "Generating application assets..."
-	bun run build
+	npm run build
 
 # Watch for changes (alternative to dev)
 watch:
 	@echo "Watching for file changes..."
-	bun run dev --watch
+	npm run dev -- --watch
 
 # Security audit
 audit:
 	@echo "Running security audit..."
-	bun audit
+	npm audit
 
 # Update dependencies
 update:
 	@echo "Updating dependencies..."
-	bun update
+	npm update
 
 # Create release
 release: clean ci
