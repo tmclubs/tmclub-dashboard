@@ -117,11 +117,7 @@ docker-dev: docker-build docker-up
 
 # Production deployment
 deploy:
-	@echo "📦 Installing dependencies..."
-	@$(MAKE) install
-	@echo "🏗️ Building frontend assets (dist/)..."
-	@$(MAKE) build
-	@echo "🚀 Deploying to production..."
+	@echo "🚀 Deploying to production (Docker will install & build)..."
 	docker-compose up -d --build app nginx
 	@echo "✅ Production deployment complete!"
 	@echo "🌐 App tersedia via Nginx di http://localhost:${NGINX_PORT:-8080}"
