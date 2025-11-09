@@ -309,7 +309,10 @@ docker_prod() {
 
     # Check ports from .env with defaults
     local nginx_port
-    nginx_port=$(get_env_var "NGINX_PORT" "8080")
+    nginx_port=$(get_env_var "NGINX_PORT" "")
+    if [ -z "$nginx_port" ]; then
+        nginx_port=$(get_env_var "NGINX_HTTP_PORT" "8080")
+    fi
     print_info "Memeriksa port: Nginx ${nginx_port}"
     prompt_port_cleanup_if_busy "$nginx_port" "Nginx"
     
@@ -367,7 +370,10 @@ docker_deploy() {
 
     # Check ports from .env with defaults
     local nginx_port
-    nginx_port=$(get_env_var "NGINX_PORT" "8080")
+    nginx_port=$(get_env_var "NGINX_PORT" "")
+    if [ -z "$nginx_port" ]; then
+        nginx_port=$(get_env_var "NGINX_HTTP_PORT" "8080")
+    fi
     print_info "Memeriksa port: Nginx ${nginx_port}"
     prompt_port_cleanup_if_busy "$nginx_port" "Nginx"
     
@@ -504,9 +510,10 @@ show_help() {
     echo "  ./manage.sh lint:fix"
     echo ""
     echo "🔧 Environment:"
-    echo "• Make sure Bun is installed: curl -fsSL https://bun.sh/install | bash"
-    echo "• Make sure Docker is installed for container commands"
-    echo "• Backend API should be running on http://localhost:8000"
+    echo "• Pastikan Node.js & npm terpasang, atau gunakan Docker untuk deploy"
+    echo "• Pastikan Docker terpasang untuk perintah container"
+    echo "• Setel port Nginx via env: NGINX_PORT atau NGINX_HTTP_PORT"
+    echo "• Backend API sebaiknya berjalan di http://localhost:8000"
 }
 
 # Main script logic
