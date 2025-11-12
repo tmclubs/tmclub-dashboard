@@ -19,12 +19,34 @@ export const useEvents = () => {
   });
 };
 
+// PUBLIC: Get all events without auth
+export const usePublicEvents = () => {
+  return useQuery({
+    queryKey: ['public-events'],
+    queryFn: () => eventsApi.getEvents(),
+    enabled: true,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 // Hook for getting single event
 export const useEvent = (eventId: number) => {
   return useQuery({
     queryKey: ['events', eventId],
     queryFn: () => eventsApi.getEvent(eventId),
     enabled: isAuthenticated() && !!eventId,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// PUBLIC: Get single event without auth
+export const usePublicEvent = (eventId: number) => {
+  return useQuery({
+    queryKey: ['public-events', eventId],
+    queryFn: () => eventsApi.getEvent(eventId),
+    enabled: !!eventId,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

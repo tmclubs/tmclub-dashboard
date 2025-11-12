@@ -17,6 +17,11 @@ import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { OAuthCallback } from './pages/auth/OAuthCallback';
 import { NotFound } from './pages/NotFound';
+import Landing from './pages/public/Landing';
+import PublicEventsPage from './pages/public/Events';
+import PublicEventDetailPage from './pages/public/EventDetail';
+import PublicBlogPage from './pages/public/Blog';
+import PublicBlogDetailPage from './pages/public/BlogDetail';
 import { MarkdownTest } from './components/test/MarkdownTest';
 import { BlogDetailTest } from './components/test/BlogDetailTest';
 
@@ -24,12 +29,20 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/landing" element={<Landing />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/test/markdown" element={<MarkdownTest />} />
         <Route path="/test/blog-detail" element={<BlogDetailTest />} />
-        <Route path="/" element={
+        {/* Public Events & Blog Pages */}
+        <Route path="/events" element={<PublicEventsPage />} />
+        <Route path="/events/:pk" element={<PublicEventDetailPage />} />
+        <Route path="/blog" element={<PublicBlogPage />} />
+        <Route path="/blog/:slug" element={<PublicBlogDetailPage />} />
+        <Route path="/dashboard" element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>

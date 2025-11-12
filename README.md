@@ -186,6 +186,39 @@ Run the container:
 docker run -p 5173:5173 tmc-frontend
 ```
 
+## 🌐 Nginx Reverse Proxy
+
+Repository ini menyediakan konfigurasi Nginx untuk reverse proxy ke service frontend (Vite dev atau preview) yang berjalan pada port `5173` melalui Docker Compose.
+
+### Menjalankan Nginx via Docker Compose
+
+```bash
+docker compose up -d
+```
+
+- Port publik dikendalikan oleh variabel `NGINX_PORT` (default `8080`).
+- Service `nginx` akan mem-proxy request ke service `app` pada `app:5173` sesuai `upstream app` di `nginx/nginx.conf`.
+
+### Konfigurasi `server_name`
+
+- File `nginx/nginx.conf` sudah disetel agar menerima host `dashboard.tmclub.id` dan `localhost`:
+  - `listen 80 default_server;`
+  - `server_name dashboard.tmclub.id localhost;`
+
+Jika Anda melihat pesan seperti:
+
+```
+conflicting server name "dashboard.tmclub.id" on 0.0.0.0:80, ignored
+```
+
+Itu berarti ada beberapa server block yang menggunakan `server_name` yang sama pada port 80 di instance Nginx Anda. Perbaikan yang disarankan:
+
+- Pastikan hanya ada satu server block yang mendeklarasikan `server_name dashboard.tmclub.id`.
+- Jadikan satu server block sebagai `default_server` untuk port 80.
+- Nonaktifkan atau hapus konfigurasi duplikat di folder `conf.d` atau `sites-enabled` (jika digunakan di environment Anda).
+
+Catatan: Image Nginx kami menghapus `default.conf` bawaan dan menggunakan `nginx/nginx.conf` dari repo ini, sehingga duplikasi biasanya terjadi jika ada konfigurasi eksternal lain yang ikut ter-load.
+
 ## 🤝 Contributing
 
 1. Follow the existing code style

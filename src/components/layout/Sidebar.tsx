@@ -21,18 +21,18 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Events', href: '/events', icon: Calendar },
-  { name: 'Companies', href: '/companies', icon: Building2 },
-  { name: 'Surveys (Coming Soon)', href: '/surveys', icon: ClipboardList },
-  { name: 'Blog', href: '/blog', icon: FileText },
-  { name: 'Members', href: '/members', icon: Users },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Events', href: '/dashboard/events', icon: Calendar },
+  { name: 'Companies', href: '/dashboard/companies', icon: Building2 },
+  { name: 'Surveys (Coming Soon)', href: '/dashboard/surveys', icon: ClipboardList },
+  { name: 'Blog', href: '/dashboard/blog', icon: FileText },
+  { name: 'Members', href: '/dashboard/members', icon: Users },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
 ];
 
 const secondaryNavigation = [
-  { name: 'Profile', href: '/profile', icon: User },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Profile', href: '/dashboard/profile', icon: User },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {

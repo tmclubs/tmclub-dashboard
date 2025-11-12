@@ -9,10 +9,10 @@ import {
 import { cn } from '@/lib/utils/cn';
 
 const bottomNavItems = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Events', href: '/events', icon: Calendar },
-  { name: 'Companies', href: '/companies', icon: Building2 },
-  { name: 'Profile', href: '/profile', icon: User },
+  { name: 'Home', href: '/dashboard', icon: Home },
+  { name: 'Events', href: '/dashboard/events', icon: Calendar },
+  { name: 'Companies', href: '/dashboard/companies', icon: Building2 },
+  { name: 'Profile', href: '/dashboard/profile', icon: User },
 ];
 
 export const BottomNavigation: React.FC = () => {
