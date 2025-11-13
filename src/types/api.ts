@@ -374,3 +374,21 @@ export interface APIError {
     id: string;
   };
 }
+
+// About Types
+export interface AboutInfo {
+  pk: number;
+  md: string;
+  description?: string;
+  organizations?: number[];
+  annual_directories?: number[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface UpdateAboutPayload {
+  md?: string;
+  description?: string;
+  organizations?: number[];
+  annual_directories?: number[];
+}

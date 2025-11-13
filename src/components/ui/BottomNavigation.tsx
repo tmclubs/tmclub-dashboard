@@ -23,6 +23,7 @@ export const BottomNavigation: React.FC = () => {
           <NavLink
             key={item.name}
             to={item.href}
+            end={item.href === '/dashboard'}
             className={({ isActive }) =>
               cn(
                 'flex flex-col items-center justify-center py-3 px-2 text-xs font-medium transition-colors min-h-[44px] min-w-[44px] touch-manipulation',

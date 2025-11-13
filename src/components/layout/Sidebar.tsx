@@ -6,6 +6,7 @@ import {
   Building2,
   ClipboardList,
   FileText,
+  Info,
   User,
   Settings,
   LogOut,
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Companies', href: '/dashboard/companies', icon: Building2 },
   { name: 'Surveys (Coming Soon)', href: '/dashboard/surveys', icon: ClipboardList },
   { name: 'Blog', href: '/dashboard/blog', icon: FileText },
+  { name: 'About', href: '/dashboard/about', icon: Info },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
 ];
@@ -81,6 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavLink
                   key={item.name}
                   to={item.href}
+                  end={item.href === '/dashboard'}
                   onClick={handleClose}
                   className={({ isActive }) =>
                     `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${
@@ -174,6 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavLink
                   key={item.name}
                   to={item.href}
+                  end={item.href === '/dashboard'}
                   className={({ isActive }) =>
                     `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${
                       isActive

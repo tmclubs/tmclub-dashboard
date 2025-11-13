@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Button } from '@/components/ui';
-import { Menu, X } from 'lucide-react';
+import { Button, Avatar } from '@/components/ui';
+import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -10,8 +11,24 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 const PublicNavbar: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { isAdmin } = usePermissions();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const getUserInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName) return 'U';
+    const firstInitial = firstName.charAt(0).toUpperCase();
+    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return firstInitial + lastInitial;
+  };
+
+  const getDisplayName = () => {
+    if (!user) return 'User';
+    return user.first_name && user.last_name 
+      ? `${user.first_name} ${user.last_name}`
+      : user.first_name || user.username || 'User';
+  };
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -25,14 +42,51 @@ const PublicNavbar: React.FC = () => {
               <NavLink to="/" className={navLinkClass}>Beranda</NavLink>
               <NavLink to="/events" className={navLinkClass}>Event</NavLink>
               <NavLink to="/blog" className={navLinkClass}>Blog</NavLink>
+              <NavLink to="/about" className={navLinkClass}>About</NavLink>
             </nav>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="inline-flex">
-                <Button size="sm" className="bg-orange-600 hover:bg-orange-700">Dashboard</Button>
-              </Link>
+              <div className="relative">
+                <button
+                  className="inline-flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  aria-label="Profile menu"
+                >
+                  <Avatar
+                    size="sm"
+                    name={getUserInitials(user?.first_name, user?.last_name)}
+                    className="h-8 w-8"
+                  />
+                  <span className="text-sm font-medium text-gray-900">
+                    {getDisplayName()}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                </button>
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                    <NavLink
+                      to="/dashboard/profile"
+                      className={({ isActive }) => `flex items-center px-3 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <UserIcon className="w-4 h-4 mr-2" />
+                      Profil
+                    </NavLink>
+                    {isAdmin() && (
+                      <NavLink
+                        to="/dashboard"
+                        className={({ isActive }) => `flex items-center px-3 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </NavLink>
+                    )}
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 <Link to="/login" className="inline-flex">
@@ -61,11 +115,19 @@ const PublicNavbar: React.FC = () => {
             <NavLink to="/" className={navLinkClass} onClick={() => setOpen(false)}>Beranda</NavLink>
             <NavLink to="/events" className={navLinkClass} onClick={() => setOpen(false)}>Event</NavLink>
             <NavLink to="/blog" className={navLinkClass} onClick={() => setOpen(false)}>Blog</NavLink>
+            <NavLink to="/about" className={navLinkClass} onClick={() => setOpen(false)}>About</NavLink>
             <div className="pt-2 flex items-center gap-2">
               {isAuthenticated ? (
-                <Link to="/dashboard" className="inline-flex w-full" onClick={() => setOpen(false)}>
-                  <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Dashboard</Button>
-                </Link>
+                <>
+                  <Link to="/dashboard/profile" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full">Profil</Button>
+                  </Link>
+                  {isAdmin() && (
+                    <Link to="/dashboard" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
+                      <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Dashboard</Button>
+                    </Link>
+                  )}
+                </>
               ) : (
                 <>
                   <Link to="/login" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
@@ -79,6 +141,11 @@ const PublicNavbar: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Overlay to close profile dropdown */}
+      {profileOpen && (
+        <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
       )}
     </header>
   );

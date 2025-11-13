@@ -77,6 +77,12 @@ export const API_ENDPOINTS = {
     SEARCH: '/blog/search/',
   },
 
+  // About
+  ABOUT: {
+    INFO: '/about/about/',
+    DETAIL: (id: string | number) => `/about/about/${id}/`,
+  },
+
   // Notifications
   NOTIFICATIONS: {
     LIST: '/notifications/',
@@ -161,6 +167,9 @@ export const QUERY_KEYS = {
 
   // Notifications
   NOTIFICATIONS: ['notifications'],
+
+  // About
+  ABOUT: ['about'],
 
   // Transactions
   TRANSACTIONS: ['transactions'],

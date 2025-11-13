@@ -3,12 +3,14 @@ import Hero from '@/components/landing/Hero';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import BlogPreview from '@/components/landing/BlogPreview';
 import EventsPreview from '@/components/landing/EventsPreview';
+import AboutPreview from '@/components/landing/AboutPreview';
 
 const Landing: React.FC = () => {
   return (
     <main className="bg-white">
       <PublicNavbar />
       <Hero />
+      <AboutPreview />
       <BlogPreview />
       <EventsPreview />
       <footer className="border-t border-gray-200">

@@ -15,7 +15,7 @@ const isHtmlContent = (content: string): boolean => {
 };
 
 // Enhanced HTML to Markdown conversion for TiptapEditor output
-const htmlToMarkdown = (html: string): string => {
+export const htmlToMarkdown = (html: string): string => {
   if (!html) return '';
   
   let markdown = html;

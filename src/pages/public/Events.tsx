@@ -16,32 +16,50 @@ export const PublicEventsPage: React.FC = () => {
     navigate(`/events/${ev.pk}`);
   };
 
+  const goHome = () => navigate('/');
+  const goBlog = () => navigate('/blog');
+  const retry = () => window.location.reload();
+
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen bg-gray-50">
+        <PublicNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <EmptyState
-          title="Gagal memuat event"
-          description="Terjadi kesalahan saat mengambil data event. Coba lagi nanti."
-        />
+      <div className="min-h-screen bg-gray-50">
+        <PublicNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <EmptyState
+            title="Gagal memuat event"
+            description="Terjadi kesalahan saat mengambil data event. Coba lagi nanti."
+            action={{ text: 'Coba Lagi', onClick: retry }}
+            secondaryAction={{ text: 'Kembali ke Beranda', onClick: goHome }}
+          />
+        </div>
       </div>
     );
   }
 
   if (!events || events.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <EmptyState
-          title="Belum ada event"
-          description="Saat ini belum ada event yang tersedia."
-        />
+      <div className="min-h-screen bg-gray-50">
+        <PublicNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <EmptyState
+            type="events"
+            title="Belum ada event"
+            description="Saat ini belum ada event yang tersedia."
+            action={{ text: 'Kembali ke Beranda', onClick: goHome }}
+            secondaryAction={{ text: 'Lihat Blog', onClick: goBlog }}
+          />
+        </div>
       </div>
     );
   }

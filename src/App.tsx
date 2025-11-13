@@ -22,8 +22,10 @@ import PublicEventsPage from './pages/public/Events';
 import PublicEventDetailPage from './pages/public/EventDetail';
 import PublicBlogPage from './pages/public/Blog';
 import PublicBlogDetailPage from './pages/public/BlogDetail';
+import PublicAboutPage from './pages/public/About';
 import { MarkdownTest } from './components/test/MarkdownTest';
 import { BlogDetailTest } from './components/test/BlogDetailTest';
+import { AboutPage } from './pages/dashboard/About';
 
 function App() {
   return (
@@ -42,6 +44,7 @@ function App() {
         <Route path="/events/:pk" element={<PublicEventDetailPage />} />
         <Route path="/blog" element={<PublicBlogPage />} />
         <Route path="/blog/:slug" element={<PublicBlogDetailPage />} />
+        <Route path="/about" element={<PublicAboutPage />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Layout />
@@ -54,6 +57,7 @@ function App() {
           <Route path="surveys" element={<SurveysPage />} />
           <Route path="blog" element={<BlogPage />} />
           <Route path="blog/:slug" element={<BlogDetailPage />} />
+          <Route path="about" element={<AboutPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
