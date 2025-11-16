@@ -46,20 +46,23 @@ export const handleOAuthCallback = async (): Promise<AuthResponse> => {
   const error = hashParams.get('error');
 
   if (error) {
+    history.replaceState({}, document.title, window.location.pathname);
     throw new Error(`OAuth2 error: ${error}`);
   }
 
   if (!accessToken) {
+    history.replaceState({}, document.title, window.location.pathname);
     throw new Error('No access token received');
   }
+
+  // Clear hash early to avoid re-triggering callback effect loops
+  history.replaceState({}, document.title, window.location.pathname);
 
   const authResponse = await authenticateWithGoogleToken(accessToken);
 
   if (authResponse.token && authResponse.user) {
     setAuthData(authResponse.token, authResponse.user);
   }
-
-  history.replaceState({}, document.title, window.location.pathname);
 
   return authResponse;
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { profileApi, ProfileData, transformProfileFormData, transformProfileToFormData } from '@/lib/api/profile';
+import { getAuthData } from '@/lib/api/auth';
 import { handleApiError } from '@/lib/api/client';
 
 interface UseProfileReturn {
@@ -26,6 +27,11 @@ export const useProfile = (): UseProfileReturn => {
     try {
       setLoading(true);
       setError(null);
+      const { token } = getAuthData();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       const profileData = await profileApi.getProfile();
       setProfile(profileData);
     } catch (err) {
@@ -129,7 +135,12 @@ export const useProfile = (): UseProfileReturn => {
 
   // Fetch profile on mount
   useEffect(() => {
-    fetchProfile();
+    const { token } = getAuthData();
+    if (token) {
+      fetchProfile();
+    } else {
+      setLoading(false);
+    }
   }, [fetchProfile]);
 
   return {
