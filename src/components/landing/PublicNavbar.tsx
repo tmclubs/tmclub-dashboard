@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Button, Avatar } from '@/components/ui';
-import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard } from 'lucide-react';
-import { useAuth } from '@/lib/hooks/useAuth';
+import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard, LogOut } from 'lucide-react';
+import { useAuth, useLogout } from '@/lib/hooks/useAuth';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -12,6 +12,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const PublicNavbar: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
+  const logout = useLogout();
   const { isAdmin } = usePermissions();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -84,6 +85,13 @@ const PublicNavbar: React.FC = () => {
                         Dashboard
                       </NavLink>
                     )}
+                    <button
+                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                      onClick={() => { setProfileOpen(false); logout(); }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </button>
                   </div>
                 )}
               </div>
@@ -127,6 +135,9 @@ const PublicNavbar: React.FC = () => {
                       <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Dashboard</Button>
                     </Link>
                   )}
+                  <div className="flex items-center gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="w-full text-red-600 border-red-200" onClick={() => { setOpen(false); logout(); }}>Logout</Button>
+                  </div>
                 </>
               ) : (
                 <>

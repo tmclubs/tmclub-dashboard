@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { authApi, setAuthData, clearAuthData, getAuthData } from '@/lib/api/auth';
+import { authenticateWithGoogleToken } from '@/lib/auth/google-oauth';
 // import { UserProfile } from '@/types/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,7 +51,7 @@ export const useGoogleTokenLogin = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (access_token: string) => authApi.loginWithGoogleToken(access_token),
+    mutationFn: (access_token: string) => authenticateWithGoogleToken(access_token),
     onSuccess: (data) => {
       setAuthData(data.token, data.user);
       queryClient.invalidateQueries({ queryKey: ['profile'] });

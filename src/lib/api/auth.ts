@@ -5,12 +5,11 @@ import { AuthResponse, GoogleAuthResponse, UserProfile } from '@/types/api';
 export const authApi = {
   // OAuth Google Login/Register
   async loginWithGoogle(uid: string, email: string, name: string): Promise<GoogleAuthResponse> {
-    return apiClient.post('/authenticate/', { uid, email, name });
+    return apiClient.post('/authentication/', { uid, email, name });
   },
 
-  // Google Token authentication (Fixed endpoint alignment)
-  async loginWithGoogleToken(access_token: string): Promise<AuthResponse> {
-    return apiClient.post('/google-token', { access_token });
+  async loginWithGoogleToken(access_token: string): Promise<{ token: string; email: string; is_active: boolean }> {
+    return apiClient.post('/authentication/oauth/', { access_token, backend: 'google-oauth2' });
   },
 
   // Google OAuth2 callback: tukar authorization code menjadi token via backend

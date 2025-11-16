@@ -12,8 +12,7 @@ const GOOGLE_AUTH_CONFIG = {
   clientId: env.googleClientId,
   redirectUri: env.googleRedirectUri,
   scope: 'openid email profile',
-  responseType: 'code',
-  accessType: 'offline',
+  responseType: 'token',
   prompt: 'consent',
 };
 
@@ -33,23 +32,36 @@ export const generateGoogleAuthUrl = (): string => {
     redirect_uri: GOOGLE_AUTH_CONFIG.redirectUri,
     scope: GOOGLE_AUTH_CONFIG.scope,
     response_type: GOOGLE_AUTH_CONFIG.responseType,
-    access_type: GOOGLE_AUTH_CONFIG.accessType,
     prompt: GOOGLE_AUTH_CONFIG.prompt,
+    include_granted_scopes: 'true',
   });
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 };
 
-// Exchange authorization code for tokens
-export const exchangeCodeForTokens = async (code: string): Promise<AuthResponse> => {
-  try {
-    // Tukar authorization code ke token via backend API
-    const data = await authApi.googleCallback(code, GOOGLE_AUTH_CONFIG.redirectUri);
-    return data;
-  } catch (error) {
-    console.error('Error exchanging code for tokens:', error);
-    throw new Error('Failed to complete Google authentication');
+// Web callback flow is not supported; use token-based flow
+export const handleOAuthCallback = async (): Promise<AuthResponse> => {
+  const hashParams = new URLSearchParams(window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash);
+  const accessToken = hashParams.get('access_token');
+  const error = hashParams.get('error');
+
+  if (error) {
+    throw new Error(`OAuth2 error: ${error}`);
   }
+
+  if (!accessToken) {
+    throw new Error('No access token received');
+  }
+
+  const authResponse = await authenticateWithGoogleToken(accessToken);
+
+  if (authResponse.token && authResponse.user) {
+    setAuthData(authResponse.token, authResponse.user);
+  }
+
+  history.replaceState({}, document.title, window.location.pathname);
+
+  return authResponse;
 };
 
 // Get user profile from Google using access token
@@ -84,60 +96,26 @@ export const getGoogleUserProfile = async (accessToken: string): Promise<GoogleU
 // Complete Google OAuth2 flow (for mobile apps with access token)
 export const authenticateWithGoogleToken = async (accessToken: string): Promise<AuthResponse> => {
   try {
-    // Authenticate with TMC API using Google token
-    const authResponse = await authApi.loginWithGoogleToken(accessToken);
-
-    // Store authentication data
-    if (authResponse.token && authResponse.user) {
-      setAuthData(authResponse.token, authResponse.user);
-    }
-
-    return authResponse;
+    const oauthData = await authApi.loginWithGoogleToken(accessToken);
+    setAuthData(oauthData.token, null as any);
+    const user = await authApi.getProfile();
+    setAuthData(oauthData.token, user as any);
+    return { token: oauthData.token, user: user as any };
   } catch (error) {
     console.error('Error in Google token authentication:', error);
     throw new Error('Failed to authenticate with Google');
   }
 };
 
-// Handle OAuth2 callback (for web flow)
-export const handleOAuthCallback = async (): Promise<AuthResponse> => {
-  try {
-    // Get authorization code from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const error = urlParams.get('error');
-
-    if (error) {
-      throw new Error(`OAuth2 error: ${error}`);
-    }
-
-    if (!code) {
-      throw new Error('No authorization code received');
-    }
-
-    // Exchange code for tokens
-    const authResponse = await exchangeCodeForTokens(code);
-
-    // Store authentication data
-    if (authResponse.token && authResponse.user) {
-      setAuthData(authResponse.token, authResponse.user);
-    }
-
-    // Clean up URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    return authResponse;
-  } catch (error) {
-    console.error('Error handling OAuth callback:', error);
-    throw new Error('Failed to complete authentication');
-  }
-};
-
-// Check if current URL contains OAuth callback parameters
+// Keep placeholder to satisfy existing imports; always false
 export const isOAuthCallback = (): boolean => {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.has('code') || urlParams.has('error');
+  const hashParams = new URLSearchParams(window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash);
+  const hasToken = hashParams.has('access_token');
+  const hasError = hashParams.has('error');
+  return hasToken || hasError;
 };
+
+// (Disabled) Check callback parameters — web flow tidak digunakan
 
 // Redirect to Google OAuth2 consent screen
 export const redirectToGoogleAuth = (): void => {
@@ -232,7 +210,6 @@ export const validateGoogleIdToken = async (idToken: string): Promise<any> => {
 
 export default {
   generateGoogleAuthUrl,
-  exchangeCodeForTokens,
   getGoogleUserProfile,
   authenticateWithGoogleToken,
   handleOAuthCallback,
