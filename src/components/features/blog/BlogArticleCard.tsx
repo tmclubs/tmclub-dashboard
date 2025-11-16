@@ -26,6 +26,7 @@ export interface BlogArticle {
   content: string;
   slug: string;
   featuredImage?: string;
+  albums?: string[];
   author: BlogAuthor;
   tags: string[];
   status: 'draft' | 'published' | 'archived';
@@ -66,25 +67,26 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
   onShare,
   className,
 }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  
 
   const isGrid = variant === 'grid';
   const isCompact = variant === 'compact';
   
   if (isGrid) {
     return (
-      <Card className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 overflow-hidden h-full flex flex-col", className)}>
+      <Card
+        className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 overflow-hidden h-full flex flex-col", onView ? "cursor-pointer" : "", className)}
+        onClick={() => onView?.(article)}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && onView) {
+            e.preventDefault();
+            onView(article);
+          }
+        }}
+        role={onView ? "button" : undefined}
+        tabIndex={onView ? 0 : undefined}
+        aria-label={onView ? `Open ${article.title}` : undefined}
+      >
         {/* Image Section - Proportional aspect ratio */}
         {article.featuredImage ? (
           <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden">
@@ -101,9 +103,6 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                   <span className="hidden sm:inline">Featured</span>
                 </Badge>
               )}
-              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(article.status))}>
-                {article.status}
-              </Badge>
             </div>
             <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3">
               {/* Category removed */}
@@ -119,9 +118,6 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                   <span className="hidden sm:inline">Featured</span>
                 </Badge>
               )}
-              <Badge className={cn("text-xs border backdrop-blur-sm", getStatusColor(article.status))}>
-                {article.status}
-              </Badge>
             </div>
             <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3">
               {/* Category removed */}
@@ -186,7 +182,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
               <Button
                 variant="outline"
                 size="default"
-                onClick={() => onView?.(article)}
+                onClick={(e) => { e.stopPropagation(); onView?.(article); }}
                 fullWidth
                 className="blog-button flex-1"
                 leftIcon={<BookOpen className="w-4 h-4" />}
@@ -197,7 +193,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onEdit(article)}
+                  onClick={(e) => { e.stopPropagation(); onEdit(article); }}
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -206,7 +202,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onDelete(article)}
+                  onClick={(e) => { e.stopPropagation(); onDelete(article); }}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -245,9 +241,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                   
                   {/* Badges - Responsive layout */}
                   <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
-                    <Badge className={cn("text-xs", getStatusColor(article.status))}>
-                      {article.status}
-                    </Badge>
+                    
                   </div>
                   
                   {/* Stats - Responsive grid */}
@@ -292,7 +286,19 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
 
   // Featured/Default variant - Enhanced mobile-optimized
   return (
-    <Card className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 h-full flex flex-col", className)}>
+    <Card
+      className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 h-full flex flex-col", onView ? "cursor-pointer" : "", className)}
+      onClick={() => onView?.(article)}
+      onKeyDown={(e) => {
+        if ((e.key === "Enter" || e.key === " ") && onView) {
+          e.preventDefault();
+          onView(article);
+        }
+      }}
+      role={onView ? "button" : undefined}
+      tabIndex={onView ? 0 : undefined}
+      aria-label={onView ? `Open ${article.title}` : undefined}
+    >
       {/* Featured Image - Proportional aspect ratio */}
       {article.featuredImage && (
         <div className="relative overflow-hidden rounded-t-lg aspect-[16/9] sm:aspect-[4/3]">
@@ -321,9 +327,6 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                   <span className="hidden sm:inline">Featured</span>
                 </Badge>
               )}
-              <Badge className={cn("text-xs", getStatusColor(article.status))}>
-                {article.status}
-              </Badge>
             </div>
           )}
 
@@ -407,7 +410,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
               <Button
                 variant="outline"
                 size="default"
-                onClick={() => onView(article)}
+                onClick={(e) => { e.stopPropagation(); onView(article); }}
                 className="flex-1 sm:flex-none"
                 leftIcon={<BookOpen className="w-4 h-4" />}
               >

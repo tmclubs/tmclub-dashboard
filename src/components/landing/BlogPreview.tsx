@@ -3,15 +3,20 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, Badge, Button, LoadingSkeleton } from '@/components/ui';
 import { useBlogPosts } from '@/lib/hooks';
 import type { BlogPost } from '@/types/api';
+import { env } from '@/lib/config/env';
 
 const BlogPreview: React.FC = () => {
   const { data, isLoading, isError } = useBlogPosts({ status: 'published', ordering: '-published_at' });
 
   const getMainImageUrl = (post: BlogPost): string | undefined => {
-    if (post.main_image_url) return post.main_image_url;
+    if ((post as any).main_image_url) {
+      const url = (post as any).main_image_url as string;
+      return url.startsWith('http') ? url : `${env.apiUrl}${url}`;
+    }
     const mi = post.main_image as { image?: string } | number | null | undefined;
     if (mi && typeof mi === 'object' && 'image' in mi) {
-      return mi.image;
+      const url = mi.image as string;
+      return url.startsWith('http') ? url : `${env.apiUrl}${url}`;
     }
     return undefined;
   };

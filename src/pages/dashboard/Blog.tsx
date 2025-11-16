@@ -7,6 +7,7 @@ import {
   type BlogAuthor,
 } from '@/components/features/blog';
 import {Modal, ConfirmDialog, LoadingSpinner } from '@/components/ui';
+import { env } from '@/lib/config/env';
 import { useBlogPosts, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost } from '@/lib/hooks/useBlog';
 import { blogApi } from '@/lib/api/blog';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
@@ -68,6 +69,11 @@ export const BlogPage: React.FC = () => {
       role: 'Author',
     };
 
+    const rawImage = (post as any).main_image_url
+      || (typeof post.main_image === 'object' && (post.main_image as any)?.image)
+      || (typeof post.main_image === 'string' ? (post.main_image as string) : undefined);
+    const featuredImage = rawImage ? (rawImage.startsWith('http') ? rawImage : `${env.apiUrl}${rawImage}`) : undefined;
+
     return {
       id: String(post.pk || post.slug || Math.random()),
       pk: post.pk,
@@ -75,10 +81,10 @@ export const BlogPage: React.FC = () => {
       excerpt: post.summary,
       content: post.content,
       slug: post.slug,
-      featuredImage: typeof post.main_image === 'string' ? post.main_image : (typeof post.main_image === 'object' && post.main_image?.image ? post.main_image.image : undefined),
+      featuredImage,
       author,
       tags: post.tags || [],
-      status: post.status || 'draft',
+      status: 'published',
       publishedAt: post.published_at,
       createdAt: post.created_at || new Date().toISOString(),
       updatedAt: post.updated_at || new Date().toISOString(),
@@ -126,29 +132,52 @@ export const BlogPage: React.FC = () => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-  const toApiPayload = (data: BlogFormData): ApiBlogFormData => {
-    return {
+  const toApiPayload = (data: BlogFormData, currentSlug?: string, mode: 'create' | 'edit' = 'create'): ApiBlogFormData => {
+    const payload: ApiBlogFormData = {
       title: data.title,
       summary: data.summary,
-      slug: data.slug || slugify(data.title),
       main_image: data.main_image || '',
       content: data.content,
       youtube_id: data.youtube_id || '',
       youtube_embeded: data.youtube_embeded || '',
       albums_id: data.albums_id || [],
     };
+
+    if (mode === 'create') {
+      payload.slug = data.slug || slugify(data.title);
+    } else {
+      if (data.slug && (!currentSlug || data.slug !== currentSlug)) {
+        payload.slug = data.slug;
+      }
+    }
+
+    return payload;
   };
 
   const handleArticleSubmit = async (data: BlogFormData) => {
-    const apiPayload = toApiPayload(data);
+    const apiPayload = toApiPayload(data, selectedArticle?.slug, selectedArticle ? 'edit' : 'create');
 
     // Upload main image first if a new file is provided
     if (data.mainImageFile) {
       try {
         const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
-        apiPayload.main_image = uploadRes.image;
+        apiPayload.main_image = String(uploadRes.pk);
       } catch (err) {
         console.error('Failed to upload main image', err);
+      }
+    }
+
+    if (data.albumsFiles && data.albumsFiles.length > 0) {
+      try {
+        const uploaded = await Promise.all(
+          data.albumsFiles.map(async (f) => {
+            const res = await blogApi.uploadBlogImage(f);
+            return res.pk;
+          })
+        );
+        apiPayload.albums_id = uploaded;
+      } catch (err) {
+        console.error('Failed to upload albums', err);
       }
     }
 

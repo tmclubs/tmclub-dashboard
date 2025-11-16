@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Search,
   Plus,
-  Filter,
   Calendar,
   Eye,
   BookOpen,
@@ -58,18 +57,6 @@ export const BlogList: React.FC<BlogListProps> = ({
       value: articles.length,
       color: 'text-orange-600',
       icon: BookOpen,
-    },
-    {
-      label: 'Published',
-      value: articles.filter(a => a.status === 'published').length,
-      color: 'text-green-600',
-      icon: Eye,
-    },
-    {
-      label: 'Draft',
-      value: articles.filter(a => a.status === 'draft').length,
-      color: 'text-yellow-600',
-      icon: Filter,
     },
     {
       label: 'Total Views',
@@ -146,19 +133,7 @@ export const BlogList: React.FC<BlogListProps> = ({
 
           {/* Filter Controls - Better responsive layout */}
           <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 mb-4 sm:mb-6">
-            <div className="space-y-1">
-              <label className="block text-xs sm:text-sm font-medium text-gray-700">Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => onStatusChange?.(e.target.value as any)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
-              >
-                <option value="all">All Status</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-                <option value="archived">Archived</option>
-              </select>
-            </div>
+            
             <div className="space-y-1">
               <label className="block text-xs sm:text-sm font-medium text-gray-700">Sort By</label>
               <select
@@ -209,18 +184,18 @@ export const BlogList: React.FC<BlogListProps> = ({
           <CardContent className="p-8 sm:p-12 text-center">
             <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-              {searchQuery || statusFilter !== 'all'
+              {searchQuery
                 ? 'No articles found'
                 : 'No articles yet'
               }
             </h3>
             <p className="text-sm sm:text-base text-gray-600 mb-6 max-w-md mx-auto">
-              {searchQuery || statusFilter !== 'all'
+              {searchQuery
                 ? 'Try adjusting your filters or search terms.'
                 : 'Get started by creating your first article.'
               }
             </p>
-            {!searchQuery && statusFilter === 'all' && onCreate && (
+            {!searchQuery && onCreate && (
               <Button onClick={onCreate} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Article

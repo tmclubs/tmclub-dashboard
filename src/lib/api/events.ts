@@ -85,12 +85,23 @@ export const eventsApi = {
 
   // Upload event media
   async uploadEventMedia(eventId: number, fileIds: number[]): Promise<void> {
-    return apiClient.post(`/event/${eventId}/upload-media/`, { files: fileIds });
+    return apiClient.post(`/event/${eventId}/upload-media/`, { media_id: fileIds });
   },
 
   // Upload main image untuk event
   async uploadMainImage(file: File, caption?: string): Promise<FileUploadResult> {
-    return filesApi.uploadMainImage(file, caption);
+    const uploaded = await (await import('./blog')).blogApi.uploadBlogImage(file, caption);
+    return {
+      success: true,
+      data: {
+        file_id: String(uploaded.pk),
+        filename: uploaded.display_name,
+        file_type: 'image',
+        file_size: 0,
+        url: uploaded.image,
+        created_at: new Date().toISOString(),
+      },
+    };
   },
 
   // Set surveys for event

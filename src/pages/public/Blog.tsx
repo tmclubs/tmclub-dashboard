@@ -5,6 +5,7 @@ import { LoadingSpinner, EmptyState } from '@/components/ui';
 import { useBlogPosts } from '@/lib/hooks/useBlog';
 import type { BlogPost } from '@/types/api';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import { env } from '@/lib/config/env';
 
 export const PublicBlogPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ export const PublicBlogPage: React.FC = () => {
       role: 'Author',
     };
 
+    const rawImage = (post as any).main_image_url
+      || (typeof post.main_image === 'object' && (post.main_image as any)?.image)
+      || (typeof post.main_image === 'string' ? (post.main_image as string) : undefined);
+    const featuredImage = rawImage ? (rawImage.startsWith('http') ? rawImage : `${env.apiUrl}${rawImage}`) : undefined;
+
     return {
       id: String(post.pk || post.slug || Math.random()),
       pk: post.pk,
@@ -29,10 +35,10 @@ export const PublicBlogPage: React.FC = () => {
       excerpt: post.summary,
       content: post.content,
       slug: post.slug,
-      featuredImage: typeof post.main_image === 'string' ? post.main_image : (typeof post.main_image === 'object' && (post.main_image as any)?.image ? (post.main_image as any).image : undefined),
+      featuredImage,
       author,
       tags: post.tags || [],
-      status: post.status || 'draft',
+      status: 'published',
       publishedAt: post.published_at,
       createdAt: post.created_at || new Date().toISOString(),
       updatedAt: post.updated_at || new Date().toISOString(),

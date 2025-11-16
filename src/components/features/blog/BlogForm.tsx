@@ -15,6 +15,7 @@ export interface BlogFormData extends ApiBlogFormData {
   // For UI state management
   mainImageFile?: File;
   previewImage?: string;
+  albumsFiles?: File[];
 }
 
 export interface BlogFormProps {
@@ -48,9 +49,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   });
 
   const [showPreview, setShowPreview] = useState(false);
-  const [albumsFiles, setAlbumsFiles] = useState<File[]>([]); // Used for future API implementation - prevent TS error with console.log
-  // Prevent TypeScript unused variable error
-  void albumsFiles;
+  const [albumsFiles, setAlbumsFiles] = useState<File[]>([]);
   const [albumsPreviews, setAlbumsPreviews] = useState<string[]>([]);
 
   const handleInputChange = (field: keyof BlogFormData, value: any) => {
@@ -121,11 +120,19 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     }
 
     setAlbumsFiles(prev => [...prev, ...newAlbumsFiles]);
+    setFormData(prev => ({
+      ...prev,
+      albumsFiles: [...(prev.albumsFiles || []), ...newAlbumsFiles],
+    }));
     setAlbumsPreviews(prev => [...prev, ...newPreviews]);
   };
 
   const removeAlbum = (index: number) => {
     setAlbumsFiles(prev => prev.filter((_, i) => i !== index));
+    setFormData(prev => ({
+      ...prev,
+      albumsFiles: (prev.albumsFiles || []).filter((_, i) => i !== index),
+    }));
     setAlbumsPreviews(prev => prev.filter((_, i) => i !== index));
   };
 

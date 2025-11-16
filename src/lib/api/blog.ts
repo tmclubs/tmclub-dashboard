@@ -97,10 +97,13 @@ export const blogApi = {
   },
 
   // Upload blog image
-  async uploadBlogImage(file: File): Promise<{ pk: number; image: string; display_name: string }> {
+  async uploadBlogImage(file: File, caption?: string): Promise<{ pk: number; image: string; display_name: string; caption?: string }> {
     const formData = new FormData();
-    formData.append('image', file);
-    return apiClient.upload('/blog/upload-image/', formData);
+    formData.append('file', file);
+    if (caption) {
+      formData.append('caption', caption);
+    }
+    return apiClient.upload('/common/upload-file/', formData);
   },
 
   // Upload main image untuk blog post

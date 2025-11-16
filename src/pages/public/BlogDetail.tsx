@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BlogDetail } from '@/components/features/blog';
-import { LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner} from '@/components/ui';
 import { blogApi } from '@/lib/api/blog';
+import { env } from '@/lib/config/env';
 import { type BlogPost } from '@/types/api';
 import { type BlogArticle, type BlogAuthor } from '@/components/features/blog';
 import PublicNavbar from '@/components/landing/PublicNavbar';
@@ -26,6 +27,15 @@ export const PublicBlogDetailPage: React.FC = () => {
       role: 'Author',
     };
 
+    const rawImage = (post as any).main_image_url
+      || (typeof post.main_image === 'object' && (post.main_image as any)?.image)
+      || (typeof post.main_image === 'string' ? (post.main_image as string) : undefined);
+    const featuredImage = rawImage ? (rawImage.startsWith('http') ? rawImage : `${env.apiUrl}${rawImage}`) : undefined;
+    const albumsRaw = (post as any).albums_url as string[] | undefined;
+    const albums = Array.isArray(albumsRaw)
+      ? albumsRaw.map((u) => (u.startsWith('http') ? u : `${env.apiUrl}${u}`))
+      : [];
+
     return {
       id: String(post.pk || post.slug || Math.random()),
       pk: post.pk,
@@ -33,10 +43,11 @@ export const PublicBlogDetailPage: React.FC = () => {
       excerpt: post.summary,
       content: post.content,
       slug: post.slug,
-      featuredImage: typeof post.main_image === 'string' ? post.main_image : (typeof post.main_image === 'object' && (post.main_image as any)?.image ? (post.main_image as any).image : undefined),
+      featuredImage,
       author,
+      albums,
       tags: post.tags || [],
-      status: post.status || 'draft',
+      status: 'published',
       publishedAt: post.published_at,
       createdAt: post.created_at || new Date().toISOString(),
       updatedAt: post.updated_at || new Date().toISOString(),

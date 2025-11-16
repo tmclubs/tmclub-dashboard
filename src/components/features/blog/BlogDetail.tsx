@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui';
-import { ArrowLeft, Calendar, Clock, Eye, User, Tag } from 'lucide-react';
+import { Button, Modal } from '@/components/ui';
+import { ArrowLeft, Calendar, Clock, Eye, User, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { type BlogArticle } from './BlogArticleCard';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -12,6 +12,14 @@ interface BlogDetailProps {
 
 export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
   const navigate = useNavigate();
+  const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
+  const [activeImageIndex, setActiveImageIndex] = React.useState<number | null>(null);
+  const [scale, setScale] = React.useState(1);
+  const [offset, setOffset] = React.useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState<{ x: number; y: number } | null>(null);
+  const [pinchStartDistance, setPinchStartDistance] = React.useState<number | null>(null);
+  const [pinchStartScale, setPinchStartScale] = React.useState<number>(1);
 
   const handleBack = () => {
     if (onBack) {
@@ -19,6 +27,106 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
     } else {
       navigate('/blog');
     }
+  };
+
+  const openImageModal = (index: number) => {
+    setActiveImageIndex(index);
+    setIsImageModalOpen(true);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const closeImageModal = () => {
+    setIsImageModalOpen(false);
+    setActiveImageIndex(null);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const nextImage = () => {
+    if (!article.albums || activeImageIndex === null) return;
+    const next = (activeImageIndex + 1) % article.albums.length;
+    setActiveImageIndex(next);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const prevImage = () => {
+    if (!article.albums || activeImageIndex === null) return;
+    const prev = (activeImageIndex - 1 + article.albums.length) % article.albums.length;
+    setActiveImageIndex(prev);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  React.useEffect(() => {
+    if (!isImageModalOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        nextImage();
+      } else if (e.key === 'ArrowLeft') {
+        prevImage();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isImageModalOpen, nextImage, prevImage]);
+
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+  const onWheel: React.WheelEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale((s) => clamp(s + delta, 1, 5));
+  };
+  const onMouseDown: React.MouseEventHandler<HTMLImageElement> = (e) => {
+    e.preventDefault();
+    setDragging(true);
+    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+  };
+  const onMouseMove: React.MouseEventHandler<HTMLImageElement> = (e) => {
+    if (!dragging || !dragStart) return;
+    setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  };
+  const onMouseUp: React.MouseEventHandler<HTMLImageElement> = () => {
+    setDragging(false);
+    setDragStart(null);
+  };
+  const onDoubleClick: React.MouseEventHandler<HTMLImageElement> = () => {
+    setScale((s) => (s > 1 ? 1 : 2));
+    setOffset({ x: 0, y: 0 });
+  };
+  const getDistance = (t1: React.Touch | Touch, t2: React.Touch | Touch) => {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  const onTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    const touches = e.nativeEvent.touches;
+    if (touches.length === 2) {
+      const d = getDistance(touches[0], touches[1]);
+      setPinchStartDistance(d);
+      setPinchStartScale(scale);
+    } else if (touches.length === 1) {
+      const t = touches[0];
+      setDragging(true);
+      setDragStart({ x: t.clientX - offset.x, y: t.clientY - offset.y });
+    }
+  };
+  const onTouchMove: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    const touches = e.nativeEvent.touches;
+    if (touches.length === 2 && pinchStartDistance) {
+      const d = getDistance(touches[0], touches[1]);
+      const ratio = d / pinchStartDistance;
+      setScale(clamp(pinchStartScale * ratio, 1, 5));
+    } else if (touches.length === 1 && dragging && dragStart) {
+      const t = touches[0];
+      setOffset({ x: t.clientX - dragStart.x, y: t.clientY - dragStart.y });
+    }
+  };
+  const onTouchEnd: React.TouchEventHandler<HTMLDivElement> = () => {
+    setDragging(false);
+    setDragStart(null);
+    setPinchStartDistance(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -100,6 +208,30 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
               <MarkdownRenderer content={article.content} />
             </div>
 
+            {/* Albums Gallery */}
+            {article.albums && article.albums.length > 0 && (
+              <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Galeri</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {article.albums.map((url, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      onClick={() => openImageModal(idx)}
+                      aria-label={`Buka gambar album ${idx + 1}`}
+                    >
+                      <img
+                        src={url}
+                        alt={`Album ${idx + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Tags */}
             {article.tags && article.tags.length > 0 && (
               <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
@@ -123,17 +255,76 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
             {/* Author Info */}
             <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
               <div className="flex items-center gap-3 sm:gap-4">
-                <img
-                  src={article.author.avatar}
-                  alt={article.author.name}
-                  className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
-                />
+                {article.author.avatar ? (
+                  <img
+                    src={article.author.avatar}
+                    alt={article.author.name}
+                    className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling as HTMLDivElement | null;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div
+                  className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-orange-500 text-white flex items-center justify-center font-medium flex-shrink-0"
+                  style={{ display: article.author.avatar ? 'none' : 'flex' }}
+                >
+                  {article.author.name
+                    .split(' ')
+                    .map((w) => w.charAt(0).toUpperCase())
+                    .slice(0, 2)
+                    .join('')}
+                </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{article.author.name}</h3>
                   <p className="text-xs sm:text-sm text-gray-600">{article.author.role}</p>
                 </div>
               </div>
             </div>
+
+            <Modal
+              open={isImageModalOpen}
+              onClose={closeImageModal}
+              size="xl"
+              title="Preview Gambar"
+            >
+              {activeImageIndex !== null && article.albums && (
+                <div
+                  className="relative"
+                  onWheel={onWheel}
+                  onTouchStart={onTouchStart}
+                  onTouchMove={onTouchMove}
+                  onTouchEnd={onTouchEnd}
+                >
+                  <div className="flex items-center justify-center overflow-hidden max-h-[70vh]">
+                    <img
+                      src={article.albums[activeImageIndex]}
+                      alt={`Preview ${activeImageIndex + 1}`}
+                      className={`w-auto rounded-lg select-none ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                      style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: 'center center' }}
+                      onMouseDown={onMouseDown}
+                      onMouseMove={onMouseMove}
+                      onMouseUp={onMouseUp}
+                      onMouseLeave={onMouseUp}
+                      onDoubleClick={onDoubleClick}
+                      draggable={false}
+                    />
+                  </div>
+                  {article.albums.length > 1 && (
+                    <div className="absolute inset-y-1/2 left-0 right-0 flex items-center justify-between px-2">
+                      <Button variant="ghost" size="icon" onClick={prevImage} aria-label="Sebelumnya">
+                        <ChevronLeft className="h-6 w-6" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={nextImage} aria-label="Berikutnya">
+                        <ChevronRight className="h-6 w-6" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Modal>
           </div>
         </article>
 
