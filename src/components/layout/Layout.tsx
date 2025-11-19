@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { BottomNavigation } from '@/components/ui';
@@ -8,12 +8,7 @@ import { useUIStore } from '@/lib/stores';
 export const Layout: React.FC = () => {
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useUIStore();
 
-  // Check if user is authenticated (will be implemented later)
-  const isAuthenticated = !!localStorage.getItem('auth_token');
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // Auth is handled by ProtectedRoute wrapper; avoid duplicate checks here
 
   return (
     <div className="flex h-screen bg-gray-50 relative">

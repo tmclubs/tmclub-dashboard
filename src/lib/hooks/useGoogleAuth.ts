@@ -181,12 +181,14 @@ export const useGoogleAuth = (options: UseGoogleAuthOptions = {}) => {
   }, [resetError, setLoading, tokenAuthMutation]);
 
   // Handle OAuth callback on component mount
+  const [hasMutated, setHasMutated] = useState(false);
   useEffect(() => {
-    if (isOAuthCallback()) {
+    if (!hasMutated && isOAuthCallback()) {
       setLoading(true);
+      setHasMutated(true);
       oauthCallbackMutation.mutate();
     }
-  }, [oauthCallbackMutation]);
+  }, [oauthCallbackMutation, hasMutated]);
 
   return {
     // State

@@ -29,13 +29,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     isLoading: isGoogleLoading,
     error: googleError,
     hasOAuthCallback
-  } = useGoogleAuth({
-    onSuccess: () => {
-      // Redirect to returnUrl or dashboard after successful Google login
-      navigate(decodeURIComponent(returnUrl));
-    },
-    redirectTo: decodeURIComponent(returnUrl)
-  });
+  } = useGoogleAuth();
 
   const [error, setError] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
@@ -94,13 +88,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   const handleGoogleLogin = () => {
-    // Use popup for better UX, fallback to redirect
-    try {
-      loginWithPopup();
-    } catch (error) {
-      // If popup fails (e.g., blocked), use redirect
-      loginWithRedirect();
-    }
+    // Gunakan redirect flow untuk menghindari COOP/popup issues
+    loginWithRedirect();
   };
 
   // Show loading state if OAuth callback is being processed

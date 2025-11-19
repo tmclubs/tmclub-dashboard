@@ -71,6 +71,8 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
   const performAuthCheck = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
+      const token = localStorage.getItem('auth_token');
+      console.debug('[AuthMiddleware] performAuthCheck start', { hasToken: !!token, path: window.location.pathname });
 
       // Check if authentication is required
       if (!requireAuth) {
@@ -85,6 +87,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
 
       // Check token validity
       const isValidAuth = await checkAuthentication();
+      console.debug('[AuthMiddleware] isValidAuth', isValidAuth);
       
       if (!isValidAuth) {
         // Token is invalid or expired
@@ -102,6 +105,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
 
         // Redirect to login with return URL
         const currentLocation = window.location.pathname + window.location.search;
+        console.debug('[AuthMiddleware] redirecting to login', { returnUrl: currentLocation });
         const returnUrl = currentLocation !== redirectTo ? currentLocation : undefined;
         const loginUrl = returnUrl ? `${redirectTo}?returnUrl=${encodeURIComponent(returnUrl)}` : redirectTo;
         navigateRef.current(loginUrl, { replace: true });
@@ -110,6 +114,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
 
       // Get user data for permission checking
       const authState = tokenManagerRef.current.getAuthState();
+      console.debug('[AuthMiddleware] authState', { hasToken: !!authState.token, hasUser: !!authState.user });
       const user = authState.user;
 
       // Check permissions
@@ -140,6 +145,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
 
     } catch (error) {
       console.error('Auth middleware error:', error);
+      console.debug('[AuthMiddleware] error in performAuthCheck');
       setState(prev => ({
         ...prev,
         isLoading: false,

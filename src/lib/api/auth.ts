@@ -37,6 +37,16 @@ export const authApi = {
     return apiClient.get('/account/me/');
   },
 
+  // Debug authorization header and auth state
+  async debugAuth(): Promise<{ authorization_header: string | null; is_authenticated: boolean; user_email: string | null }>{
+    return apiClient.get('/account/debug-auth/');
+  },
+
+  // Google OAuth2 code exchange (server-side)
+  async googleCodeExchange(code: string, redirect_uri: string): Promise<{ token: string; email: string; is_active: boolean }>{
+    return apiClient.post('/authentication/oauth-code/', { code, redirect_uri });
+  },
+
   // Update current user profile
   async updateProfile(data: {
     name?: string;

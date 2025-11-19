@@ -4,7 +4,8 @@
  */
 
 import { env } from '@/lib/config/env';
-import { authApi, setAuthData } from '@/lib/api/auth';
+import { authApi } from '@/lib/api/auth';
+import { setTokens as setTokenManagerTokens } from '@/lib/auth/token-manager';
 import { GoogleUserProfile, AuthResponse } from '@/types/api';
 
 // Google OAuth2 configuration
@@ -12,7 +13,7 @@ const GOOGLE_AUTH_CONFIG = {
   clientId: env.googleClientId,
   redirectUri: env.googleRedirectUri,
   scope: 'openid email profile',
-  responseType: 'token',
+  responseType: 'code',
   prompt: 'consent',
 };
 
@@ -36,35 +37,59 @@ export const generateGoogleAuthUrl = (): string => {
     include_granted_scopes: 'true',
   });
 
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  console.debug('[GoogleAuth] client_id:', GOOGLE_AUTH_CONFIG.clientId);
+  console.debug('[GoogleAuth] redirect_uri:', GOOGLE_AUTH_CONFIG.redirectUri);
+  console.debug('[GoogleAuth] auth_url:', url);
+  return url;
 };
 
 // Web callback flow is not supported; use token-based flow
 export const handleOAuthCallback = async (): Promise<AuthResponse> => {
-  const hashParams = new URLSearchParams(window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash);
+  const rawSearch = window.location.search;
+  const rawHash = window.location.hash;
+  console.debug('[GoogleAuth] callback_url:', window.location.href);
+  const doneKey = 'oauth_callback_done';
+  const alreadyDone = sessionStorage.getItem(doneKey);
+  if (alreadyDone === 'true') {
+    const existingToken = localStorage.getItem('auth_token');
+    if (existingToken) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTokenManagerTokens({ token: existingToken, user: null as any } as any);
+      return { token: existingToken, user: null as any };
+    }
+  }
+  const searchParams = new URLSearchParams(rawSearch);
+  const hashParams = new URLSearchParams(rawHash.replace(/^#/, ''));
+  const code = searchParams.get('code');
   const accessToken = hashParams.get('access_token');
-  const error = hashParams.get('error');
+  const error = searchParams.get('error') || hashParams.get('error');
 
   if (error) {
-    history.replaceState({}, document.title, window.location.pathname);
     throw new Error(`OAuth2 error: ${error}`);
   }
 
-  if (!accessToken) {
-    history.replaceState({}, document.title, window.location.pathname);
-    throw new Error('No access token received');
+  if (accessToken) {
+    console.debug('[GoogleAuth] access_token:', accessToken);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    const oauthData = await authApi.loginWithGoogleToken(accessToken);
+    console.debug('[GoogleAuth] received_token:', oauthData.token);
+    setTokenManagerTokens({ token: oauthData.token, user: null as any } as any);
+    sessionStorage.setItem(doneKey, 'true');
+    return { token: oauthData.token, user: null as any };
   }
 
-  // Clear hash early to avoid re-triggering callback effect loops
-  history.replaceState({}, document.title, window.location.pathname);
-
-  const authResponse = await authenticateWithGoogleToken(accessToken);
-
-  if (authResponse.token && authResponse.user) {
-    setAuthData(authResponse.token, authResponse.user);
+  if (!code) {
+    throw new Error('No authorization code received');
   }
 
-  return authResponse;
+  console.debug('[GoogleAuth] authorization_code:', code);
+  window.history.replaceState({}, document.title, window.location.pathname);
+  const oauthData = await authApi.googleCodeExchange(code, GOOGLE_AUTH_CONFIG.redirectUri);
+  console.debug('[GoogleAuth] received_token:', oauthData.token);
+  setTokenManagerTokens({ token: oauthData.token, user: null as any } as any);
+  sessionStorage.setItem(doneKey, 'true');
+  return { token: oauthData.token, user: null as any };
 };
 
 // Get user profile from Google using access token
@@ -100,10 +125,9 @@ export const getGoogleUserProfile = async (accessToken: string): Promise<GoogleU
 export const authenticateWithGoogleToken = async (accessToken: string): Promise<AuthResponse> => {
   try {
     const oauthData = await authApi.loginWithGoogleToken(accessToken);
-    setAuthData(oauthData.token, null as any);
-    const user = await authApi.getProfile();
-    setAuthData(oauthData.token, user as any);
-    return { token: oauthData.token, user: user as any };
+    console.debug('[GoogleAuth] received_token:', oauthData.token);
+    setTokenManagerTokens({ token: oauthData.token, user: null as any } as any);
+    return { token: oauthData.token, user: null as any };
   } catch (error) {
     console.error('Error in Google token authentication:', error);
     throw new Error('Failed to authenticate with Google');
@@ -112,10 +136,9 @@ export const authenticateWithGoogleToken = async (accessToken: string): Promise<
 
 // Keep placeholder to satisfy existing imports; always false
 export const isOAuthCallback = (): boolean => {
-  const hashParams = new URLSearchParams(window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash);
-  const hasToken = hashParams.has('access_token');
-  const hasError = hashParams.has('error');
-  return hasToken || hasError;
+  const s = new URLSearchParams(window.location.search);
+  const h = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  return s.has('code') || s.has('error') || h.has('access_token') || h.has('error');
 };
 
 // (Disabled) Check callback parameters — web flow tidak digunakan

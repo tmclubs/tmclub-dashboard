@@ -63,7 +63,7 @@ export const apiClient = {
     const url = `${API_BASE_URL}${endpoint}`;
 
     // Try to get valid token (with auto-refresh if needed)
-    let token = getAuthTokenSync();
+    let token = getAuthTokenSync() || localStorage.getItem('auth_token');
 
     // If no token or token is expired, try to refresh
     if (!token) {
@@ -92,6 +92,13 @@ export const apiClient = {
       ...(token && { Authorization: `Token ${token}` }),
       ...options.headers,
     };
+
+    try {
+      const masked = token ? `${String(token).slice(0,3)}***${String(token).slice(-2)}` : '(none)';
+      console.debug('[API] Request', { endpoint, method: options.method || 'GET', hasAuth: !!token, token: masked });
+    } catch (e) {
+      console.debug('[API] Request log error');
+    }
 
     // Create AbortController for timeout
     const controller = new AbortController();
@@ -127,15 +134,15 @@ export const apiClient = {
               console.warn('Token retry failed:', refreshError);
             }
           }
-
-          // Auto logout on 401 response
-          console.log('401 Unauthorized - clearing tokens and redirecting to login');
-          logout();
-          throw new ApiError('Session expired. Please login again.', 401);
+          console.warn('401 Unauthorized', { endpoint });
+          throw new ApiError('Unauthorized request. Please check your permissions or session.', 401);
         }
 
         if (response.status === 403) {
-          // Handle forbidden access - token might be invalid
+          const isAuthOrAccount = endpoint.startsWith('/account/') || endpoint.startsWith('/authentication/');
+          if (isAuthOrAccount) {
+            throw new ApiError('Access denied on protected endpoint.', 403);
+          }
           console.log('403 Forbidden - clearing tokens and redirecting to login');
           logout();
           throw new ApiError('Access denied. Please login again.', 403);

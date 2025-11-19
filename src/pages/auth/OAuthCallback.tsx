@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 import { env } from '@/lib/config/env';
+import { authApi, getAuthData, setAuthData } from '@/lib/api/auth';
 
 interface OAuthCallbackState {
   status: 'loading' | 'success' | 'error';
@@ -25,22 +26,14 @@ export const OAuthCallback: React.FC = () => {
     onSuccess: () => {
       setState({
         status: 'success',
-        message: 'Authentication successful! Redirecting...',
+        message: 'Authentication successful!',
       });
-      // Redirect to root after a short delay
-      setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 1500);
     },
     onError: (error) => {
       setState({
         status: 'error',
         message: error.message || 'Authentication failed',
       });
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 3000);
     },
   });
 
@@ -51,9 +44,6 @@ export const OAuthCallback: React.FC = () => {
         status: 'error',
         message: 'Invalid authentication callback',
       });
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 3000);
       return;
     }
 
@@ -68,10 +58,26 @@ export const OAuthCallback: React.FC = () => {
 
   // Auto-redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && !hasOAuthCallback) {
-      navigate('/dashboard', { replace: true });
+    if (isAuthenticated) {
+      setState({ status: 'success', message: 'Authentication successful!' });
+      const returnUrl = new URLSearchParams(window.location.search).get('returnUrl');
+      const target = returnUrl || '/dashboard';
+      const { token } = getAuthData();
+      (async () => {
+        try {
+          console.debug('[OAuthCallback] fetching profile after auth');
+          const user = await authApi.getProfile();
+          if (token && user) {
+            setAuthData(token, user);
+          }
+        } catch (e) {
+          console.warn('[OAuthCallback] profile fetch failed');
+        } finally {
+          setTimeout(() => navigate(target, { replace: true }), 200);
+        }
+      })();
     }
-  }, [isAuthenticated, hasOAuthCallback, navigate]);
+  }, [isAuthenticated, hasOAuthCallback]);
 
   const getStatusIcon = () => {
     switch (state.status) {
@@ -165,7 +171,20 @@ export const OAuthCallback: React.FC = () => {
           {state.status === 'success' && (
             <div className="text-sm text-gray-500">
               <p>Welcome to {env.appName}!</p>
-              <p className="mt-2">You will be redirected to the home page.</p>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => navigate('/', { replace: true })}
+                  className="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  Go to Home
+                </button>
+                <button
+                  onClick={() => navigate('/dashboard', { replace: true })}
+                  className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Go to Dashboard
+                </button>
+              </div>
             </div>
           )}
 

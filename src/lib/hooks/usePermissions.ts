@@ -94,6 +94,8 @@ export function usePermissions() {
     const roleMapping: Record<string, UserRole> = {
       'super_admin': USER_ROLES.SUPER_ADMIN,
       'admin': USER_ROLES.ADMIN,
+      'PIC': USER_ROLES.COMPANY_ADMIN,
+      'non_company': USER_ROLES.MEMBER,
       'company_admin': USER_ROLES.COMPANY_ADMIN,
       'company_member': USER_ROLES.COMPANY_MEMBER,
       'member': USER_ROLES.MEMBER,
