@@ -3,11 +3,8 @@ import { UserProfile } from '@/types/api';
 
 // Extended profile interface for form data
 export interface ProfileData {
-  id?: number;
-  username?: string;
   email: string;
   first_name: string;
-  last_name?: string;
   phone_number?: string;
   bio?: string;
   location?: string;
@@ -24,23 +21,28 @@ export interface ProfileData {
   role?: string;
 }
 
+interface AccountMeResponse {
+  email: string;
+  name: string;
+  phone_number: string | null;
+  event_registered?: number;
+  role: string;
+  company_id?: number | null;
+  company_name?: string | null;
+  transaction_number?: string | null;
+}
+
 // Profile API endpoints
 export const profileApi = {
   // Get current user profile
   async getProfile(): Promise<ProfileData> {
     try {
-      const response = await apiClient.get<UserProfile>('/account/me/');
-      
-      // Transform API response to match our ProfileData interface
+      const response = await apiClient.get<AccountMeResponse>('/account/me/');
       return {
-        id: response.id,
-        username: response.username,
         email: response.email,
-        first_name: response.first_name,
-        last_name: response.last_name || '',
+        first_name: response.name,
         phone_number: response.phone_number || '',
         role: response.role,
-        // Set default values for fields not in API response
         bio: '',
         location: '',
         birth_date: '',
@@ -61,30 +63,18 @@ export const profileApi = {
   },
 
   // Update current user profile
-  async updateProfile(data: Partial<ProfileData>): Promise<ProfileData> {
+  async updateProfile(data: Partial<ProfileData> & { name?: string }): Promise<ProfileData> {
     try {
-      // Transform our ProfileData to match API expectations
       const updateData: any = {};
-      
-      if (data.first_name !== undefined) updateData.first_name = data.first_name;
-      if (data.last_name !== undefined) updateData.last_name = data.last_name;
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.first_name !== undefined && updateData.name === undefined) updateData.name = data.first_name;
       if (data.phone_number !== undefined) updateData.phone_number = data.phone_number;
-      
-      // For now, we'll only update the fields that the API supports
-      // Additional fields like bio, location, etc. might need separate endpoints
-      
-      const response = await apiClient.patch<UserProfile>('/account/update-me/', updateData);
-      
-      // Transform response back to ProfileData
+      const response = await apiClient.patch<AccountMeResponse>('/account/update-me/', updateData);
       return {
-        id: response.id,
-        username: response.username,
         email: response.email,
-        first_name: response.first_name,
-        last_name: response.last_name || '',
+        first_name: response.name,
         phone_number: response.phone_number || '',
         role: response.role,
-        // Preserve other fields from the original data
         bio: data.bio || '',
         location: data.location || '',
         birth_date: data.birth_date || '',
@@ -144,10 +134,9 @@ export const profileApi = {
 };
 
 // Utility functions for profile data transformation
-export const transformProfileFormData = (formData: any): Partial<ProfileData> => {
+export const transformProfileFormData = (formData: any): Partial<ProfileData> & { name?: string } => {
   return {
-    first_name: formData.firstName,
-    last_name: formData.lastName,
+    name: formData.firstName,
     email: formData.email,
     phone_number: formData.phone,
     bio: formData.bio,
@@ -167,7 +156,7 @@ export const transformProfileFormData = (formData: any): Partial<ProfileData> =>
 export const transformProfileToFormData = (profileData: ProfileData): any => {
   return {
     firstName: profileData.first_name,
-    lastName: profileData.last_name || '',
+    lastName: '',
     email: profileData.email,
     phone: profileData.phone_number || '',
     bio: profileData.bio || '',
