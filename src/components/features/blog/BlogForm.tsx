@@ -49,7 +49,6 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   });
 
   const [showPreview, setShowPreview] = useState(false);
-  const [albumsFiles, setAlbumsFiles] = useState<File[]>([]);
   const [albumsPreviews, setAlbumsPreviews] = useState<string[]>([]);
 
   const handleInputChange = (field: keyof BlogFormData, value: any) => {
@@ -119,7 +118,6 @@ export const BlogForm: React.FC<BlogFormProps> = ({
       newPreviews.push(preview);
     }
 
-    setAlbumsFiles(prev => [...prev, ...newAlbumsFiles]);
     setFormData(prev => ({
       ...prev,
       albumsFiles: [...(prev.albumsFiles || []), ...newAlbumsFiles],
@@ -128,7 +126,6 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   };
 
   const removeAlbum = (index: number) => {
-    setAlbumsFiles(prev => prev.filter((_, i) => i !== index));
     setFormData(prev => ({
       ...prev,
       albumsFiles: (prev.albumsFiles || []).filter((_, i) => i !== index),

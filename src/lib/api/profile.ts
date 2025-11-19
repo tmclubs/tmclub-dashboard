@@ -1,5 +1,4 @@
 import { apiClient } from './client';
-import { UserProfile } from '@/types/api';
 
 // Extended profile interface for form data
 export interface ProfileData {

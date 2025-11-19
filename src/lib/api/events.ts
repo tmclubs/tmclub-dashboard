@@ -1,7 +1,6 @@
 import { apiClient } from './client';
 import { Event, EventFormData, EventRegistration } from '@/types/api';
 import { FileUploadResult } from '@/lib/utils/file-upload';
-import { filesApi } from './files';
 
 export const eventsApi = {
   // Get all events

@@ -39,10 +39,10 @@ export const BlogList: React.FC<BlogListProps> = ({
   onView,
   onToggleFeatured,
   searchQuery = '',
-  statusFilter = 'all',
+  statusFilter: _statusFilter = 'all',
   sortBy = 'createdAt',
   onSearchChange,
-  onStatusChange,
+  onStatusChange: _onStatusChange,
   onSortChange,
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');

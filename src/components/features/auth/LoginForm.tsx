@@ -25,7 +25,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const { login, isLoading } = useAuthStore();
   const {
     loginWithRedirect,
-    loginWithPopup,
     isLoading: isGoogleLoading,
     error: googleError,
     hasOAuthCallback
