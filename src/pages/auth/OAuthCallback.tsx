@@ -60,20 +60,21 @@ export const OAuthCallback: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       setState({ status: 'success', message: 'Authentication successful!' });
-      const returnUrl = new URLSearchParams(window.location.search).get('returnUrl');
-      const target = returnUrl || '/dashboard';
       const { token } = getAuthData();
       (async () => {
+        let user = null;
         try {
           console.debug('[OAuthCallback] fetching profile after auth');
-          const user = await authApi.getProfile();
+          user = await authApi.getProfile();
           if (token && user) {
             setAuthData(token, user);
           }
         } catch (e) {
           console.warn('[OAuthCallback] profile fetch failed');
         } finally {
-          setTimeout(() => navigate(target, { replace: true }), 200);
+          // Redirect berdasarkan role user
+          const redirectTarget = user?.role === 'admin' ? '/dashboard' : '/';
+          setTimeout(() => navigate(redirectTarget, { replace: true }), 200);
         }
       })();
     }
@@ -185,6 +186,9 @@ export const OAuthCallback: React.FC = () => {
                   Go to Dashboard
                 </button>
               </div>
+              <p className="mt-2 text-xs text-gray-400">
+                Admin akan diarahkan ke Dashboard, Member ke Halaman Utama
+              </p>
             </div>
           )}
 

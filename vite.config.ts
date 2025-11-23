@@ -12,7 +12,7 @@ export default defineConfig({
     port: 5173,
     host: true,
     // Izinkan akses via reverse proxy / container hostname saat pengembangan
-    allowedHosts: ['localhost', '127.0.0.1', '::1', 'frontend_app', 'tmc-frontend-prod'],
+    allowedHosts: ['localhost', '127.0.0.1', '::1', 'frontend_app', 'tmc-frontend-prod', 'api.tmclub.id', 'tmclub.id'],
     proxy: {
       '/api': {
         target: 'https://api.tmclub.id',

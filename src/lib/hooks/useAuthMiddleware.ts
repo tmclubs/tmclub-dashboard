@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTokenManager } from '../auth/token-manager';
 import { isAuthenticated as checkAuthentication } from '../api/client';
+import { ROLE_PERMISSIONS, PERMISSION_LEVELS, USER_ROLES } from './usePermissions';
 
 export interface UseAuthMiddlewareOptions {
   requireAuth?: boolean;
@@ -57,14 +58,41 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
     user: null
   });
 
-  // Check user permissions
   const checkPermissions = useCallback((user: any, requiredPermissions: string[]): boolean => {
     if (!requiredPermissions.length) return true;
-    if (!user || !user.permissions) return false;
-    
-    return requiredPermissions.every(permission => 
-      user.permissions.includes(permission)
-    );
+    if (!user) return false;
+
+    const roleMap: Record<string, string> = {
+      super_admin: USER_ROLES.SUPER_ADMIN,
+      admin: USER_ROLES.ADMIN,
+      PIC: USER_ROLES.COMPANY_ADMIN,
+      non_company: USER_ROLES.MEMBER,
+      company_admin: USER_ROLES.COMPANY_ADMIN,
+      company_member: USER_ROLES.COMPANY_MEMBER,
+      member: USER_ROLES.MEMBER,
+    };
+
+    const role = roleMap[user.role] || USER_ROLES.MEMBER;
+    const levels = Object.values(PERMISSION_LEVELS);
+
+    return requiredPermissions.every((p) => {
+      if (p === 'admin') {
+        return role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN;
+      }
+      if (p === 'super_admin') {
+        return role === USER_ROLES.SUPER_ADMIN;
+      }
+      const parts = p.split(':');
+      if (parts.length !== 2) return false;
+      const [resource, action] = parts as [string, typeof PERMISSION_LEVELS[keyof typeof PERMISSION_LEVELS]];
+      const rolePerms = (ROLE_PERMISSIONS as any)[role];
+      if (!rolePerms) return false;
+      const resourcePerms = rolePerms[resource];
+      if (!resourcePerms) return false;
+      const reqIdx = levels.indexOf(action);
+      const userIdx = Math.max(...(resourcePerms as string[]).map((a) => levels.indexOf(a as any)));
+      return userIdx >= reqIdx;
+    });
   }, []);
 
   // Perform comprehensive authentication check

@@ -5,6 +5,19 @@ import { getAuthErrorMessage, isErrorCode } from '@/lib/auth/error-codes';
 import { getTokenManager, isAuthenticationValid, clearTokens } from '@/lib/auth/token-manager';
 
 const API_BASE_URL = env.apiUrl;
+const PUBLIC_GET_ENDPOINTS = [
+  /^\/blog(\/|$)/,
+  /^\/blog\/slug(\/|$)/,
+  /^\/about(\/|$)/,
+  /^\/account\/debug-auth(\/|$)/,
+  /^\/event\/?$/,
+  /^\/event\/\d+\/?$/,
+];
+const isPublicGet = (endpoint: string, method?: string): boolean => {
+  const m = (method || 'GET').toUpperCase();
+  if (m !== 'GET') return false;
+  return PUBLIC_GET_ENDPOINTS.some((re) => re.test(endpoint));
+};
 
 // Lazy initialization to avoid circular dependency
 let tokenManager: any = null;
@@ -61,35 +74,44 @@ export const apiClient = {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    const method = (options.method || 'GET') as string;
+    const isPublic = isPublicGet(endpoint, method);
 
-    // Try to get valid token (with auto-refresh if needed)
-    let token = getAuthTokenSync() || localStorage.getItem('auth_token');
-
-    // If no token or token is expired, try to refresh
-    if (!token) {
-      try {
-        token = await getAuthToken();
-      } catch (error) {
-        // Token refresh failed, proceed without auth for public endpoints
-        console.warn('Token refresh failed, proceeding without authentication:', error);
+    let token: string | null = null;
+    if (!isPublic) {
+      // Initialize token manager for non-public requests
+      if (!tokenManager) {
+        await getTokenManagerInstance();
       }
-    } else {
-      // Check if token is expired using the token manager instance
-      try {
-        const manager = await getTokenManagerInstance();
-        if (manager && manager.isTokenExpired()) {
+      
+      token = getAuthTokenSync() || localStorage.getItem('auth_token');
+      if (token && (token === 'undefined' || token === 'null' || token.trim() === '')) {
+        token = null;
+      }
+      if (!token) {
+        try {
           token = await getAuthToken();
+        } catch (error) {
+          console.debug('Skip token acquisition for public request');
         }
-      } catch (error) {
-        console.warn('Token expiry check failed, proceeding with current token:', error);
+      } else {
+        try {
+          const manager = await getTokenManagerInstance();
+          if (manager && manager.isTokenExpired()) {
+            token = await getAuthToken();
+          }
+        } catch (error) {
+          console.debug('Token expiry check failed');
+        }
       }
     }
 
+    const authScheme = token && token.split('.').length === 3 ? 'Bearer' : 'Token';
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'User-Agent': `${env.appName}/${env.appVersion}`,
-      ...(token && { Authorization: `Token ${token}` }),
+      ...(token && { Authorization: `${authScheme} ${token}` }),
       ...options.headers,
     };
 
@@ -114,27 +136,23 @@ export const apiClient = {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        // Handle HTTP errors
         if (response.status === 401) {
-          // Try to refresh token and retry once
-          if (token && !(options.headers as Record<string, string>)?.['Authorization-Retry']) {
+          if (!isPublic && token && !(options.headers as Record<string, string>)?.['Authorization-Retry']) {
             try {
               const newToken = await getAuthToken();
               if (newToken && newToken !== token) {
-                // Retry with new token
                 return this.request<T>(endpoint, {
                   ...options,
                   headers: {
                     ...options.headers,
-                    'Authorization-Retry': 'true' // Prevent infinite retry loops
+                    'Authorization-Retry': 'true'
                   } as HeadersInit
                 });
               }
             } catch (refreshError) {
-              console.warn('Token retry failed:', refreshError);
+              console.debug('Token retry failed');
             }
           }
-          console.warn('401 Unauthorized', { endpoint });
           throw new ApiError('Unauthorized request. Please check your permissions or session.', 401);
         }
 
@@ -143,7 +161,9 @@ export const apiClient = {
           if (isAuthOrAccount) {
             throw new ApiError('Access denied on protected endpoint.', 403);
           }
-          console.log('403 Forbidden - clearing tokens and redirecting to login');
+          if (isPublic) {
+            throw new ApiError('Access denied.', 403);
+          }
           logout();
           throw new ApiError('Access denied. Please login again.', 403);
         }
@@ -155,30 +175,35 @@ export const apiClient = {
       const result = await response.json();
 
       // Handle different response formats
-      // Check if it's a TMCResponse format with status and data properties
-      if (result && typeof result === 'object' && 'status' in result) {
+      const isTMC = result && typeof result === 'object' && 'status' in result && 'data' in result;
+      const isTMCAlt = result && typeof result === 'object' && 'status_code' in result && 'data' in result;
+
+      if (isTMC) {
         const tmcResult = result as TMCResponse<T>;
-        
-        // Handle TMC API response format
         if (tmcResult.status === 'error') {
-          // Use specific error message based on error code if available
-          const errorMessage = tmcResult.code && isErrorCode(tmcResult.code) 
+          const errorMessage = tmcResult.code && isErrorCode(tmcResult.code)
             ? getAuthErrorMessage(tmcResult.code)
             : (tmcResult.message?.id || tmcResult.message?.en || 'API Error');
           throw new Error(errorMessage);
         }
-
-        // Update activity on successful request
-        tokenManager.updateLastActivity();
-
+        if (!isPublic && tokenManager) {
+          tokenManager.updateLastActivity();
+        }
         return tmcResult.data;
-      } else {
-        // Handle direct response (e.g., arrays or objects without TMC wrapper)
-        // Update activity on successful request
-        tokenManager.updateLastActivity();
-
-        return result as T;
       }
+
+      if (isTMCAlt) {
+        const alt = result as any;
+        if (!isPublic && tokenManager) {
+          tokenManager.updateLastActivity();
+        }
+        return alt.data as T;
+      }
+
+      if (!isPublic && tokenManager) {
+        tokenManager.updateLastActivity();
+      }
+      return result as T;
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -246,7 +271,7 @@ export const apiClient = {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        ...(token && { Authorization: `Token ${token}` }),
+        ...(token && { Authorization: `${token && token.split('.').length === 3 ? 'Bearer' : 'Token'} ${token}` }),
         // Don't set Content-Type for FormData (browser sets it with boundary)
       },
       body: formData,

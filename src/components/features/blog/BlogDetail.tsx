@@ -158,11 +158,25 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
         <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Featured Image */}
           {article.featuredImage && (
-            <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden">
+            <div className={`w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg ${article.youtubeEmbedUrl ? 'mb-4 sm:mb-6 md:mb-8' : ''}`}>
               <img
                 src={article.featuredImage}
                 alt={article.title}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              />
+            </div>
+          )}
+
+          {article.youtubeEmbedUrl && (
+            <div className={`w-full aspect-video bg-black rounded-lg overflow-hidden ${article.featuredImage ? 'mt-4 sm:mt-6 md:mt-8' : ''}`}>
+              <iframe
+                src={article.youtubeEmbedUrl}
+                title={article.title}
+                className="w-full h-full"
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
               />
             </div>
           )}

@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { authApi, setAuthData, clearAuthData, getAuthData } from '@/lib/api/auth';
-import { authenticateWithGoogleToken } from '@/lib/auth/google-oauth';
+import { clearTokens } from '@/lib/auth/token-manager';
+import { authenticateWithGoogleToken, getGoogleUserProfile } from '@/lib/auth/google-oauth';
 // import { UserProfile } from '@/types/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,7 +38,13 @@ export const useGoogleLogin = () => {
 
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       toast.success('Login berhasil!');
-      navigate('/');
+      
+      // Redirect berdasarkan role
+      if (data.role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/');
+      }
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Login gagal');
@@ -51,12 +58,77 @@ export const useGoogleTokenLogin = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (access_token: string) => authenticateWithGoogleToken(access_token),
-    onSuccess: (data) => {
-      setAuthData(data.token, data.user);
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      toast.success('Login berhasil!');
-      navigate('/');
+    mutationFn: async (access_token: string) => {
+      // Get Google user profile first
+      const googleProfile = await getGoogleUserProfile(access_token);
+      const authData = await authenticateWithGoogleToken(access_token);
+      
+      // Store Google profile data in localStorage for later use
+      if (googleProfile.picture) {
+        localStorage.setItem('google_profile_picture', googleProfile.picture);
+      }
+      if (googleProfile.name) {
+        localStorage.setItem('google_profile_name', googleProfile.name);
+      }
+      if (googleProfile.given_name) {
+        localStorage.setItem('google_profile_given_name', googleProfile.given_name);
+      }
+      if (googleProfile.family_name) {
+        localStorage.setItem('google_profile_family_name', googleProfile.family_name);
+      }
+      if (googleProfile.email) {
+        localStorage.setItem('google_profile_email', googleProfile.email);
+      }
+      
+      return authData;
+    },
+    onSuccess: async (data) => {
+      try { clearTokens(); } catch { /* noop */ }
+      const fallbackName = localStorage.getItem('google_profile_name') || '';
+      const fallbackEmail = localStorage.getItem('google_profile_email') || '';
+      const initialUser = {
+        id: 0,
+        username: fallbackEmail || 'user',
+        email: fallbackEmail || '',
+        first_name: fallbackName,
+        role: 'member',
+      } as any;
+
+      setAuthData(data.token, initialUser);
+
+      try {
+        const profile = await authApi.getProfile();
+        setAuthData(data.token, profile);
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        toast.success('Login berhasil!');
+        
+        if (profile.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      } catch (err) {
+        try {
+          if (fallbackEmail) {
+            const reg = await authApi.register({
+              username: fallbackEmail,
+              email: fallbackEmail,
+              password: fallbackEmail,
+              first_name: fallbackName || 'User'
+            });
+            setAuthData(reg.token, reg.user);
+            const profile2 = await authApi.getProfile();
+            setAuthData(reg.token, profile2);
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
+            toast.success('Akun berhasil dibuat, login berhasil!');
+          } else {
+            toast.success('Login berhasil, profil akan dimuat kemudian');
+          }
+        } catch {
+          toast.success('Login berhasil, profil akan dimuat kemudian');
+        }
+        navigate('/');
+      }
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Login gagal');
@@ -76,11 +148,32 @@ export const useRegister = () => {
       password: string;
       first_name: string;
     }) => authApi.register(data),
-    onSuccess: (data) => {
-      setAuthData(data.token, data.user);
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      toast.success('Registrasi berhasil!');
-      navigate('/');
+    onSuccess: async (data) => {
+      try {
+        setAuthData(data.token, data.user);
+        // Fetch profile from backend to get the most up-to-date data
+        const profile = await authApi.getProfile();
+        setAuthData(data.token, profile);
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        toast.success('Registrasi berhasil!');
+        
+        // Redirect berdasarkan role dari backend
+        if (profile.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      } catch (err) {
+        // Fallback to initial data if profile fetch fails
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        toast.success('Registrasi berhasil!');
+        
+        if (data.user.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Registrasi gagal');
@@ -96,11 +189,32 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: ({ username, password }: { username: string; password: string }) =>
       authApi.login(username, password),
-    onSuccess: (data) => {
-      setAuthData(data.token, data.user);
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      toast.success('Login berhasil!');
-      navigate('/');
+    onSuccess: async (data) => {
+      try {
+        setAuthData(data.token, data.user);
+        // Fetch profile from backend to get the most up-to-date data
+        const profile = await authApi.getProfile();
+        setAuthData(data.token, profile);
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        toast.success('Login berhasil!');
+        
+        // Redirect berdasarkan role dari backend
+        if (profile.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      } catch (err) {
+        // Fallback to initial data if profile fetch fails
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        toast.success('Login berhasil!');
+        
+        if (data.user.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Login gagal');
@@ -142,6 +256,11 @@ export const useLogout = () => {
 
   return () => {
     clearAuthData();
+    // Clear all Google profile data from localStorage
+    localStorage.removeItem('google_profile_picture');
+    localStorage.removeItem('google_profile_name');
+    localStorage.removeItem('google_profile_given_name');
+    localStorage.removeItem('google_profile_family_name');
     queryClient.clear();
     toast.success('Logout berhasil!');
     navigate('/login');
@@ -151,14 +270,16 @@ export const useLogout = () => {
 // Hook for checking authentication status
 export const useAuth = () => {
   const { token, user } = getAuthData();
-  // Temporarily disable useProfile to prevent API errors
-  // const { data: profile, isLoading, error } = useProfile();
+  const { data: profile, isLoading, error } = useProfile();
+
+  // Prioritaskan data profil dari backend jika tersedia
+  const userData = profile || user;
 
   return {
     isAuthenticated: !!token,
     token,
-    user: user, // Use cached user data instead of fetching profile
-    isLoading: false, // Set to false since we're not fetching
-    error: null, // Set to null since we're not fetching
+    user: userData, // Use profile data from backend if available, fallback to cached data
+    isLoading,
+    error,
   };
 };

@@ -101,3 +101,33 @@ export type SurveyFormData = z.infer<typeof surveyFormSchema>;
 export type ArticleFormData = z.infer<typeof articleFormSchema>;
 export type LoginFormData = z.infer<typeof loginFormSchema>;
 export type RegisterFormData = z.infer<typeof registerFormSchema>;
+
+export const parseYouTubeId = (input: string): string => {
+  const s = String(input || '').trim();
+  if (!s) return '';
+  const idPattern = /^[A-Za-z0-9_-]{11}$/;
+  if (idPattern.test(s)) return s;
+  try {
+    const url = new URL(s);
+    const host = url.hostname.toLowerCase();
+    if (host.endsWith('youtu.be')) {
+      const seg = url.pathname.replace(/^\//, '').split('/')[0];
+      return idPattern.test(seg) ? seg : '';
+    }
+    if (host.includes('youtube.com')) {
+      if (url.pathname.startsWith('/watch')) {
+        const v = url.searchParams.get('v') || '';
+        return idPattern.test(v) ? v : '';
+      }
+      const parts = url.pathname.replace(/^\//, '').split('/');
+      if (parts.length >= 2 && (parts[0] === 'embed' || parts[0] === 'shorts' || parts[0] === 'live')) {
+        const seg = parts[1];
+        return idPattern.test(seg) ? seg : '';
+      }
+    }
+    return '';
+  } catch {
+    const m = s.match(/v=([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : '';
+  }
+};

@@ -1,7 +1,6 @@
 // Silence browser console logs ONLY in production for security,
 // keeping warn/error intact for error handling.
 if (typeof window !== 'undefined' && import.meta.env.PROD) {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   const noop = () => {};
   // General logging
   console.log = noop;

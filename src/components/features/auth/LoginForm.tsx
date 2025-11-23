@@ -76,10 +76,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         username: formData.username,
         password: formData.password,
       });
-      
-      console.log('Login berhasil, akan redirect ke:', decodeURIComponent(returnUrl));
-      // Redirect to returnUrl or dashboard after successful login
-      navigate(decodeURIComponent(returnUrl));
+
+      const state = useAuthStore.getState();
+      const role = state.user?.role?.toLowerCase();
+      const target = returnUrl ? decodeURIComponent(returnUrl) : (role === 'admin' ? '/dashboard' : '/');
+      navigate(target);
     } catch (err) {
       console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'Login failed');

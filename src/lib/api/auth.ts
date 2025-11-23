@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import { AuthResponse, GoogleAuthResponse, UserProfile } from '@/types/api';
+import { env } from '@/lib/config/env';
+import { AuthResponse, GoogleAuthResponse, UserProfile, JwtTokens, ManualLoginRaw } from '@/types/api';
 
 // Authentication API endpoints
 export const authApi = {
@@ -12,9 +13,9 @@ export const authApi = {
     return apiClient.post('/authentication/oauth/', { access_token, backend: 'google-oauth2' });
   },
 
-  // Google OAuth2 callback: tukar authorization code menjadi token via backend
-  async googleCallback(code: string, redirect_uri: string): Promise<AuthResponse> {
-    return apiClient.post('/authenticate/google-callback/', { code, redirect_uri });
+  // Google OAuth2 code exchange via backend
+  async googleCodeExchange(code: string, redirect_uri: string): Promise<{ token: string; email: string; is_active: boolean }>{
+    return apiClient.post('/authentication/oauth-code/', { code, redirect_uri });
   },
 
   // Manual registration
@@ -24,12 +25,15 @@ export const authApi = {
     password: string;
     first_name: string;
   }): Promise<AuthResponse> {
-    return apiClient.post('/authentication/basic-register/', data);
+    await apiClient.post<void>('/authentication/basic-register/', data);
+    const raw = await apiClient.post<ManualLoginRaw>('/authentication/manual-login/', { username: data.username, password: data.password });
+    return { token: raw.token, user: { ...raw.user, role: raw.role } };
   },
 
   // Manual login
   async login(username: string, password: string): Promise<AuthResponse> {
-    return apiClient.post('/authentication/basic-login/', { username, password });
+    const raw = await apiClient.post<ManualLoginRaw>('/authentication/manual-login/', { username, password });
+    return { token: raw.token, user: { ...raw.user, role: raw.role } };
   },
 
   // Get current user profile
@@ -42,9 +46,14 @@ export const authApi = {
     return apiClient.get('/account/debug-auth/');
   },
 
-  // Google OAuth2 code exchange (server-side)
-  async googleCodeExchange(code: string, redirect_uri: string): Promise<{ token: string; email: string; is_active: boolean }>{
-    return apiClient.post('/authentication/oauth-code/', { code, redirect_uri });
+  // JWT obtain pair
+  async loginJwt(username: string, password: string): Promise<JwtTokens> {
+    return apiClient.post('/authentication/jwt/token/', { username, password });
+  },
+
+  // JWT obtain using email
+  async loginJwtWithEmail(email: string, password: string): Promise<JwtTokens> {
+    return apiClient.post('/authentication/jwt/token-email/', { email, password });
   },
 
   // Update current user profile
@@ -72,47 +81,51 @@ export const authApi = {
     return apiClient.get('/account/admins/');
   },
 
-  // Refresh access token
-  async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    return apiClient.post('/authenticate/refresh/', { refresh_token: refreshToken });
+  // Refresh JWT access token
+  async refreshToken(refresh: string): Promise<{ access: string }> {
+    return apiClient.post('/authentication/jwt/refresh/', { refresh });
   },
 
-  // Verify token validity
-  async verifyToken(token: string): Promise<{ valid: boolean }> {
-    return apiClient.post('/authenticate/verify/', { token });
-  },
-
-  // Logout (revoke token)
-  async logout(): Promise<void> {
-    try {
-      await apiClient.post('/authenticate/logout/');
-    } catch (error) {
-      // Continue with local logout even if server logout fails
-      console.warn('Server logout failed:', error);
-    }
-  },
+  // No server-side logout; handled client-side
 };
 
 // Authentication utilities
-export const setAuthData = (token: string, user: AuthResponse['user']): void => {
-  localStorage.setItem('auth_token', token);
-  localStorage.setItem('user_data', JSON.stringify(user));
+export const setAuthData = (token: string, user?: AuthResponse['user']): void => {
+  try {
+    sset('auth_token', token);
+    if (user) {
+      sset('user_data', JSON.stringify(user));
+    } else {
+      sremove('user_data');
+    }
+  } catch (error) {
+    console.warn('Failed to persist auth data');
+  }
 };
 
 export const getAuthData = (): { token: string | null; user: AuthResponse['user'] | null } => {
-  const token = localStorage.getItem('auth_token');
-  const userData = localStorage.getItem('user_data');
-
-  return {
-    token,
-    user: userData ? JSON.parse(userData) : null,
-  };
+  let token = sget('auth_token');
+  if (token && (token === 'undefined' || token === 'null' || token.trim() === '')) {
+    token = null;
+  }
+  const raw = sget('user_data');
+  let user: AuthResponse['user'] | null = null;
+  if (raw) {
+    try {
+      user = JSON.parse(raw);
+    } catch {
+      user = null;
+    }
+  }
+  return { token, user };
 };
 
 export const clearAuthData = (): void => {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('user_data');
-  localStorage.removeItem('auth-storage');
+  ['auth_token','user_data','auth-storage','login_method','user_role','token','userData'].forEach((k) => {
+    try { sremove(k); } catch { /* noop */ }
+    try { window.localStorage?.removeItem(k); } catch { /* noop */ }
+    try { window.sessionStorage?.removeItem(k); } catch { /* noop */ }
+  });
 };
 
 // Check if token is valid (basic validation)
@@ -124,4 +137,38 @@ export const isTokenValid = (token: string): boolean => {
   } catch {
     return false;
   }
+};
+
+// Storage adapter helpers (shared with token-manager)
+type StoreLike = { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void; removeItem: (k: string) => void };
+const memoryStore = new Map<string, string>();
+const memoryAdapter: StoreLike = {
+  getItem: (k) => memoryStore.has(k) ? memoryStore.get(k)! : null,
+  setItem: (k, v) => { memoryStore.set(k, v); },
+  removeItem: (k) => { memoryStore.delete(k); },
+};
+
+const resolveStore = (): StoreLike => {
+  try {
+    if (typeof window === 'undefined') return memoryAdapter;
+    if (env.tokenStorage === 'session' && window.sessionStorage) return window.sessionStorage;
+    if (env.tokenStorage === 'memory') return memoryAdapter;
+    return window.localStorage;
+  } catch {
+    return memoryAdapter;
+  }
+};
+
+const store = resolveStore();
+const sget = (k: string): string | null => {
+  try { return store.getItem(k); } catch { return null; }
+};
+const sset = (k: string, v: string): void => {
+  if (v === undefined || v === null) return;
+  const s = String(v);
+  if (!s || s === 'undefined' || s === 'null') return;
+  try { store.setItem(k, s); } catch { /* noop */ }
+};
+const sremove = (k: string): void => {
+  try { store.removeItem(k); } catch { /* noop */ }
 };

@@ -6,6 +6,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { Button, Input, Textarea } from '@/components/ui';
+import { parseYouTubeId } from '@/lib/utils/validators';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { TiptapEditor } from './TiptapEditor';
@@ -60,13 +61,9 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
       // Auto-generate youtube_embeded when youtube_id changes
       if (field === 'youtube_id') {
-        if (value && value.trim()) {
-          // Extract YouTube video ID and generate embed URL
-          const embedUrl = `https://www.youtube.com/embed/${value}`;
-          updatedData.youtube_embeded = embedUrl;
-        } else {
-          updatedData.youtube_embeded = '';
-        }
+        const parsed = parseYouTubeId(String(value || ''));
+        updatedData.youtube_id = parsed || '';
+        updatedData.youtube_embeded = parsed ? `https://www.youtube-nocookie.com/embed/${parsed}` : '';
       }
 
       return updatedData;
@@ -278,11 +275,27 @@ export const BlogForm: React.FC<BlogFormProps> = ({
             id="youtube_id"
             value={formData.youtube_id}
             onChange={(e) => handleInputChange('youtube_id', e.target.value)}
-            placeholder="YouTube video ID (optional)"
+            placeholder="YouTube link atau ID (optional)"
           />
           <p className="mt-1 text-sm text-gray-500">
-            Enter the YouTube video ID (e.g., dQw4w9WgXcQ)
+            Tempel link YouTube, otomatis diubah menjadi ID
           </p>
+          {formData.youtube_embeded && (
+            <div className="mt-3">
+              <div className="w-full aspect-video bg-black rounded-md overflow-hidden">
+                <iframe
+                  src={formData.youtube_embeded}
+                  title="YouTube preview"
+                  className="w-full h-full"
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Preview video otomatis jika ID valid</p>
+            </div>
+          )}
         </div>
 
         {/* Albums Upload */}
@@ -408,6 +421,19 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                     alt="Featured image"
                     className="w-full h-64 object-cover rounded-lg mb-6"
                   />
+                )}
+                {formData.youtube_embeded && (
+                  <div className="w-full aspect-video bg-black rounded-md overflow-hidden mb-6">
+                    <iframe
+                      src={formData.youtube_embeded}
+                      title="YouTube preview"
+                      className="w-full h-full"
+                      loading="lazy"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  </div>
                 )}
                 {formData.content && (
                   <div className="mt-6">

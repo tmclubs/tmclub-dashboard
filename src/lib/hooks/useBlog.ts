@@ -28,7 +28,7 @@ export const useBlogPost = (postId: number) => {
   return useQuery({
     queryKey: ['blog-posts', postId],
     queryFn: () => blogApi.getBlogPost(postId),
-    enabled: isAuthenticated() && !!postId,
+    enabled: !!postId, // Enable for public access
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -51,7 +51,7 @@ export const useBlogTags = () => {
   return useQuery({
     queryKey: ['blog-tags'],
     queryFn: () => blogApi.getBlogTags(),
-    enabled: isAuthenticated(),
+    enabled: true, // Enable for public access
     retry: 1,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });

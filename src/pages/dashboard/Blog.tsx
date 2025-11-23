@@ -18,6 +18,7 @@ export const BlogPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<BlogArticle | null>(null);
+  const [selectedPostDetail, setSelectedPostDetail] = useState<BlogPost | null>(null);
   
   // Navigation hook
   const navigate = useNavigate();
@@ -93,6 +94,8 @@ export const BlogPage: React.FC = () => {
       likes: 0,
       comments: 0,
       featured: false,
+      youtubeId: (post as any).youtube_id || undefined,
+      youtubeEmbedUrl: (post as any).youtube_embeded || ((post as any).youtube_id ? `https://www.youtube-nocookie.com/embed/${(post as any).youtube_id}` : undefined),
     };
   };
 
@@ -103,8 +106,15 @@ export const BlogPage: React.FC = () => {
     setShowCreateModal(true);
   };
 
-  const handleEditArticle = (article: BlogArticle) => {
+  const handleEditArticle = async (article: BlogArticle) => {
     setSelectedArticle(article);
+    setSelectedPostDetail(null);
+    try {
+      if (article.pk) {
+        const detail = await blogApi.getBlogPost(article.pk);
+        setSelectedPostDetail(detail);
+      }
+    } catch {}
     setShowEditModal(true);
   };
 
@@ -136,12 +146,16 @@ export const BlogPage: React.FC = () => {
     const payload: ApiBlogFormData = {
       title: data.title,
       summary: data.summary,
-      main_image: data.main_image || '',
       content: data.content,
       youtube_id: data.youtube_id || '',
       youtube_embeded: data.youtube_embeded || '',
-      albums_id: data.albums_id || [],
     };
+    if (data.main_image) {
+      payload.main_image = data.main_image;
+    }
+    if (data.albums_id && data.albums_id.length > 0) {
+      payload.albums_id = data.albums_id;
+    }
 
     if (mode === 'create') {
       payload.slug = data.slug || slugify(data.title);
@@ -266,21 +280,24 @@ export const BlogPage: React.FC = () => {
           preventClose={updateBlogMutation.isPending}
         >
           <BlogForm
-            article={selectedArticle ? {
+            article={selectedPostDetail ? selectedPostDetail : (selectedArticle ? {
               pk: selectedArticle.pk,
               title: selectedArticle.title,
               summary: selectedArticle.excerpt,
               content: selectedArticle.content,
               slug: selectedArticle.slug,
               main_image: selectedArticle.featuredImage ? (typeof selectedArticle.featuredImage === 'string' ? undefined : { image: selectedArticle.featuredImage }) : undefined,
-              youtube_id: '',
+              main_image_url: selectedArticle.featuredImage,
+              youtube_id: selectedArticle.youtubeId || '',
+              youtube_embeded: selectedArticle.youtubeEmbedUrl || '',
               albums_id: [],
-            } : undefined}
+            } : undefined)}
             onSubmit={handleArticleSubmit}
             loading={updateBlogMutation.isPending}
             onCancel={() => {
               setShowEditModal(false);
               setSelectedArticle(null);
+              setSelectedPostDetail(null);
             }}
             mode="edit"
           />

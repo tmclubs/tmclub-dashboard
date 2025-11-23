@@ -31,6 +31,8 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials) => {
         set({ isLoading: true });
         try {
+          // Clean any stale auth artifacts before new login
+          try { clearTokens(); } catch { /* noop */ }
           // Use new endpoint format with username/password
           const loginData = {
             username: credentials.username || credentials.email, // Support both email and username
@@ -114,9 +116,9 @@ export const useAuthStore = create<AuthState>()(
             // Store additional login info if needed
             localStorage.setItem('login_method', login_method);
             localStorage.setItem('user_role', role);
-            
+
             console.log('AuthStore: Auth state berhasil di-set');
-            
+
           } else {
             // Handle error response
             const errorMessage = apiResponse.message?.en || apiResponse.message?.id || 'Login failed';

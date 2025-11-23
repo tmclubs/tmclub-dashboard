@@ -1,6 +1,71 @@
 FROM node:20-alpine
+
+# Build arguments untuk environment variables
+ARG NODE_ENV=production
+ARG VITE_API_URL
+ARG VITE_APP_NAME=TMClub
+ARG VITE_APP_DESCRIPTION
+ARG VITE_APP_URL
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_GOOGLE_REDIRECT_URI
+ARG VITE_FASPAY_API_URL
+ARG VITE_FASPAY_MERCHANT_ID
+ARG VITE_FASPAY_MERCHANT_SECRET
+ARG VITE_FASPAY_ENVIRONMENT
+ARG VITE_ENABLE_GOOGLE_AUTH
+ARG VITE_ENABLE_ANALYTICS
+ARG VITE_ENABLE_NOTIFICATIONS
+ARG VITE_ENABLE_PAYMENT
+ARG VITE_ENABLE_QR_SCANNER
+ARG VITE_DEV_TOOLS
+ARG VITE_LOG_LEVEL
+ARG VITE_MAX_FILE_SIZE
+ARG VITE_ALLOWED_FILE_TYPES
+
 WORKDIR /app
+
+# Copy package files first for better caching
+COPY package.json package-lock.json* bun.lock* ./
+
+# Install all dependencies including dev dependencies for build
+# PENTING: Harus install devDependencies karena TypeScript diperlukan untuk build
+# Menggunakan --include=dev untuk memaksa install devDependencies meski NODE_ENV=production
+RUN npm ci --include=dev || npm install --include=dev
+
+# Verifikasi TypeScript terinstall
+RUN echo "TypeScript version:" && node_modules/.bin/tsc --version
+
+# Copy source code
 COPY . .
-RUN npm ci && npm run build && npm install -g serve
+
+# Inject ARG ke ENV agar tersedia saat build
+ENV NODE_ENV=${NODE_ENV} \
+    VITE_API_URL=${VITE_API_URL} \
+    VITE_APP_NAME=${VITE_APP_NAME} \
+    VITE_APP_DESCRIPTION=${VITE_APP_DESCRIPTION} \
+    VITE_APP_URL=${VITE_APP_URL} \
+    VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID} \
+    VITE_GOOGLE_REDIRECT_URI=${VITE_GOOGLE_REDIRECT_URI} \
+    VITE_FASPAY_API_URL=${VITE_FASPAY_API_URL} \
+    VITE_FASPAY_MERCHANT_ID=${VITE_FASPAY_MERCHANT_ID} \
+    VITE_FASPAY_MERCHANT_SECRET=${VITE_FASPAY_MERCHANT_SECRET} \
+    VITE_FASPAY_ENVIRONMENT=${VITE_FASPAY_ENVIRONMENT} \
+    VITE_ENABLE_GOOGLE_AUTH=${VITE_ENABLE_GOOGLE_AUTH} \
+    VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS} \
+    VITE_ENABLE_NOTIFICATIONS=${VITE_ENABLE_NOTIFICATIONS} \
+    VITE_ENABLE_PAYMENT=${VITE_ENABLE_PAYMENT} \
+    VITE_ENABLE_QR_SCANNER=${VITE_ENABLE_QR_SCANNER} \
+    VITE_DEV_TOOLS=${VITE_DEV_TOOLS} \
+    VITE_LOG_LEVEL=${VITE_LOG_LEVEL} \
+    VITE_MAX_FILE_SIZE=${VITE_MAX_FILE_SIZE} \
+    VITE_ALLOWED_FILE_TYPES=${VITE_ALLOWED_FILE_TYPES}
+
+# Build aplikasi dengan type checking
+RUN npm run build
+
+# Install serve globally
+RUN npm install -g serve
+
 EXPOSE 5173
+
 CMD ["serve", "-s", "dist", "-l", "5173"]

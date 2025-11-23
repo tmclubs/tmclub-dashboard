@@ -17,6 +17,7 @@ import { ContentScheduler } from './ContentScheduler';
 import { TiptapEditor } from './TiptapEditor';
 import { validateFile, createImagePreview, cleanupImagePreview } from '@/lib/utils/file-upload';
 import { blogApi } from '@/lib/api/blog';
+import { parseYouTubeId } from '@/lib/utils/validators';
 
 export interface EnhancedBlogFormData extends BlogFormData {
   tags: string[];
@@ -85,7 +86,15 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: keyof EnhancedBlogFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [field]: value } as EnhancedBlogFormData;
+      if (field === 'youtube_id') {
+        const parsed = parseYouTubeId(String(value || ''));
+        next.youtube_id = parsed || '';
+        (next as any).youtube_embeded = parsed ? `https://www.youtube-nocookie.com/embed/${parsed}` : '';
+      }
+      return next;
+    });
   };
 
 
@@ -415,13 +424,29 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                     YouTube Video ID
                   </label>
                   <Input
-                    placeholder="YouTube video ID (optional)"
+                    placeholder="YouTube link atau ID (opsional)"
                     value={formData.youtube_id || ''}
                     onChange={(e) => handleInputChange('youtube_id', e.target.value)}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Extract from YouTube URL: youtube.com/watch?v=VIDEO_ID
+                    Tempel link YouTube, otomatis diubah menjadi ID
                   </p>
+                  {(formData as any).youtube_embeded && (
+                    <div className="mt-3">
+                      <div className="w-full aspect-video bg-black rounded-md overflow-hidden">
+                        <iframe
+                          src={(formData as any).youtube_embeded}
+                          title="YouTube preview"
+                          className="w-full h-full"
+                          loading="lazy"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Preview video otomatis jika ID valid</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Tags */}

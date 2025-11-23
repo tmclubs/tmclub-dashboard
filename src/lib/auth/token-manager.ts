@@ -4,7 +4,8 @@
  */
 
 import { authApi, clearAuthData, getAuthData, setAuthData } from '@/lib/api/auth';
-import { type AuthResponse } from '@/types/api';
+import { env } from '@/lib/config/env';
+import { type AuthResponse, type JwtTokens } from '@/types/api';
 
 // Token storage keys
 const TOKEN_KEYS = {
@@ -32,7 +33,7 @@ const TOKEN_CONFIG = {
 } as const;
 
 interface TokenManagerConfig {
-  onTokenRefresh?: (tokens: AuthResponse) => void;
+  onTokenRefresh?: (tokens: AuthResponse | JwtTokens | { access: string }) => void;
   onTokenExpired?: () => void;
   onAuthError?: (error: Error) => void;
 }
@@ -44,7 +45,7 @@ interface TokenManagerCallbacks {
 }
 
 class TokenManager {
-  private refreshPromise: Promise<AuthResponse> | null = null;
+  private refreshPromise: Promise<JwtTokens | { access: string } | AuthResponse> | null = null;
   private refreshRetries = 0;
   private activityTimer: number | null = null;
   private config: TokenManagerConfig = {};
@@ -122,15 +123,36 @@ class TokenManager {
   }
 
   // Set tokens in storage
-  setTokens(tokens: AuthResponse): void {
-    setAuthData(tokens.token, tokens.user);
-    
-    // Note: AuthResponse doesn't have refresh_token, using token as both access and refresh
-    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, tokens.token);
-    
-    // Set token expiry time
-    const expiryTime = Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
-    localStorage.setItem(TOKEN_KEYS.TOKEN_EXPIRY, expiryTime.toString());
+  setTokens(tokens: AuthResponse | JwtTokens | { access: string }): void {
+    if ('access' in tokens) {
+      const access = (tokens as JwtTokens | { access: string }).access;
+      setAuthData(access, undefined);
+      if ('refresh' in tokens) {
+        sset(TOKEN_KEYS.REFRESH_TOKEN, (tokens as JwtTokens).refresh);
+      }
+      try {
+        const parts = access.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          const expMs = typeof payload.exp === 'number' ? payload.exp * 1000 : Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
+          sset(TOKEN_KEYS.TOKEN_EXPIRY, String(expMs));
+        }
+      } catch {
+        const expiryTime = Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
+        sset(TOKEN_KEYS.TOKEN_EXPIRY, expiryTime.toString());
+      }
+    } else {
+      const drfTokens = tokens as AuthResponse;
+      const tk = drfTokens?.token;
+      if (!tk || tk === 'undefined' || tk === 'null' || String(tk).trim() === '') {
+        console.warn('Ignored invalid DRF token');
+        return;
+      }
+      setAuthData(tk, drfTokens.user);
+      sset(TOKEN_KEYS.REFRESH_TOKEN, tk);
+      const expiryTime = Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
+      sset(TOKEN_KEYS.TOKEN_EXPIRY, expiryTime.toString());
+    }
 
     // Update last activity
     this.updateLastActivity();
@@ -141,55 +163,59 @@ class TokenManager {
 
   // Get current access token
   getAccessToken(): string | null {
-    return localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+    const t = sget(TOKEN_KEYS.ACCESS_TOKEN);
+    if (!t || t === 'undefined' || t === 'null' || t.trim() === '') return null;
+    return t;
   }
 
   // Get current refresh token
   getRefreshToken(): string | null {
-    return localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
+    const rt = sget(TOKEN_KEYS.REFRESH_TOKEN);
+    if (!rt || rt === 'undefined' || rt === 'null' || rt.trim() === '') return null;
+    return rt;
   }
 
   // Get token expiry time
   getTokenExpiry(): number | null {
-    // For Django simple token, we need to get expiry from localStorage
-    // since Django tokens don't contain expiry info in the token itself
-    const expiryStr = localStorage.getItem(TOKEN_KEYS.TOKEN_EXPIRY);
-    if (expiryStr) {
-      return parseInt(expiryStr, 10);
-    }
-    
-    // If no expiry stored, check if we have a token and set a default expiry
-    const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-    if (token) {
-      // Set default expiry to 24 hours from now
-      const defaultExpiry = Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
-      localStorage.setItem(TOKEN_KEYS.TOKEN_EXPIRY, defaultExpiry.toString());
-      return defaultExpiry;
-    }
-    
-    return null;
+    const token = sget(TOKEN_KEYS.ACCESS_TOKEN);
+    if (!token) return null;
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        if (typeof payload.exp === 'number') {
+          return payload.exp * 1000;
+        }
+      }
+    } catch (_err) { void 0; }
+    const expiryStr = sget(TOKEN_KEYS.TOKEN_EXPIRY);
+    if (expiryStr) return parseInt(expiryStr, 10);
+    const defaultExpiry = Date.now() + TOKEN_CONFIG.TOKEN_EXPIRY_TIME;
+    sset(TOKEN_KEYS.TOKEN_EXPIRY, defaultExpiry.toString());
+    return defaultExpiry;
   }
 
   // Check if token is expired or will expire soon
   isTokenExpired(): boolean {
     try {
+      const token = this.getAccessToken();
+      if (!token) return true;
+      const isJwt = token.split('.').length === 3;
+      if (!isJwt) return false;
       const expiry = this.getTokenExpiry();
       if (!expiry) return false;
-
       const now = Date.now();
       return expiry - now <= TOKEN_CONFIG.REFRESH_THRESHOLD;
     } catch (error) {
-      console.warn('Error checking token expiry:', error);
-      return true; // Assume expired if we can't check
+      return true;
     }
   }
 
   // Check if session is still valid based on activity
   isSessionValid(): boolean {
-    const lastActivity = localStorage.getItem(TOKEN_KEYS.LAST_ACTIVITY);
+    const lastActivity = sget(TOKEN_KEYS.LAST_ACTIVITY);
     if (!lastActivity) return false;
-
-    const lastActivityTime = parseInt(lastActivity);
+    const lastActivityTime = parseInt(lastActivity, 10);
     const now = Date.now();
     const sessionAge = now - lastActivityTime;
 
@@ -222,7 +248,7 @@ class TokenManager {
   }
 
   // Refresh access token using refresh token
-  async refreshAccessToken(): Promise<AuthResponse> {
+  async refreshAccessToken(): Promise<JwtTokens | { access: string } | AuthResponse> {
     // If refresh is already in progress, return the existing promise
     if (this.refreshPromise) {
       return this.refreshPromise;
@@ -241,7 +267,8 @@ class TokenManager {
       const result = await this.refreshPromise;
       this.setTokens(result);
       this.refreshRetries = 0;
-      this.callbacks.onTokenRefreshed?.({ access: result.token, refresh: result.token });
+      const access = 'access' in (result as any) ? (result as any).access : (result as AuthResponse).token;
+      this.callbacks.onTokenRefreshed?.({ access, refresh: localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN) || '' });
       return result;
     } catch (error) {
       this.refreshRetries++;
@@ -266,7 +293,7 @@ class TokenManager {
   }
 
   // Perform actual token refresh API call
-  private async performTokenRefresh(refreshToken: string): Promise<AuthResponse> {
+  private async performTokenRefresh(refreshToken: string): Promise<{ access: string }> {
     try {
       const response = await authApi.refreshToken(refreshToken);
       return response;
@@ -285,35 +312,43 @@ class TokenManager {
       return null;
     }
 
-    // For Django simple tokens, we don't refresh - just return the token if it exists
-    // Django simple tokens don't expire unless manually revoked
-    return token;
-
-    // Original refresh logic commented out for Django simple tokens
-    /*
-    if (!this.isTokenExpired()) {
-      return token;
-    }
-
+    const isJwt = token.split('.').length === 3;
+    if (!isJwt) return token;
+    if (!this.isTokenExpired()) return token;
     try {
-      // Token is expired, refresh it
-      console.log('Token expired, attempting refresh...');
       const newTokens = await this.refreshAccessToken();
-      return newTokens.token;
+      const access = 'access' in (newTokens as any) ? (newTokens as any).access : (newTokens as AuthResponse).token;
+      return access;
     } catch (error) {
-      // Refresh failed, clear tokens
-      console.error('Token refresh failed:', error);
       this.clearTokens();
       return null;
     }
-    */
   }
 
   // Enhanced clear tokens with callback notification
   clearTokens(): void {
     try {
       Object.values(TOKEN_KEYS).forEach(key => {
-        localStorage.removeItem(key);
+        sremove(key);
+        try { window.localStorage?.removeItem(key); } catch { /* noop */ }
+        try { window.sessionStorage?.removeItem(key); } catch { /* noop */ }
+      });
+
+      const extras = [
+        'token',
+        'userData',
+        'user_role',
+        'login_method',
+        'google_profile_picture',
+        'google_profile_name',
+        'google_profile_given_name',
+        'google_profile_family_name',
+        'auth-storage',
+      ];
+      extras.forEach((k) => {
+        sremove(k);
+        try { window.localStorage?.removeItem(k); } catch { /* noop */ }
+        try { window.sessionStorage?.removeItem(k); } catch { /* noop */ }
       });
 
       // Clear activity tracking
@@ -328,7 +363,6 @@ class TokenManager {
         this.validationInterval = null;
       }
 
-      // Notify Zustand store
       clearAuthData();
       
       console.log('All tokens cleared');
@@ -340,7 +374,7 @@ class TokenManager {
 
   // Update last activity timestamp
   updateLastActivity(): void {
-    localStorage.setItem(TOKEN_KEYS.LAST_ACTIVITY, Date.now().toString());
+    sset(TOKEN_KEYS.LAST_ACTIVITY, Date.now().toString());
   }
 
   // Setup activity tracking
@@ -369,12 +403,13 @@ class TokenManager {
 
   // Setup automatic token refresh
   private setupTokenRefresh(): void {
-    // Check token expiry periodically
     setInterval(() => {
+      const token = this.getAccessToken();
+      if (!token) return;
+      const isJwt = token.split('.').length === 3;
+      if (!isJwt) return;
       if (this.isAuthenticationValid() && this.isTokenExpired()) {
-        // Token is expired but session is valid, try to refresh
         this.refreshAccessToken().catch(error => {
-          console.error('Automatic token refresh failed:', error);
           this.config.onAuthError?.(error);
           this.callbacks.onAuthError?.(error);
         });
@@ -487,3 +522,37 @@ export const clearTokens = (): void => {
 };
 
 export default TokenManager;
+
+// Storage adapter helpers
+type StoreLike = { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void; removeItem: (k: string) => void };
+const memoryStore = new Map<string, string>();
+const memoryAdapter: StoreLike = {
+  getItem: (k) => memoryStore.has(k) ? memoryStore.get(k)! : null,
+  setItem: (k, v) => { memoryStore.set(k, v); },
+  removeItem: (k) => { memoryStore.delete(k); },
+};
+
+const resolveStore = (): StoreLike => {
+  try {
+    if (typeof window === 'undefined') return memoryAdapter;
+    if (env.tokenStorage === 'session' && window.sessionStorage) return window.sessionStorage;
+    if (env.tokenStorage === 'memory') return memoryAdapter;
+    return window.localStorage;
+  } catch {
+    return memoryAdapter;
+  }
+};
+
+const store = resolveStore();
+const sget = (k: string): string | null => {
+  try { return store.getItem(k); } catch { return null; }
+};
+const sset = (k: string, v: string): void => {
+  if (v === undefined || v === null) return;
+  const s = String(v);
+  if (!s || s === 'undefined' || s === 'null') return;
+  try { store.setItem(k, s); } catch { /* noop */ }
+};
+const sremove = (k: string): void => {
+  try { store.removeItem(k); } catch { /* noop */ }
+};

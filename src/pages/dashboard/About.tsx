@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Textarea, LoadingSpinner, Select, Input, Badge } from '@/components/ui';
 import { TiptapEditor } from '@/components/features/blog';
-import { MarkdownRenderer, htmlToMarkdown } from '@/components/features/blog/MarkdownRenderer';
+import { MarkdownRenderer } from '@/components/features/blog/MarkdownRenderer';
+import { htmlToMarkdown } from '@/lib/utils/markdown';
 import { useAbout, useUpdateAbout } from '@/lib/hooks/useAbout';
 import { useCompanies } from '@/lib/hooks/useCompanies';
-import { usePermissions } from '@/lib/hooks/usePermissions';
+import { usePermissions } from '../../lib/hooks/usePermissions';
 import { Save, Plus, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

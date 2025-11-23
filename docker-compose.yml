@@ -1,10 +1,34 @@
 services:
   # React App Service
   app:
-    build: .
+    build:
+      context: .
+      args:
+        - NODE_ENV=${NODE_ENV:-production}
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_APP_NAME=${VITE_APP_NAME:-TMClub}
+        - VITE_APP_DESCRIPTION=${VITE_APP_DESCRIPTION}
+        - VITE_APP_URL=${VITE_APP_URL}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_GOOGLE_REDIRECT_URI=${VITE_GOOGLE_REDIRECT_URI}
+        - VITE_FASPAY_API_URL=${VITE_FASPAY_API_URL}
+        - VITE_FASPAY_MERCHANT_ID=${VITE_FASPAY_MERCHANT_ID}
+        - VITE_FASPAY_MERCHANT_SECRET=${VITE_FASPAY_MERCHANT_SECRET}
+        - VITE_FASPAY_ENVIRONMENT=${VITE_FASPAY_ENVIRONMENT}
+        - VITE_ENABLE_GOOGLE_AUTH=${VITE_ENABLE_GOOGLE_AUTH}
+        - VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS}
+        - VITE_ENABLE_NOTIFICATIONS=${VITE_ENABLE_NOTIFICATIONS}
+        - VITE_ENABLE_PAYMENT=${VITE_ENABLE_PAYMENT}
+        - VITE_ENABLE_QR_SCANNER=${VITE_ENABLE_QR_SCANNER}
+        - VITE_DEV_TOOLS=${VITE_DEV_TOOLS}
+        - VITE_LOG_LEVEL=${VITE_LOG_LEVEL}
+        - VITE_MAX_FILE_SIZE=${VITE_MAX_FILE_SIZE}
+        - VITE_ALLOWED_FILE_TYPES=${VITE_ALLOWED_FILE_TYPES}
     container_name: ${COMPOSE_PROJECT_NAME:-tmclub}-app
     expose:
       - "5173"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - VITE_APP_NAME=${VITE_APP_NAME:-TMClub}
@@ -19,6 +43,8 @@ services:
   nginx:
     build: ./nginx
     container_name: ${COMPOSE_PROJECT_NAME:-tmclub}-nginx
+    env_file:
+      - .env
     ports:
       - "${NGINX_PORT:-8080}:80"
     environment:

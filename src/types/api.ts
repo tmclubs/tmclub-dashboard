@@ -33,6 +33,27 @@ export interface AuthResponse {
   };
 }
 
+export interface JwtTokens {
+  access: string;
+  refresh: string;
+}
+
+export interface ManualLoginRaw {
+  token: string;
+  login_method: string;
+  role: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name?: string;
+    is_staff?: boolean;
+    is_active?: boolean;
+    date_joined?: string;
+  };
+}
+
 export interface GoogleAuthResponse {
   uid: string;
   token: string;

@@ -26,6 +26,9 @@ import PublicAboutPage from './pages/public/About';
 import { MarkdownTest } from './components/test/MarkdownTest';
 import { BlogDetailTest } from './components/test/BlogDetailTest';
 import { AboutPage } from './pages/dashboard/About';
+import { MemberLayout } from './components/layout/MemberLayout';
+import { MemberProfilePage } from './pages/member/Profile';
+import { MemberMyEventsPage } from './pages/member/MyEvents';
 
 function App() {
   return (
@@ -45,8 +48,17 @@ function App() {
         <Route path="/blog" element={<PublicBlogPage />} />
         <Route path="/blog/:slug" element={<PublicBlogDetailPage />} />
         <Route path="/about" element={<PublicAboutPage />} />
-        <Route path="/dashboard" element={
+        {/* Member Routes */}
+        <Route path="/member" element={
           <ProtectedRoute>
+            <MemberLayout />
+          </ProtectedRoute>
+        }>
+          <Route path="profile" element={<MemberProfilePage />} />
+          <Route path="events" element={<MemberMyEventsPage />} />
+        </Route>
+        <Route path="/dashboard" element={
+          <ProtectedRoute requireAdmin>
             <Layout />
           </ProtectedRoute>
         }>

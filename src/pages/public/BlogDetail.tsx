@@ -56,6 +56,8 @@ export const PublicBlogDetailPage: React.FC = () => {
       likes: 0,
       comments: 0,
       featured: false,
+      youtubeId: (post as any).youtube_id || undefined,
+      youtubeEmbedUrl: (post as any).youtube_embeded || ((post as any).youtube_id ? `https://www.youtube-nocookie.com/embed/${(post as any).youtube_id}` : undefined),
     };
   };
 

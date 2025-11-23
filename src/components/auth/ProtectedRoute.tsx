@@ -1,6 +1,6 @@
 import React from 'react';
-import useAuthMiddleware, { UseAuthMiddlewareOptions } from '@/lib/hooks/useAuthMiddleware';
-import { PermissionLevel } from '@/lib/hooks/usePermissions';
+import useAuthMiddleware, { UseAuthMiddlewareOptions } from '../../lib/hooks/useAuthMiddleware';
+import { PermissionLevel } from '../../lib/hooks/usePermissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -120,51 +120,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <p className="text-gray-600">Checking authentication...</p>
       </div>
     </div>
-  );
-};
-
-// Higher-order component for protecting routes
-export const withAuth = <P extends object>(
-  Component: React.ComponentType<P>,
-  options?: Omit<ProtectedRouteProps, 'children'>
-): React.FC<P> => {
-  return (props: P) => (
-    <ProtectedRoute {...options}>
-      <Component {...props} />
-    </ProtectedRoute>
-  );
-};
-
-// Higher-order component for admin-only routes
-export const withAdmin = <P extends object>(
-  Component: React.ComponentType<P>
-): React.FC<P> => {
-  return (props: P) => (
-    <ProtectedRoute requireAdmin>
-      <Component {...props} />
-    </ProtectedRoute>
-  );
-};
-
-// Higher-order component for super admin-only routes
-export const withSuperAdmin = <P extends object>(
-  Component: React.ComponentType<P>
-): React.FC<P> => {
-  return (props: P) => (
-    <ProtectedRoute requireSuperAdmin>
-      <Component {...props} />
-    </ProtectedRoute>
-  );
-};
-
-// Higher-order component for permission-based routes
-export const withPermission = <P extends object>(
-  Component: React.ComponentType<P>,
-  requiredPermission: { resource: string; action: PermissionLevel }
-): React.FC<P> => {
-  return (props: P) => (
-    <ProtectedRoute requiredPermission={requiredPermission}>
-      <Component {...props} />
-    </ProtectedRoute>
   );
 };

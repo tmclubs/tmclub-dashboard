@@ -40,24 +40,35 @@ interface EnvConfig {
   // File Upload
   maxFileSize: number;
   allowedFileTypes: string[];
+
+  // Token Storage Strategy
+  tokenStorage: 'local' | 'session' | 'memory';
 }
 
 // Validate and parse environment variables
+const sanitize = (value?: string): string => {
+  if (value === undefined) return '';
+  const trimmed = value.trim();
+  const hasQuotes = (s: string) => (s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'")) || (s.startsWith('`') && s.endsWith('`'));
+  return hasQuotes(trimmed) ? trimmed.slice(1, -1).trim() : trimmed;
+};
+
 const getEnvVar = (key: string, defaultValue?: string): string => {
   const value = import.meta.env[key];
   if (value === undefined) {
     if (defaultValue !== undefined) {
-      return defaultValue;
+      return sanitize(defaultValue);
     }
     throw new Error(`Missing environment variable: ${key}`);
   }
-  return value;
+  return sanitize(value);
 };
 
 const getEnvBoolean = (key: string, defaultValue = false): boolean => {
   const value = import.meta.env[key];
   if (value === undefined) return defaultValue;
-  return value === 'true' || value === '1';
+  const v = sanitize(value).toLowerCase();
+  return v === 'true' || v === '1' || v === 'yes' || v === 'on';
 };
 
 const getEnvNumber = (key: string, defaultValue?: number): number => {
@@ -66,7 +77,7 @@ const getEnvNumber = (key: string, defaultValue?: number): number => {
     if (defaultValue !== undefined) return defaultValue;
     throw new Error(`Missing environment variable: ${key}`);
   }
-  const parsed = Number(value);
+  const parsed = Number(sanitize(value));
   if (isNaN(parsed)) {
     throw new Error(`Invalid number for environment variable ${key}: ${value}`);
   }
@@ -76,7 +87,9 @@ const getEnvNumber = (key: string, defaultValue?: number): number => {
 const getEnvArray = (key: string, defaultValue: string[] = []): string[] => {
   const value = import.meta.env[key];
   if (value === undefined) return defaultValue;
-  return value.split(',').map((item: string) => item.trim());
+  const s = sanitize(value);
+  if (!s) return defaultValue;
+  return s.split(',').map((item: string) => sanitize(item));
 };
 
 const getEnvEnum = <T extends string>(
@@ -89,12 +102,11 @@ const getEnvEnum = <T extends string>(
     if (defaultValue !== undefined) return defaultValue;
     throw new Error(`Missing environment variable: ${key}`);
   }
-  if (!validValues.includes(value as T)) {
-    throw new Error(
-      `Invalid value for ${key}: ${value}. Must be one of: ${validValues.join(', ')}`
-    );
+  const s = sanitize(value);
+  if (!validValues.includes(s as T)) {
+    throw new Error(`Invalid value for ${key}: ${value}. Must be one of: ${validValues.join(', ')}`);
   }
-  return value as T;
+  return s as T;
 };
 
 // Export validated environment configuration
@@ -138,6 +150,9 @@ export const env: EnvConfig = {
   // File Upload
   maxFileSize: getEnvNumber('VITE_MAX_FILE_SIZE', 10485760), // 10MB default
   allowedFileTypes: getEnvArray('VITE_ALLOWED_FILE_TYPES', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']),
+
+  // Token Storage Strategy
+  tokenStorage: getEnvEnum('VITE_TOKEN_STORAGE', ['local', 'session', 'memory'], 'local'),
 };
 
 // Helper function to check if required environment variables are set

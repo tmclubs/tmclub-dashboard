@@ -6,11 +6,20 @@ import { useAuth } from '@/lib/hooks/useAuth';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const handleStartClick = () => {
-    // Jika sudah login, arahkan ke dashboard; jika belum, ke login
-    navigate(isAuthenticated ? '/dashboard' : '/login');
+    if (isAuthenticated) {
+      // Jika sudah login, arahkan berdasarkan role
+      if (user?.role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/');
+      }
+    } else {
+      // Jika belum login, arahkan ke halaman login
+      navigate('/login');
+    }
   };
 
   const handleRegisterClick = () => {

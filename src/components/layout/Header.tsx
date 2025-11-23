@@ -22,18 +22,32 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   // Generate user initials for avatar fallback
   const getUserInitials = (firstName?: string, lastName?: string) => {
-    if (!firstName) return 'U';
-    const firstInitial = firstName.charAt(0).toUpperCase();
-    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return firstInitial + lastInitial;
+    // Prioritaskan nama dari backend
+    if (firstName) {
+      const firstInitial = firstName.charAt(0).toUpperCase();
+      const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+      return firstInitial + lastInitial;
+    }
+    
+    // Jika tidak ada first_name dari backend, coba dari username
+    if (user?.username) {
+      return user.username.charAt(0).toUpperCase();
+    }
+    
+    return 'U';
   };
 
   // Get user display name
   const getDisplayName = () => {
     if (!user) return 'Guest';
-    return user.first_name && user.last_name 
-      ? `${user.first_name} ${user.last_name}`
-      : user.first_name || user.username || 'User';
+    
+    // Prioritaskan nama dari backend (first_name)
+    if (user.first_name) return user.first_name;
+    
+    // Jika tidak ada first_name, gunakan username
+    if (user.username) return user.username;
+    
+    return 'User';
   };
 
   // Get user role display

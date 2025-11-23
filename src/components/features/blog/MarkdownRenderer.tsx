@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+ 
 
 interface MarkdownRendererProps {
   content: string;
@@ -15,7 +16,7 @@ const isHtmlContent = (content: string): boolean => {
 };
 
 // Enhanced HTML to Markdown conversion for TiptapEditor output
-export const htmlToMarkdown = (html: string): string => {
+const htmlToMarkdown = (html: string): string => {
   if (!html) return '';
   
   let markdown = html;
@@ -152,7 +153,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     return content; // Already Markdown
   }, [content]);
 
-  // Determine if we need rehype-raw (for HTML content that couldn't be converted)
   const needsRehypeRaw = isHtmlContent(processedContent);
 
   return (

@@ -39,6 +39,8 @@ export interface BlogArticle {
   comments: number;
   featured?: boolean;
   pk?: number; // optional backend identifier for mutations
+  youtubeId?: string;
+  youtubeEmbedUrl?: string;
 }
 
 export interface BlogArticleCardProps {

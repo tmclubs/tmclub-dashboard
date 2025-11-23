@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Button, Avatar } from '@/components/ui';
-import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard, LogOut, Calendar } from 'lucide-react';
 import { useAuth, useLogout } from '@/lib/hooks/useAuth';
-import { usePermissions } from '@/lib/hooks/usePermissions';
+import { usePermissions } from '../../lib/hooks/usePermissions';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -17,18 +17,82 @@ const PublicNavbar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const getUserInitials = (firstName?: string, lastName?: string) => {
-    if (!firstName) return 'U';
-    const firstInitial = firstName.charAt(0).toUpperCase();
-    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return firstInitial + lastInitial;
+  const getGoogleProfilePicture = () => {
+    return localStorage.getItem('google_profile_picture');
+  };
+
+  const getGoogleProfileName = () => {
+    return localStorage.getItem('google_profile_name');
+  };
+
+  const getGoogleProfileGivenName = () => {
+    return localStorage.getItem('google_profile_given_name');
+  };
+
+  const getGoogleProfileFamilyName = () => {
+    return localStorage.getItem('google_profile_family_name');
+  };
+
+  const hasGoogleProfilePicture = () => {
+    return !!getGoogleProfilePicture();
+  };
+
+  const hasGoogleProfileName = () => {
+    return !!getGoogleProfileName();
   };
 
   const getDisplayName = () => {
     if (!user) return 'User';
-    return user.first_name && user.last_name 
-      ? `${user.first_name} ${user.last_name}`
-      : user.first_name || user.username || 'User';
+    
+    // Prioritaskan nama dari backend (first_name)
+    if (user.first_name) return user.first_name;
+    
+    // Jika tidak ada first_name, gunakan username
+    if (user.username) return user.username;
+    
+    // Fallback ke Google profile hanya jika data backend tidak tersedia
+    if (hasGoogleProfileName()) return getGoogleProfileName() || 'User';
+    
+    return 'User';
+  };
+
+  const getUserInitials = (firstName?: string, lastName?: string) => {
+    // Prioritaskan nama dari backend
+    if (firstName) {
+      const firstInitial = firstName.charAt(0).toUpperCase();
+      const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+      return firstInitial + lastInitial;
+    }
+    
+    // Jika tidak ada first_name dari backend, coba dari username
+    if (user?.username) {
+      return user.username.charAt(0).toUpperCase();
+    }
+    
+    // Fallback ke Google profile hanya jika data backend tidak tersedia
+    if (hasGoogleProfileName()) {
+      const givenName = getGoogleProfileGivenName();
+      const familyName = getGoogleProfileFamilyName();
+      if (givenName && familyName) return givenName.charAt(0).toUpperCase() + familyName.charAt(0).toUpperCase();
+      if (givenName) return givenName.charAt(0).toUpperCase();
+    }
+    
+    return 'U';
+  };
+
+  const getRoleDisplay = () => {
+    if (!user?.role) return 'Member';
+    
+    switch (user.role.toLowerCase()) {
+      case 'admin':
+        return 'Administrator';
+      case 'pic':
+        return 'Person In Charge';
+      case 'member':
+        return 'Member';
+      default:
+        return user.role;
+    }
   };
 
   return (
@@ -58,27 +122,67 @@ const PublicNavbar: React.FC = () => {
                   <Avatar
                     size="sm"
                     name={getUserInitials(user?.first_name, user?.last_name)}
+                    src={hasGoogleProfilePicture() ? getGoogleProfilePicture() || undefined : undefined}
                     className="h-8 w-8"
                   />
-                  <span className="text-sm font-medium text-gray-900">
-                    {getDisplayName()}
-                  </span>
+                  <div className="text-left">
+                    <span className="text-sm font-medium text-gray-900 block">
+                      {getDisplayName()}
+                    </span>
+                    <span className="text-xs text-gray-500 block">
+                      {getRoleDisplay()}
+                    </span>
+                  </div>
                   <ChevronDown className="w-4 h-4 text-gray-500" />
                 </button>
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <div className="flex items-center space-x-3">
+                        <Avatar
+                          size="sm"
+                          name={getUserInitials(user?.first_name, user?.last_name)}
+                          src={hasGoogleProfilePicture() ? getGoogleProfilePicture() || undefined : undefined}
+                          className="h-10 w-10"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {getDisplayName()}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {getRoleDisplay()}
+                          </p>
+                          {user?.email && (
+                            <p className="text-xs text-gray-500 truncate">
+                              {user.email}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Menu Items */}
                     <NavLink
-                      to="/dashboard/profile"
-                      className={({ isActive }) => `flex items-center px-3 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
+                      to="/member/profile"
+                      className={({ isActive }) => `flex items-center px-4 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
                       onClick={() => setProfileOpen(false)}
                     >
                       <UserIcon className="w-4 h-4 mr-2" />
                       Profil
                     </NavLink>
+                    <NavLink
+                      to="/member/events"
+                      className={({ isActive }) => `flex items-center px-4 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Event Saya
+                    </NavLink>
                     {isAdmin() && (
                       <NavLink
                         to="/dashboard"
-                        className={({ isActive }) => `flex items-center px-3 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
+                        className={({ isActive }) => `flex items-center px-4 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
                         onClick={() => setProfileOpen(false)}
                       >
                         <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -86,7 +190,7 @@ const PublicNavbar: React.FC = () => {
                       </NavLink>
                     )}
                     <button
-                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       onClick={() => { setProfileOpen(false); logout(); }}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
@@ -124,30 +228,52 @@ const PublicNavbar: React.FC = () => {
             <NavLink to="/events" className={navLinkClass} onClick={() => setOpen(false)}>Event</NavLink>
             <NavLink to="/blog" className={navLinkClass} onClick={() => setOpen(false)}>Blog</NavLink>
             <NavLink to="/about" className={navLinkClass} onClick={() => setOpen(false)}>About</NavLink>
-            <div className="pt-2 flex items-center gap-2">
+            <div className="pt-2 border-t border-gray-200">
               {isAuthenticated ? (
-                <>
-                  <Link to="/dashboard/profile" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full">Profil</Button>
-                  </Link>
-                  {isAdmin() && (
-                    <Link to="/dashboard" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
-                      <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Dashboard</Button>
+                <div className="space-y-3">
+                  {/* User Info in Mobile */}
+                  <div className="flex items-center space-x-3 px-2 py-2 bg-gray-50 rounded-md">
+                    <Avatar
+                      size="sm"
+                      name={getUserInitials(user?.first_name, user?.last_name)}
+                      src={hasGoogleProfilePicture() ? getGoogleProfilePicture() || undefined : undefined}
+                      className="h-10 w-10"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {getDisplayName()}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {getRoleDisplay()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col space-y-2">
+                    <Link to="/member/profile" className="inline-flex" onClick={() => setOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full">Profil</Button>
                     </Link>
-                  )}
-                  <div className="flex items-center gap-2 pt-2">
+                    <Link to="/member/events" className="inline-flex" onClick={() => setOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full">Event Saya</Button>
+                    </Link>
+                    {isAdmin() && (
+                      <Link to="/dashboard" className="inline-flex" onClick={() => setOpen(false)}>
+                        <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Dashboard</Button>
+                      </Link>
+                    )}
                     <Button variant="outline" size="sm" className="w-full text-red-600 border-red-200" onClick={() => { setOpen(false); logout(); }}>Logout</Button>
                   </div>
-                </>
+                </div>
               ) : (
-                <>
-                  <Link to="/login" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
+                <div className="flex flex-col space-y-2">
+                  <Link to="/login" className="inline-flex" onClick={() => setOpen(false)}>
                     <Button variant="outline" size="sm" className="w-full">Masuk</Button>
                   </Link>
-                  <Link to="/register" className="inline-flex w-1/2" onClick={() => setOpen(false)}>
+                  <Link to="/register" className="inline-flex" onClick={() => setOpen(false)}>
                     <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Daftar Gratis</Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
