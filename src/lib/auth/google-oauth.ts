@@ -11,7 +11,16 @@ import { GoogleUserProfile, AuthResponse } from '@/types/api';
 // Google OAuth2 configuration
 const GOOGLE_AUTH_CONFIG = {
   clientId: env.googleClientId,
-  redirectUri: env.googleRedirectUri,
+  redirectUri: (() => {
+    const fallback = `${window.location.origin}/auth/callback`;
+    const fromEnv = env.googleRedirectUri;
+    try {
+      const envOrigin = new URL(fromEnv || fallback).origin;
+      return envOrigin === window.location.origin ? (fromEnv || fallback) : fallback;
+    } catch {
+      return fallback;
+    }
+  })(),
   scope: 'openid email profile',
   responseType: 'code',
   prompt: 'consent',
@@ -85,11 +94,19 @@ export const handleOAuthCallback = async (): Promise<AuthResponse> => {
 
   console.debug('[GoogleAuth] authorization_code:', code);
   window.history.replaceState({}, document.title, window.location.pathname);
-  const oauthData = await authApi.googleCodeExchange(code, GOOGLE_AUTH_CONFIG.redirectUri);
-  console.debug('[GoogleAuth] received_token:', oauthData.token);
-  setTokenManagerTokens({ token: oauthData.token, user: null as any } as any);
-  sessionStorage.setItem(doneKey, 'true');
-  return { token: oauthData.token, user: null as any };
+  try {
+    const oauthData = await authApi.googleCodeExchange(code, GOOGLE_AUTH_CONFIG.redirectUri);
+    console.debug('[GoogleAuth] received_token:', oauthData.token);
+    setTokenManagerTokens({ token: oauthData.token, user: null as any } as any);
+    sessionStorage.setItem(doneKey, 'true');
+    return { token: oauthData.token, user: null as any };
+  } catch (err: any) {
+    const msg = err && typeof err.message === 'string' ? err.message : 'OAuth code exchange failed';
+    if (msg.includes('422') || msg.toLowerCase().includes('exchange code')) {
+      throw new Error('Gagal menukar kode OAuth. Periksa konfigurasi redirect URL dan coba lagi.');
+    }
+    throw err instanceof Error ? err : new Error('Gagal menukar kode OAuth');
+  }
 };
 
 // Get user profile from Google using access token
