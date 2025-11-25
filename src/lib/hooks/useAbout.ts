@@ -27,3 +27,18 @@ export const useUpdateAbout = () => {
     },
   });
 };
+
+export const useCreateAbout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateAboutPayload) => aboutApi.createAbout(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ABOUT });
+      toast.success('About berhasil dibuat!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal membuat About');
+    },
+  });
+};

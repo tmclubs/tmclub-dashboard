@@ -291,6 +291,7 @@ export const BlogPage: React.FC = () => {
               youtube_id: selectedArticle.youtubeId || '',
               youtube_embeded: selectedArticle.youtubeEmbedUrl || '',
               albums_id: [],
+              albums_url: selectedArticle.albums || [],
             } : undefined)}
             onSubmit={handleArticleSubmit}
             loading={updateBlogMutation.isPending}

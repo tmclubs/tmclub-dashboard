@@ -15,4 +15,9 @@ export const aboutApi = {
   async updateAbout(aboutId: number, payload: UpdateAboutPayload): Promise<AboutInfo> {
     return apiClient.patch<AboutInfo>(API_ENDPOINTS.ABOUT.DETAIL(aboutId), payload);
   },
+
+  // Create About
+  async createAbout(payload: UpdateAboutPayload): Promise<AboutInfo> {
+    return apiClient.post<AboutInfo>(API_ENDPOINTS.ABOUT.INFO, payload);
+  },
 };

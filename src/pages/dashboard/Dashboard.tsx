@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Users,
@@ -23,6 +24,7 @@ import { formatDate, formatRelativeTime } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
 
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   // API hooks for real-time data
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { data: companies = [], isLoading: companiesLoading } = useCompanies();
@@ -250,8 +252,21 @@ export const Dashboard: React.FC = () => {
               ) : (
                 <div className="space-y-4">
                   {recentBlogPosts.map((post) => (
-                    <div key={post.pk} className="group border-b border-gray-100 last:border-b-0 pb-4 last:pb-0">
-                      <div className="flex gap-3 sm:gap-4">
+                    <div
+                      key={post.pk}
+                      className="group border-b border-gray-100 last:border-b-0 pb-4 last:pb-0 cursor-pointer"
+                      onClick={() => navigate(`/blog/${post.slug}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/blog/${post.slug}`);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Read article ${post.title}`}
+                    >
+                      <div className="flex gap-3 sm:gap-4 items-start">
                         <div className="flex-shrink-0">
                           <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-lg">
                             {post.title.charAt(0)}
@@ -269,6 +284,12 @@ export const Dashboard: React.FC = () => {
                             <span>•</span>
                             <span>3 min read</span>
                           </div>
+                        </div>
+                        <div className="hidden sm:flex items-center">
+                          <Button variant="outline" size="sm" aria-label="Read article">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Read
+                          </Button>
                         </div>
                       </div>
                     </div>

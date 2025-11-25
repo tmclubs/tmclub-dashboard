@@ -1,17 +1,18 @@
 import { z } from 'zod';
+import { env } from '@/lib/config/env';
 
 // File upload configuration
 export const FILE_UPLOAD_CONFIG = {
-  maxSize: 5 * 1024 * 1024, // 5MB
-  allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-  allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
+  maxSize: env.maxFileSize,
+  allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
+  allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif'],
 } as const;
 
 // File validation schema
 export const fileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= FILE_UPLOAD_CONFIG.maxSize, {
-    message: `File size must be less than ${FILE_UPLOAD_CONFIG.maxSize / (1024 * 1024)}MB`,
+    message: `File size must be less than ${Math.round(FILE_UPLOAD_CONFIG.maxSize / (1024 * 1024))}MB`,
   })
   .refine((file) => FILE_UPLOAD_CONFIG.allowedTypes.includes(file.type as any), {
     message: `File type must be one of: ${FILE_UPLOAD_CONFIG.allowedTypes.join(', ')}`,

@@ -352,11 +352,11 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                   </label>
                   <div className="space-y-3">
                     {imagePreview ? (
-                      <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                      <div className="relative w-full rounded-lg overflow-hidden">
                         <img
                           src={imagePreview}
                           alt="Featured image preview"
-                          className="w-full h-full object-cover"
+                          className="w-full max-h-96 object-contain bg-gray-50"
                         />
                         <button
                           type="button"
@@ -367,7 +367,7 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                      <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                         <div className="text-center">
                           <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No featured image</p>

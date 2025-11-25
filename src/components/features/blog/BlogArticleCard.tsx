@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Calendar,
   Heart,
@@ -69,6 +69,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
   onShare,
   className,
 }) => {
+  const [imageErrorCompact, setImageErrorCompact] = useState(false);
   
 
   const isGrid = variant === 'grid';
@@ -223,11 +224,12 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
         <CardContent className="p-3 sm:p-4">
           <div className="flex gap-3 sm:gap-4">
             {/* Image - Responsive size */}
-            {article.featuredImage ? (
+            {article.featuredImage && !imageErrorCompact ? (
               <img
                 src={article.featuredImage}
                 alt={article.title}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0"
+                onError={() => setImageErrorCompact(true)}
               />
             ) : (
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0" />
@@ -247,21 +249,21 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                   </div>
                   
                   {/* Stats - Responsive grid */}
-                  <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500">
-                    <Calendar className="w-3 h-3" />
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="truncate">{formatDate(article.publishedAt || article.createdAt)}</span>
                   </div>
                 </div>
 
                 {/* Actions - Responsive buttons */}
                 {showActions && (
-                  <div className="flex gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {onEdit && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => onEdit(article)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                        className="h-7 w-7 sm:h-8 sm:w-8"
                       >
                         <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>
@@ -269,9 +271,9 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
                     {onDelete && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => onDelete(article)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>

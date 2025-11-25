@@ -120,7 +120,7 @@ export const Modal: React.FC<ModalProps> = ({
       aria-labelledby={title ? 'modal-title' : undefined}
       aria-describedby={description ? 'modal-description' : undefined}
     >
-      <div className="flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="flex min-h-screen items-center justify-center p-4 md:p-6">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -132,13 +132,13 @@ export const Modal: React.FC<ModalProps> = ({
         <div
           ref={modalRef}
           className={cn(
-            'relative w-full bg-white rounded-t-lg sm:rounded-lg shadow-xl transform transition-all max-h-[95vh] sm:max-h-[90vh] overflow-hidden',
+            'relative w-full bg-white rounded-lg shadow-xl transform transition-all max-h-[90vh] overflow-hidden',
             sizeClasses[size]
           )}
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between p-3 sm:p-4 lg:p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
               <div className="flex-1 min-w-0 pr-2">
                 {title && (
                   <h2 id="modal-title" className="text-lg sm:text-xl font-semibold text-gray-900 truncate">{title}</h2>
@@ -162,13 +162,13 @@ export const Modal: React.FC<ModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="p-3 sm:p-4 lg:p-6 overflow-y-auto max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-120px)]">
+          <div className="p-4 sm:p-6 overflow-y-auto max-h-[72vh]">
             {children}
           </div>
 
           {/* Footer */}
           {footer && (
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 p-3 sm:p-4 lg:p-6 border-t border-gray-200">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 p-4 sm:p-6 border-t border-gray-200">
               {footer}
             </div>
           )}

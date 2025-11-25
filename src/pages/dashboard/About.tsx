@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent, Button, Textarea, LoadingSpin
 import { TiptapEditor } from '@/components/features/blog';
 import { MarkdownRenderer } from '@/components/features/blog/MarkdownRenderer';
 import { htmlToMarkdown } from '@/lib/utils/markdown';
-import { useAbout, useUpdateAbout } from '@/lib/hooks/useAbout';
+import { useAbout, useUpdateAbout, useCreateAbout } from '@/lib/hooks/useAbout';
 import { useCompanies } from '@/lib/hooks/useCompanies';
 import { usePermissions } from '../../lib/hooks/usePermissions';
 import { Save, Plus, X } from 'lucide-react';
@@ -14,6 +14,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 export const AboutPage: React.FC = () => {
   const { data: about, isLoading, error } = useAbout();
   const updateAbout = useUpdateAbout();
+  const createAbout = useCreateAbout();
   const { isAdmin, isSuperAdmin } = usePermissions();
   const canEdit = isAdmin() || isSuperAdmin();
 
@@ -92,7 +93,7 @@ export const AboutPage: React.FC = () => {
     );
   }
 
-  if (!about) {
+  if (!about && !canEdit) {
     return (
       <div className="p-6">
         <Card>
@@ -112,7 +113,7 @@ export const AboutPage: React.FC = () => {
             <CardTitle>Tentang TMClub</CardTitle>
           </CardHeader>
           <CardContent>
-            <MarkdownRenderer content={about.md || ''} />
+            <MarkdownRenderer content={about?.md || ''} />
           </CardContent>
         </Card>
         <Card>
@@ -145,6 +146,129 @@ export const AboutPage: React.FC = () => {
   const removeOrgId = (id: number) => {
     setOrganizations((prev) => prev.filter((x) => x !== id));
   };
+
+  if (!about && canEdit) {
+    const handleCreate = () => {
+      const markdown = htmlToMarkdown(editorHtml);
+      createAbout.mutate({
+        md: markdown,
+        description,
+        organizations,
+        annual_directories: annualDirs,
+      });
+    };
+
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">About</h1>
+          <Button onClick={handleCreate} disabled={createAbout.isPending}>
+            <Save className="w-4 h-4 mr-2" />
+            {createAbout.isPending ? 'Membuat...' : 'Buat'}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Editor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <TiptapEditor
+                  content={editorHtml}
+                  onChange={setEditorHtml}
+                  placeholder="Tulis konten About di sini..."
+                />
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi singkat</label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Deskripsi ringkas untuk About"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Organizations</label>
+                    <Select
+                      multiple
+                      options={companyOptions}
+                      value={organizations.map(String)}
+                      onChange={handleOrganizationsChange}
+                      helperText={"Hold down 'Control', atau 'Command' di Mac, untuk memilih lebih dari satu."}
+                    />
+                    {organizations.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {organizations.map((id) => (
+                          <span key={id} className="inline-flex items-center">
+                            <Badge>{companyNameById.get(id) || `ID ${id}`}</Badge>
+                            <button
+                              type="button"
+                              className="ml-1 text-gray-500 hover:text-red-600"
+                              onClick={() => removeOrgId(id)}
+                              aria-label={`Remove ${companyNameById.get(id) || id}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Annual directories</label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Masukkan ID"
+                        value={newAnnualId}
+                        onChange={(e) => setNewAnnualId(e.target.value)}
+                      />
+                      <Button type="button" onClick={addAnnualId}>
+                        <Plus className="w-4 h-4 mr-1" />Tambah
+                      </Button>
+                    </div>
+                    {annualDirs.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {annualDirs.map((id) => (
+                          <span key={id} className="inline-flex items-center">
+                            <Badge>{`ID ${id}`}</Badge>
+                            <button
+                              type="button"
+                              className="ml-1 text-gray-500 hover:text-red-600"
+                              onClick={() => removeAnnualId(id)}
+                              aria-label={`Remove ${id}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-500 mt-2">Data Annual Directories belum terhubung ke daftar otomatis. Masukkan ID secara manual untuk sementara.</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Preview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MarkdownRenderer content={previewMd} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

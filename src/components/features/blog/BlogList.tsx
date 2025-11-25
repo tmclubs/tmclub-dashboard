@@ -231,8 +231,8 @@ export const BlogList: React.FC<BlogListProps> = ({
 
               {/* Quick Actions for List View - Improved responsive layout */}
               {viewMode === 'list' && (
-                <div className="flex items-center justify-between mt-3 px-2 sm:px-3">
-                  <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                <div className="flex items-center justify-between mt-2 sm:mt-3 px-2 sm:px-3">
+                  <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="font-medium">{article.views}</span>
@@ -244,7 +244,7 @@ export const BlogList: React.FC<BlogListProps> = ({
                       <span className="sm:hidden">{formatDate(article.publishedAt || article.createdAt).split(' ')[0]}</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     {onToggleFeatured && (
                       <Button
                         variant="ghost"

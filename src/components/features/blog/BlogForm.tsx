@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Eye,
@@ -6,11 +6,12 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { Button, Input, Textarea } from '@/components/ui';
+import { env } from '@/lib/config/env';
 import { parseYouTubeId } from '@/lib/utils/validators';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { TiptapEditor } from './TiptapEditor';
-import { validateFile, createImagePreview } from '@/lib/utils/file-upload';
+import { validateFile, createImagePreview, formatFileSize } from '@/lib/utils/file-upload';
 
 export interface BlogFormData extends ApiBlogFormData {
   // For UI state management
@@ -36,6 +37,13 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   title = article ? 'Edit Article' : 'Create New Article',
   mode = 'create',
 }) => {
+  const normalizeUrl = (u?: string) => {
+    if (!u) return '';
+    if (u.startsWith('http')) return u;
+    if (u.startsWith('/')) return `${env.apiUrl}${u}`;
+    return u;
+  };
+
   const [formData, setFormData] = useState<BlogFormData>({
     title: article?.title || '',
     summary: article?.summary || '',
@@ -46,11 +54,20 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     youtube_embeded: article?.youtube_embeded || '',
     albums_id: article?.albums_id || [],
     mainImageFile: undefined,
-    previewImage: article?.main_image_url || '',
+    previewImage: normalizeUrl(article?.main_image_url),
   });
+
+  const maxSizeText = formatFileSize(env.maxFileSize);
 
   const [showPreview, setShowPreview] = useState(false);
   const [albumsPreviews, setAlbumsPreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    const urls = Array.isArray((article as any)?.albums_url) ? ((article as any).albums_url as string[]) : [];
+    if (urls.length > 0 && albumsPreviews.length === 0) {
+      setAlbumsPreviews(urls.map((u) => normalizeUrl(u)));
+    }
+  }, [article]);
 
   const handleInputChange = (field: keyof BlogFormData, value: any) => {
     setFormData(prev => {
@@ -140,8 +157,8 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
         <div className="flex gap-3">
           <Button
@@ -163,7 +180,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
         </div>
       </div>
 
-      <form id="blog-form" onSubmit={handleSubmit} className="space-y-6">
+      <form id="blog-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -227,7 +244,8 @@ export const BlogForm: React.FC<BlogFormProps> = ({
               <img
                 src={formData.previewImage}
                 alt="Featured image preview"
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full max-h-96 object-contain rounded-lg bg-gray-50"
+                onError={() => setFormData(prev => ({ ...prev, previewImage: '' }))}
               />
               <Button
                 type="button"
@@ -258,7 +276,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                     />
                   </label>
                   <p className="mt-1 text-xs text-gray-500">
-                    PNG, JPG, GIF up to 10MB
+                    PNG, JPG, GIF up to {maxSizeText}
                   </p>
                 </div>
               </div>
@@ -303,7 +321,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Additional Images (Albums)
           </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6">
             <div className="text-center">
               <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
               <div className="mt-4">
@@ -322,7 +340,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                   />
                 </label>
                 <p className="mt-1 text-xs text-gray-500">
-                  PNG, JPG, GIF up to 10MB per file. Multiple files allowed.
+                  PNG, JPG, GIF up to {maxSizeText} per file. Multiple files allowed.
                 </p>
               </div>
             </div>
@@ -334,13 +352,14 @@ export const BlogForm: React.FC<BlogFormProps> = ({
               <p className="text-sm font-medium text-gray-700 mb-2">
                 Uploaded Images ({albumsPreviews.length})
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="flex gap-2 overflow-x-auto sm:overflow-visible sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
                 {albumsPreviews.map((preview, index) => (
-                  <div key={index} className="relative group">
+                  <div key={index} className="relative group flex-none w-24 h-24 sm:w-auto sm:h-auto sm:aspect-square">
                     <img
                       src={preview}
                       alt={`Album image ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg"
+                      className="w-full h-full object-contain bg-gray-50 rounded-lg"
+                      onError={() => removeAlbum(index)}
                     />
                     <button
                       type="button"
@@ -419,7 +438,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                   <img
                     src={formData.previewImage}
                     alt="Featured image"
-                    className="w-full h-64 object-cover rounded-lg mb-6"
+                    className="w-full max-h-96 object-contain rounded-lg mb-6 bg-gray-50"
                   />
                 )}
                 {formData.youtube_embeded && (
