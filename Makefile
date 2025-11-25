@@ -1,7 +1,7 @@
 # TMC Frontend Makefile
 # Toyota Manufacturers Club - React + TypeScript + Vite Application
 
-.PHONY: help install dev build preview clean docker-build docker-up docker-down docker-stop docker-logs lint format type-check test ci
+.PHONY: help install dev build preview clean docker-build docker-up docker-down docker-stop docker-logs lint format type-check test ci destroy
 
 # Default target
 help:
@@ -26,6 +26,7 @@ help:
 	@echo "  docker-stop  Stop containers"
 	@echo "  docker-logs  Show container logs"
 	@echo "  docker-clean Clean Docker resources"
+	@echo "  destroy      Compose down and prune all Docker resources"
 	@echo ""
 	@echo "Maintenance:"
 	@echo "  clean        Clean build artifacts"
@@ -104,6 +105,11 @@ docker-clean:
 	docker-compose down -v
 	docker system prune -f
 	docker volume prune -f
+
+destroy:
+	@echo "Destroying Docker resources (compose down + system prune -a)..."
+	docker compose down -v
+	docker system prune -a -f
 
 # CI Pipeline
 ci: clean install type-check lint test build
