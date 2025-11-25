@@ -150,9 +150,15 @@ export const BlogPage: React.FC = () => {
       youtube_id: data.youtube_id || '',
       youtube_embeded: data.youtube_embeded || '',
     };
-    if (data.main_image) {
-      payload.main_image = data.main_image;
+
+    if (mode === 'create') {
+      payload.main_image = data.main_image ?? '';
+    } else {
+      if (data.main_image !== undefined) {
+        payload.main_image = data.main_image;
+      }
     }
+
     if (data.albums_id && data.albums_id.length > 0) {
       payload.albums_id = data.albums_id;
     }
