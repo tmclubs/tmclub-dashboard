@@ -148,7 +148,7 @@ export const env: EnvConfig = {
   logLevel: getEnvEnum('VITE_LOG_LEVEL', ['error', 'warn', 'info', 'debug'], 'info'),
 
   // File Upload
-  maxFileSize: getEnvNumber('VITE_MAX_FILE_SIZE', 10485760), // 10MB default
+  maxFileSize: getEnvNumber('VITE_MAX_FILE_SIZE', 209715200), // 200MB default
   allowedFileTypes: getEnvArray('VITE_ALLOWED_FILE_TYPES', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']),
 
   // Token Storage Strategy
