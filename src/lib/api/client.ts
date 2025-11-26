@@ -108,12 +108,16 @@ export const apiClient = {
 
     const authScheme = token && token.split('.').length === 3 ? 'Bearer' : 'Token';
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
       'Accept': 'application/json',
       'User-Agent': `${env.appName}/${env.appVersion}`,
       ...(token && { Authorization: `${authScheme} ${token}` }),
       ...options.headers,
     };
+
+    const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    if (!isFormDataBody && method !== 'GET' && method !== 'HEAD') {
+      (headers as Record<string, string>)['Content-Type'] = (headers as Record<string, string>)['Content-Type'] || 'application/json';
+    }
 
     try {
       const masked = token ? `${String(token).slice(0,3)}***${String(token).slice(-2)}` : '(none)';
