@@ -265,7 +265,6 @@ export const BlogPage: React.FC = () => {
         <Modal
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-          title="Create New Article"
           size="xl"
           preventClose={createBlogMutation.isPending}
         >
@@ -281,7 +280,6 @@ export const BlogPage: React.FC = () => {
         <Modal
           open={showEditModal}
           onClose={() => setShowEditModal(false)}
-          title="Edit Article"
           size="xl"
           preventClose={updateBlogMutation.isPending}
         >

@@ -75,14 +75,31 @@ const Hero: React.FC = () => {
 
           <div className="hidden lg:block">
             <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="h-24 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 opacity-80" />
-                <div className="h-24 rounded-xl bg-gradient-to-br from-gray-200 to-gray-300" />
-                <div className="h-24 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200" />
-                <div className="h-24 rounded-xl bg-gradient-to-br from-orange-200 to-orange-300" />
-              </div>
-              <div className="mt-4 text-sm text-gray-500">
-                Ilustrasi antarmuka sederhana dengan palet warna existing.
+              <div className="grid grid-cols-2 grid-rows-2 gap-4">
+                <img
+                  src="/Web1.png"
+                  alt="Kaizen 38 mark"
+                  loading="lazy"
+                  className="w-full h-24 object-cover rounded-xl"
+                />
+                <img
+                  src="/Web 3.png"
+                  alt="Kaizen 38 mark"
+                  loading="lazy"
+                  className="w-full h-24 object-cover rounded-xl"
+                />
+                <img
+                  src="/webs.png"
+                  alt="Kaizen 38 mark"
+                  loading="lazy"
+                  className="w-full h-24 object-cover rounded-xl"
+                />
+                <img
+                  src="/Web 4.png"
+                  alt="Kaizen Festival banner"
+                  loading="lazy"
+                  className="w-full h-24 object-cover rounded-xl"
+                />
               </div>
             </div>
           </div>
