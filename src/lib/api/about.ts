@@ -13,7 +13,22 @@ export const aboutApi = {
 
   // Update About by ID (partial update)
   async updateAbout(aboutId: number, payload: UpdateAboutPayload): Promise<AboutInfo> {
-    return apiClient.patch<AboutInfo>(API_ENDPOINTS.ABOUT.DETAIL(aboutId), payload);
+    console.log('[aboutApi] PATCH request:', {
+      endpoint: API_ENDPOINTS.ABOUT.DETAIL(aboutId),
+      payload
+    });
+
+    try {
+      const result = await apiClient.patch<AboutInfo>(
+        API_ENDPOINTS.ABOUT.DETAIL(aboutId),
+        payload
+      );
+      console.log('[aboutApi] PATCH response:', result);
+      return result;
+    } catch (error) {
+      console.error('[aboutApi] PATCH error:', error);
+      throw error;
+    }
   },
 
   // Create About

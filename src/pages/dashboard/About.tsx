@@ -10,6 +10,7 @@ import { Save, Plus, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { renderToStaticMarkup } from 'react-dom/server';
+import toast from 'react-hot-toast';
 
 export const AboutPage: React.FC = () => {
   const { data: about, isLoading, error } = useAbout();
@@ -35,6 +36,8 @@ export const AboutPage: React.FC = () => {
   const companyOptions = (companies || []).map((c) => ({ value: String(c.pk), label: c.display_name }));
 
   React.useEffect(() => {
+    console.log('[About] Data state:', { about, isLoading, error });
+
     if (!about) return;
 
     setDescription(about.description || '');
@@ -57,19 +60,32 @@ export const AboutPage: React.FC = () => {
     }
 
     setEditorHtml(initialHtml);
-  }, [about]);
+  }, [about, isLoading, error]);
 
   const handleSave = () => {
-    if (!about?.pk) return;
+    console.log('[About] handleSave called, about:', about);
+
+    if (!about?.id) {
+      console.error('[About] No about.id found, cannot save');
+      toast.error('Data About tidak ditemukan');
+      return;
+    }
+
     const markdown = htmlToMarkdown(editorHtml);
+
+    const payload = {
+      md: markdown,
+      description,
+      organizations,
+      annual_directories: annualDirs,
+    };
+
+    console.log('[About] Saving with payload:', payload);
+    console.log('[About] About ID:', about.id);
+
     updateAbout.mutate({
-      id: about.pk,
-      data: {
-        md: markdown,
-        description,
-        organizations,
-        annual_directories: annualDirs,
-      },
+      id: about.id,
+      data: payload,
     });
   };
 
@@ -93,7 +109,7 @@ export const AboutPage: React.FC = () => {
     );
   }
 
-  if (!about && !canEdit) {
+  if ((!about || !about.id) && !canEdit) {
     return (
       <div className="p-6">
         <Card>
@@ -147,7 +163,10 @@ export const AboutPage: React.FC = () => {
     setOrganizations((prev) => prev.filter((x) => x !== id));
   };
 
-  if (!about && canEdit) {
+  // Show create form if no About data exists (null, undefined, or no id)
+  if ((!about || !about.id) && canEdit) {
+    console.log('[About] Showing create form - no data exists');
+
     const handleCreate = () => {
       const markdown = htmlToMarkdown(editorHtml);
       createAbout.mutate({
@@ -279,6 +298,21 @@ export const AboutPage: React.FC = () => {
           {updateAbout.isPending ? 'Menyimpan...' : 'Simpan'}
         </Button>
       </div>
+
+      {updateAbout.isError && (
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                Gagal menyimpan About
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{updateAbout.error?.message || 'Terjadi kesalahan'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

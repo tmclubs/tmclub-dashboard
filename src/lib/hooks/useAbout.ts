@@ -17,13 +17,19 @@ export const useUpdateAbout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateAboutPayload }) => aboutApi.updateAbout(id, data),
-    onSuccess: () => {
+    mutationFn: ({ id, data }: { id: number; data: UpdateAboutPayload }) => {
+      console.log('[useAbout] Updating About:', { id, data });
+      return aboutApi.updateAbout(id, data);
+    },
+    onSuccess: (data) => {
+      console.log('[useAbout] Update success:', data);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ABOUT });
       toast.success('About berhasil diperbarui!');
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Gagal memperbarui About');
+      console.error('[useAbout] Update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Gagal memperbarui About';
+      toast.error(errorMessage);
     },
   });
 };

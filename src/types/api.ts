@@ -398,7 +398,7 @@ export interface APIError {
 
 // About Types
 export interface AboutInfo {
-  pk: number;
+  id: number;
   md: string;
   description?: string;
   organizations?: number[];
