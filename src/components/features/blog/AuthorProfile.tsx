@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { format } from 'date-fns';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface AuthorProfileData {
   id: number;
@@ -100,7 +101,7 @@ export function AuthorProfile({
         <div className="relative">
           {author.avatar ? (
             <img
-              src={author.avatar}
+              src={getBackendImageUrl(author.avatar)}
               alt={getFullName()}
               className="w-10 h-10 rounded-full object-cover"
             />
@@ -164,7 +165,7 @@ export function AuthorProfile({
           <div className="relative">
             {author.avatar ? (
               <img
-                src={author.avatar}
+                src={getBackendImageUrl(author.avatar)}
                 alt={getFullName()}
                 className="w-20 h-20 rounded-full object-cover"
               />

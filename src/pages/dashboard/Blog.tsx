@@ -114,7 +114,9 @@ export const BlogPage: React.FC = () => {
         const detail = await blogApi.getBlogPost(article.pk);
         setSelectedPostDetail(detail);
       }
-    } catch {}
+    } catch (error) {
+      console.error('Failed to fetch blog detail', error);
+    }
     setShowEditModal(true);
   };
 

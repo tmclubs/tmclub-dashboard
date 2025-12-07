@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/ui';
 import { useAbout } from '@/lib/hooks/useAbout';
-import { MarkdownRenderer } from '@/components/features/blog/MarkdownRenderer';
-import { Info } from 'lucide-react';
+import { Info, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AboutPreview: React.FC = () => {
   const { data: about, isLoading } = useAbout();
@@ -10,6 +10,22 @@ const AboutPreview: React.FC = () => {
   if (isLoading || !about?.md) {
     return null;
   }
+
+  // Helper to strip markdown for preview
+  const getPreviewContent = () => {
+    if (about.description && about.description.trim().length > 0) {
+      return about.description;
+    }
+
+    const text = "Di sini, kolaborasi bukan sekadar wacana. Kami mempertemukan para inovator, pemikir, dan pemimpin industri untuk menciptakan solusi nyata bagi tantangan masa depan.";
+
+    return text;
+  };
+
+  const content = getPreviewContent();
+  const truncatedContent = content.length > 200 
+    ? content.slice(0, 200) + '...' 
+    : content;
 
   return (
     <section className="py-12 border-t border-gray-100">
@@ -23,9 +39,16 @@ const AboutPreview: React.FC = () => {
             <CardTitle className="text-lg">Ringkas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose max-w-none">
-              <MarkdownRenderer content={about.md} />
-            </div>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              {truncatedContent}
+            </p>
+            
+            <Link to="/about">
+              <Button variant="outline" className="gap-2">
+                Selengkapnya
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

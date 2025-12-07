@@ -169,5 +169,6 @@ export const transformProfileToFormData = (profileData: ProfileData): any => {
     twitter: profileData.twitter || '',
     skills: profileData.skills || [],
     interests: profileData.interests || [],
+    avatar: profileData.avatar,
   };
 };

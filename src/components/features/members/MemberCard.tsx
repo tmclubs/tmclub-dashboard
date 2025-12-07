@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface Member {
   id: string;
@@ -35,8 +36,8 @@ export interface Member {
   eventsAttended: number;
   totalSpent: number;
   membershipType: 'basic' | 'premium' | 'enterprise';
-  skills: string[];
   bio?: string;
+  username?: string; // Added for linking to public profile
   socialLinks?: {
     linkedin?: string;
     twitter?: string;
@@ -117,7 +118,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
     });
   };
 
-  const fullName = `${member.firstName} ${member.lastName}`;
+  const fullName = `${member.firstName} ${member.lastName}`.trim();
 
   if (variant === 'compact') {
     return (
@@ -126,7 +127,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar
-                src={member.avatar}
+                src={getBackendImageUrl(member.avatar)}
                 alt={fullName}
                 size="sm"
                 className="w-10 h-10"
@@ -172,7 +173,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4">
               <Avatar
-                src={member.avatar}
+                src={getBackendImageUrl(member.avatar)}
                 alt={fullName}
                 size="lg"
                 className="w-16 h-16"
@@ -284,30 +285,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
               <div className="text-2xl font-bold text-green-600">Rp {member.totalSpent.toLocaleString('id-ID')}</div>
               <div className="text-xs text-green-600">Total Spent</div>
             </div>
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{member.skills.length}</div>
-              <div className="text-xs text-purple-600">Skills</div>
-            </div>
           </div>
-
-          {/* Skills */}
-          {member.skills.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Skills</h4>
-              <div className="flex flex-wrap gap-2">
-                {member.skills.slice(0, 5).map((skill, index) => (
-                  <Badge key={index} variant="secondary" size="sm">
-                    {skill}
-                  </Badge>
-                ))}
-                {member.skills.length > 5 && (
-                  <Badge variant="secondary" size="sm">
-                    +{member.skills.length - 5} more
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Bio */}
           {member.bio && (
@@ -376,21 +354,6 @@ export const MemberCard: React.FC<MemberCardProps> = ({
             <span className="capitalize">{member.membershipType}</span>
           </div>
         </div>
-
-        {member.skills.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {member.skills.slice(0, 3).map((skill, index) => (
-              <Badge key={index} variant="secondary" size="sm">
-                {skill}
-              </Badge>
-            ))}
-            {member.skills.length > 3 && (
-              <Badge variant="secondary" size="sm">
-                +{member.skills.length - 3}
-              </Badge>
-            )}
-          </div>
-        )}
 
         {showActions && (
           <div className="flex gap-2 pt-4 border-t">

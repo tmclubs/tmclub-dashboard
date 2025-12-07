@@ -42,7 +42,7 @@ import {
 import { formatEventDateTime } from '@/lib/utils/date';
 import { formatEventPrice } from '@/lib/utils/money';
 import { cn } from '@/lib/utils/cn';
-import { env } from '@/lib/config/env';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface EventDetailProps {
   event: Event;
@@ -229,7 +229,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
       {event.main_image_url && (
         <div className="relative h-64 md:h-80 rounded-lg overflow-hidden">
           <img
-            src={event.main_image_url.startsWith('http') ? event.main_image_url : `${env.apiUrl}${event.main_image_url}`}
+            src={getBackendImageUrl(event.main_image_url)}
             alt={event.title}
             className="w-full h-full object-cover"
           />

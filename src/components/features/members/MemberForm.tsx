@@ -7,11 +7,10 @@ import {
   Phone,
   MapPin,
   Building2,
-  Plus,
-  Hash,
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { type Member } from './MemberCard';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface MemberFormData {
   firstName: string;
@@ -19,13 +18,13 @@ export interface MemberFormData {
   email: string;
   phone?: string;
   avatar?: string;
+  avatarFile?: File;
   role: 'member' | 'admin' | 'moderator';
   status: 'active' | 'inactive' | 'pending' | 'suspended';
   companyId?: string;
   position?: string;
   location: string;
   membershipType: 'basic' | 'premium' | 'enterprise';
-  skills: string[];
   bio?: string;
   linkedin?: string;
   twitter?: string;
@@ -61,15 +60,13 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     position: member?.company?.position || '',
     location: member?.location || '',
     membershipType: member?.membershipType || 'basic',
-    skills: member?.skills || [],
     bio: member?.bio || '',
     linkedin: member?.socialLinks?.linkedin || '',
     twitter: member?.socialLinks?.twitter || '',
     website: member?.socialLinks?.website || '',
   });
 
-  const [newSkill, setNewSkill] = useState('');
-  const [imagePreview, setImagePreview] = useState<string>(member?.avatar || '');
+  const [imagePreview, setImagePreview] = useState<string>(member?.avatar ? getBackendImageUrl(member.avatar) || '' : '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: keyof MemberFormData, value: any) => {
@@ -83,7 +80,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setImagePreview(result);
-        setFormData(prev => ({ ...prev, avatar: result }));
+        setFormData(prev => ({ ...prev, avatar: result, avatarFile: files[0] }));
       };
       reader.readAsDataURL(files[0]);
     }
@@ -91,27 +88,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
   const removeImage = () => {
     setImagePreview('');
-    setFormData(prev => ({ ...prev, avatar: '' }));
+    setFormData(prev => ({ ...prev, avatar: '', avatarFile: undefined }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const addSkill = () => {
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()]
-      }));
-      setNewSkill('');
-    }
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
-    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -340,50 +320,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               </div>
             </div>
 
-            {/* Skills */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Skills</h3>
-
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add a skill"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                  leftIcon={<Hash className="w-4 h-4" />}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addSkill}
-                  disabled={!newSkill.trim()}
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {formData.skills.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.skills.map((skill, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center gap-1 pr-1"
-                    >
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => removeSkill(skill)}
-                        className="ml-1 hover:text-red-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Social Links */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Social Links</h3>
@@ -430,7 +366,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               <Button
                 type="submit"
                 loading={loading}
-                disabled={loading || !formData.firstName || !formData.lastName || !formData.email || !formData.location}
+                disabled={loading}
                 className="flex-1"
               >
                 {loading

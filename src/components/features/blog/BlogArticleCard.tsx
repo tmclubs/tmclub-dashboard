@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { formatDate, formatRelativeTime } from '@/lib/utils/date';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface BlogAuthor {
   id: string;
@@ -94,7 +95,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
         {article.featuredImage ? (
           <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden">
             <img
-              src={article.featuredImage}
+              src={getBackendImageUrl(article.featuredImage)}
               alt={article.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
@@ -226,7 +227,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
             {/* Image - Responsive size */}
             {article.featuredImage && !imageErrorCompact ? (
               <img
-                src={article.featuredImage}
+                src={getBackendImageUrl(article.featuredImage)}
                 alt={article.title}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0"
                 onError={() => setImageErrorCompact(true)}
@@ -307,7 +308,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
       {article.featuredImage && (
         <div className="relative overflow-hidden rounded-t-lg aspect-[16/9] sm:aspect-[4/3]">
           <img
-            src={article.featuredImage}
+            src={getBackendImageUrl(article.featuredImage)}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />

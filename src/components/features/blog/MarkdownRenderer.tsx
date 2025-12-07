@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { getBackendImageUrl } from '@/lib/utils/image';
  
 
 interface MarkdownRendererProps {
@@ -262,7 +263,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           // Images
           img: ({ src, alt }) => (
             <img 
-              src={src} 
+              src={getBackendImageUrl(src)} 
               alt={alt} 
               className="max-w-full h-auto rounded-lg shadow-md mb-4"
             />

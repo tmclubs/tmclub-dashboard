@@ -11,19 +11,15 @@ const Hero: React.FC = () => {
   const handleStartClick = () => {
     if (isAuthenticated) {
       // Jika sudah login, arahkan berdasarkan role
-      if (user?.role === 'admin') {
-        navigate('/dashboard');
+      if (user?.role === 'member') {
+        navigate('/member');
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     } else {
       // Jika belum login, arahkan ke halaman login
       navigate('/login');
     }
-  };
-
-  const handleRegisterClick = () => {
-    navigate('/register');
   };
 
   return (
@@ -42,10 +38,10 @@ const Hero: React.FC = () => {
               <span>Platform komunitas dan event TMClub</span>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
-              Bangun Komunitas, Kelola Event, dan Bagikan Cerita
+              Shaping Stories, Strengthening Identity
             </h1>
             <p className="mt-4 text-gray-600 text-base sm:text-lg max-w-2xl">
-              Modern, minimalis, dan cepat. Satu tempat untuk profil perusahaan, pengelolaan event, dan blog yang informatif.
+              Mari berkolaborasi dan turut membentuk kisah sukses bersama TMClub.
             </p>
 
             <div className="mt-8 md:mt-10 flex items-center justify-center sm:justify-start gap-4">
@@ -56,15 +52,7 @@ const Hero: React.FC = () => {
                 aria-label="Mulai Sekarang"
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
-                Mulai Sekarang
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleRegisterClick}
-                aria-label="Daftar Gratis"
-              >
-                Daftar Gratis
+                Daftar Sekarang
               </Button>
             </div>
 
@@ -75,32 +63,12 @@ const Hero: React.FC = () => {
 
           <div className="hidden lg:block">
             <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="grid grid-cols-2 grid-rows-2 gap-4">
-                <img
-                  src="/Web1.png"
-                  alt="Kaizen 38 mark"
-                  loading="lazy"
-                  className="w-full h-24 object-cover rounded-xl"
-                />
-                <img
-                  src="/Web 3.png"
-                  alt="Kaizen 38 mark"
-                  loading="lazy"
-                  className="w-full h-24 object-cover rounded-xl"
-                />
-                <img
-                  src="/webs.png"
-                  alt="Kaizen 38 mark"
-                  loading="lazy"
-                  className="w-full h-24 object-cover rounded-xl"
-                />
-                <img
-                  src="/Web 4.png"
-                  alt="Kaizen Festival banner"
-                  loading="lazy"
-                  className="w-full h-24 object-cover rounded-xl"
-                />
-              </div>
+              <img
+                src="/hero.png"
+                alt="TMClub Community"
+                loading="lazy"
+                className="w-full h-auto object-cover rounded-xl"
+              />
             </div>
           </div>
         </div>

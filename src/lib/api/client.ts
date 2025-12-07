@@ -237,10 +237,12 @@ export const apiClient = {
       return pendingRequests.get(requestKey);
     }
     
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+
     // Create new request
     const requestPromise = this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     });
     
     // Store in pending requests
@@ -254,11 +256,21 @@ export const apiClient = {
     return requestPromise;
   },
 
+  // PUT request
+  async put<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+    });
+  },
+
   // PATCH request
   async patch<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   },
 

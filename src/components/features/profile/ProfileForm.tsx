@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input, Textarea, Card } from '@/components/ui';
 import { Upload, Camera, User, Mail, Phone, MapPin, Calendar, Briefcase, Link2, Save } from 'lucide-react';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface ProfileFormData {
   firstName: string;
@@ -18,6 +19,7 @@ export interface ProfileFormData {
   twitter: string;
   skills: string[];
   interests: string[];
+  avatar?: string;
 }
 
 export interface ProfileFormProps {
@@ -53,11 +55,14 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   const [newSkill, setNewSkill] = useState('');
   const [newInterest, setNewInterest] = useState('');
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData?.avatar ? getBackendImageUrl(initialData.avatar) || null : null);
 
   // Update form data when initialData changes (e.g., when API data is loaded)
   useEffect(() => {
     if (initialData) {
+      if (initialData.avatar) {
+        setAvatarPreview(getBackendImageUrl(initialData.avatar) || null);
+      }
       setFormData({
         firstName: initialData.firstName || '',
         lastName: initialData.lastName || '',

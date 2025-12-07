@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils/cn';
 import { formatEventDateTime } from '@/lib/utils/date';
 import { formatEventPrice } from '@/lib/utils/money';
 import { Event } from '@/types/api';
-import { env } from '@/lib/config/env';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface EventCardProps {
   event: Event;
@@ -54,11 +54,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   const isGrid = variant === 'grid';
   const isCompact = variant === 'compact';
   const isPast = new Date(event.date) < new Date();
-  const imageSrc = event.main_image_url
-    ? (event.main_image_url.startsWith('http')
-        ? event.main_image_url
-        : `${env.apiUrl}${event.main_image_url}`)
-    : null;
+  const imageSrc = getBackendImageUrl(event.main_image_url);
 
   if (isGrid) {
     return (

@@ -6,6 +6,7 @@ import { toISOWithLocalOffset } from '@/lib/utils/date';
 import { EventFormData, Event } from '@/types/api';
 import { validateFile, createImagePreview, cleanupImagePreview } from '@/lib/utils/file-upload';
 import { eventsApi } from '@/lib/api/events';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface EventFormProps {
   event?: Event | null;
@@ -44,7 +45,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     medias: [], // Hidden for now
   });
 
-  const [imagePreview, setImagePreview] = useState<string>(event?.main_image_url || '');
+  const [imagePreview, setImagePreview] = useState<string>(event?.main_image_url ? getBackendImageUrl(event.main_image_url) || '' : '');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -74,7 +75,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         references: [], // Hidden for now
         medias: [], // Hidden for now
       });
-      setImagePreview(event.main_image_url || '');
+      setImagePreview(event.main_image_url ? getBackendImageUrl(event.main_image_url) || '' : '');
     }
   }, [event]);
 

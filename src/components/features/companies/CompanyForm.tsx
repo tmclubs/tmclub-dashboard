@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Upload, X, Building, MapPin, Phone, Mail, Shield, Check } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Upload, X, Building, MapPin, Phone, Mail } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Textarea } from '@/components/ui';
 import { CompanyFormData, Company } from '@/types/api';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface CompanyFormProps {
   company?: Partial<Company>;
@@ -16,6 +17,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   onSubmit,
   loading = false,
   onCancel,
+  title = company ? 'Edit Company' : 'Add New Company',
 }) => {
   const [formData, setFormData] = useState<CompanyFormData>({
     display_name: company?.display_name || '',
@@ -27,7 +29,12 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
     city: company?.city || '',
   });
 
-  const [logoPreview, setLogoPreview] = useState<string>(company?.main_image || '');
+  const [logoPreview, setLogoPreview] = useState<string>(
+    company?.main_image && typeof company.main_image === 'string'
+      ? getBackendImageUrl(company.main_image) || ''
+      : ''
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: keyof CompanyFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -41,19 +48,24 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Preview
       const reader = new FileReader();
       reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setLogoPreview(result);
-        setFormData(prev => ({ ...prev, main_image: result }));
+        setLogoPreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Store file in state
+      setFormData(prev => ({ ...prev, logo_file: file }));
     }
   };
 
   const removeLogo = () => {
     setLogoPreview('');
-    setFormData(prev => ({ ...prev, main_image: '' }));
+    setFormData(prev => ({ ...prev, main_image: '', logo_file: undefined }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -62,271 +74,185 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content - 2 columns on desktop, 1 on mobile */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Company Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Company Name
-            </label>
-            <div className="relative">
-              <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                value={formData.display_name}
-                onChange={handleInputChange('display_name')}
-                placeholder="Enter company name"
-                className="pl-10"
-                required
-              />
-            </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl">{title}</CardTitle>
+            {onCancel && (
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            )}
           </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Company Logo */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Company Logo</h3>
+              <div className="flex items-center gap-6">
+                {logoPreview ? (
+                  <div className="relative">
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="w-32 h-32 rounded-lg object-contain border border-gray-200 bg-gray-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeLogo}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                    <Upload className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Company Description
-            </label>
-            <Textarea
-              value={formData.description}
-              onChange={handleInputChange('description')}
-              placeholder="Describe your company..."
-              rows={4}
-              className="w-full resize-none"
-              required
-            />
-          </div>
-
-          {/* Address & City */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  value={formData.address}
-                  onChange={handleInputChange('address')}
-                  placeholder="Company address"
-                  className="pl-10"
-                  required
-                />
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    id="logo-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    leftIcon={<Upload className="w-4 h-4" />}
+                    disabled={loading}
+                  >
+                    {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Recommended: 512x512px, PNG or JPG
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
+              
+              <div className="grid grid-cols-1 gap-4">
                 <Input
-                  value={formData.city}
-                  onChange={handleInputChange('city')}
-                  placeholder="City"
-                  className="pl-10"
+                  label="Company Name *"
+                  placeholder="Enter company name"
+                  value={formData.display_name}
+                  onChange={handleInputChange('display_name')}
                   required
+                  leftIcon={<Building className="w-4 h-4" />}
                 />
-              </div>
-            </div>
-          </div>
 
-          {/* Contact & Email */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  value={formData.contact}
-                  onChange={handleInputChange('contact')}
-                  placeholder="Contact number"
-                  className="pl-10"
-                  required
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <Textarea
+                    placeholder="Describe the company..."
+                    value={formData.description}
+                    onChange={handleInputChange('description')}
+                    className="w-full resize-none"
+                    rows={4}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            {/* Contact Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
+                  label="Email *"
                   type="email"
+                  placeholder="company@example.com"
                   value={formData.email}
                   onChange={handleInputChange('email')}
-                  placeholder="company@example.com"
-                  className="pl-10"
                   required
+                  leftIcon={<Mail className="w-4 h-4" />}
+                />
+
+                <Input
+                  label="Phone *"
+                  type="tel"
+                  placeholder="Contact number"
+                  value={formData.contact}
+                  onChange={handleInputChange('contact')}
+                  required
+                  leftIcon={<Phone className="w-4 h-4" />}
                 />
               </div>
             </div>
-          </div>
 
+            {/* Address Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Address Information</h3>
 
-        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="City *"
+                  placeholder="City"
+                  value={formData.city}
+                  onChange={handleInputChange('city')}
+                  required
+                  leftIcon={<MapPin className="w-4 h-4" />}
+                />
 
-        {/* Sidebar - 1 column on desktop, full width on mobile */}
-        <div className="space-y-6">
-          {/* Company Logo */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">Company Logo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Logo Preview */}
-              {logoPreview ? (
-                <div className="relative group">
-                  <img
-                    src={logoPreview}
-                    alt="Company logo"
-                    className="w-full h-32 object-contain rounded-lg border-2 border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeLogo}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-orange-400 transition-colors">
-                  <div className="text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="mt-4">
-                      <label htmlFor="logo-upload" className="cursor-pointer">
-                        <span className="mt-2 block text-sm font-medium text-gray-900">
-                          Upload Logo
-                        </span>
-                        <span className="mt-1 block text-xs text-gray-500">
-                          PNG, JPG up to 5MB
-                        </span>
-                      </label>
-                      <input
-                        id="logo-upload"
-                        name="logo-upload"
-                        type="file"
-                        className="sr-only"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Company Summary */}
-          <Card className="bg-gradient-to-br from-orange-50 to-pink-50 border-orange-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">Company Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Company Name</span>
-                <span className="text-xs font-medium text-gray-900 line-clamp-1">
-                  {formData.display_name || '-'}
-                </span>
+                <Input
+                  label="Full Address *"
+                  placeholder="Street address, etc."
+                  value={formData.address}
+                  onChange={handleInputChange('address')}
+                  required
+                  leftIcon={<MapPin className="w-4 h-4" />}
+                />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Address</span>
-                <span className="text-xs font-medium text-gray-900 line-clamp-1">
-                  {formData.address || '-'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">City</span>
-                <span className="text-xs font-medium text-gray-900 line-clamp-1">
-                  {formData.city || '-'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Contact</span>
-                <span className="text-xs font-medium text-gray-900 line-clamp-1">
-                  {formData.contact || '-'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Email</span>
-                <span className="text-xs font-medium text-blue-600 line-clamp-1">
-                  {formData.email || '-'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Validation Status */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-900 flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Validation Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {formData.display_name && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Company name</span>
-                </div>
+            {/* Form Actions */}
+            <div className="flex gap-3 pt-6 border-t">
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
               )}
-              {formData.description && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Description</span>
-                </div>
-              )}
-              {formData.email && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Company email</span>
-                </div>
-              )}
-              {formData.contact && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Contact information</span>
-                </div>
-              )}
-              {formData.address && formData.city && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-gray-700">Address information</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Form Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
-        <Button
-          type="submit"
-          loading={loading}
-          disabled={loading}
-          className="w-full sm:flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium py-3"
-        >
-          {company ? 'Update Company' : 'Create Company'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={loading}
-          className="w-full sm:w-auto"
-        >
-          Cancel
-        </Button>
-      </div>
-    </form>
+              <Button
+                type="submit"
+                loading={loading}
+                disabled={loading}
+                className="flex-1"
+              >
+                {loading
+                  ? 'Saving...'
+                  : company
+                    ? 'Update Company'
+                    : 'Create Company'
+                }
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

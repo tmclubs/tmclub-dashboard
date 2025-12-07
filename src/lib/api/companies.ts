@@ -14,12 +14,32 @@ export const companiesApi = {
 
   // Create new company
   async createCompany(data: CompanyFormData): Promise<Company> {
-    return apiClient.post('/company/', data);
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === 'logo_file' && value instanceof File) {
+          formData.append('logo_file', value);
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.post('/company/', formData);
   },
 
   // Update company
   async updateCompany(companyId: number, data: Partial<CompanyFormData>): Promise<Company> {
-    return apiClient.patch(`/company/${companyId}/`, data);
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === 'logo_file' && value instanceof File) {
+          formData.append('logo_file', value);
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.patch(`/company/${companyId}/`, formData);
   },
 
   // Delete company

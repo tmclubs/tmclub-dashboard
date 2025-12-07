@@ -23,6 +23,8 @@ import PublicEventDetailPage from './pages/public/EventDetail';
 import PublicBlogPage from './pages/public/Blog';
 import PublicBlogDetailPage from './pages/public/BlogDetail';
 import PublicAboutPage from './pages/public/About';
+import PublicMemberProfilePage from './pages/public/MemberProfile';
+import { PublicMembersPage } from './pages/public/Members';
 import { MarkdownTest } from './components/test/MarkdownTest';
 import { BlogDetailTest } from './components/test/BlogDetailTest';
 import { AboutPage } from './pages/dashboard/About';
@@ -48,6 +50,8 @@ function App() {
         <Route path="/blog" element={<PublicBlogPage />} />
         <Route path="/blog/:slug" element={<PublicBlogDetailPage />} />
         <Route path="/about" element={<PublicAboutPage />} />
+        <Route path="/members" element={<PublicMembersPage />} />
+        <Route path="/member/:username" element={<PublicMemberProfilePage />} />
         {/* Member Routes */}
         <Route path="/member" element={
           <ProtectedRoute>

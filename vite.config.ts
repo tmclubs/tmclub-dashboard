@@ -1,8 +1,34 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Plugin sederhana untuk menangani fallback SPA pada path yang mengandung titik
+const spaFallbackWithDots = () => {
+  return {
+    name: 'spa-fallback-with-dots',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const reqPath = req.url.split('?')[0];
+        // Jika request bukan untuk API, bukan untuk file statis (biasanya di assets/public), 
+        // dan accept header meminta HTML, maka serve index.html
+        if (
+          req.method === 'GET' &&
+          !reqPath.startsWith('/api') &&
+          !reqPath.startsWith('/media') &&
+          !reqPath.startsWith('/static') &&
+          !reqPath.includes('/assets/') && 
+          !reqPath.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/) &&
+          req.headers.accept?.includes('text/html')
+        ) {
+          req.url = '/index.html';
+        }
+        next();
+      });
+    },
+  };
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), spaFallbackWithDots()],
   resolve: {
     alias: {
       '@': '/src',
@@ -18,6 +44,16 @@ export default defineConfig({
         target: 'https://api.tmclub.id',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/media': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/static': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

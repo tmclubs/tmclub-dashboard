@@ -24,11 +24,14 @@ interface ExtendedUser {
   event_registered?: number;
 }
 
+import { MemberLandingSettings } from '@/components/features/member/MemberLandingSettings';
+
 export const MemberProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const { data: profile, isLoading: profileLoading, error: profileError, refetch } = useProfile();
   const updateProfile = useUpdateProfile();
+  const [activeTab, setActiveTab] = useState<'profile' | 'landing'>('profile');
   const [debug, setDebug] = useState<{ authorization_header: string | null; is_authenticated: boolean; user_email: string | null } | null>(null);
   const [debugAuth, setDebugAuth] = useState<{ status: number; body?: any; error?: string } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -71,7 +74,7 @@ export const MemberProfilePage: React.FC = () => {
           onClick={async () => {
             try {
               const base = (await import('@/lib/config/env')).env.apiUrl;
-              let token = getAuthData().token;
+              const token = getAuthData().token;
               const scheme = token && token.split('.').length === 3 ? 'Bearer' : 'Token';
               const headers = token ? { Authorization: `${scheme} ${token}` } : undefined;
               const resp = await fetch(`${base}/account/debug-auth/`, {
@@ -209,8 +212,28 @@ export const MemberProfilePage: React.FC = () => {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Card */}
+        
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            className={`py-2 px-4 text-sm font-medium ${activeTab === 'profile' ? 'border-b-2 border-orange-500 text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('profile')}
+          >
+            Info Dasar
+          </button>
+          <button
+            className={`py-2 px-4 text-sm font-medium ${activeTab === 'landing' ? 'border-b-2 border-orange-500 text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('landing')}
+          >
+            Landing Page
+          </button>
+        </div>
+
+        {activeTab === 'landing' ? (
+          <MemberLandingSettings username={user?.username || ''} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Profile Card */}
           <div className="md:col-span-1">
             <Card className="p-6">
               <div className="flex flex-col items-center">
@@ -341,7 +364,8 @@ export const MemberProfilePage: React.FC = () => {
               )}
             </Card>
           </div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

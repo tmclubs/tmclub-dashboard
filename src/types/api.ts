@@ -195,7 +195,8 @@ export interface Company {
 export interface CompanyFormData {
   display_name: string;
   address: string;
-  main_image: string;
+  main_image?: string;
+  logo_file?: File;
   description: string;
   contact: string;
   email: string;

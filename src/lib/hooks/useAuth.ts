@@ -40,8 +40,10 @@ export const useGoogleLogin = () => {
       toast.success('Login berhasil!');
       
       // Redirect berdasarkan role
-      if (data.role === 'admin') {
+      if (['admin', 'super_admin', 'pic_top_management', 'pic_manager', 'pic'].includes(data.role)) {
         navigate('/dashboard');
+      } else if (data.role === 'member') {
+        navigate('/member');
       } else {
         navigate('/');
       }
@@ -102,8 +104,10 @@ export const useGoogleTokenLogin = () => {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         toast.success('Login berhasil!');
         
-        if (profile.role === 'admin') {
+        if (['admin', 'super_admin', 'pic_top_management', 'pic_manager', 'pic'].includes(profile.role)) {
           navigate('/dashboard');
+        } else if (profile.role === 'member') {
+          navigate('/member');
         } else {
           navigate('/');
         }
@@ -158,8 +162,10 @@ export const useRegister = () => {
         toast.success('Registrasi berhasil!');
         
         // Redirect berdasarkan role dari backend
-        if (profile.role === 'admin') {
+        if (['admin', 'super_admin', 'pic_top_management', 'pic_manager', 'pic'].includes(profile.role)) {
           navigate('/dashboard');
+        } else if (profile.role === 'member') {
+          navigate('/member');
         } else {
           navigate('/');
         }
@@ -168,8 +174,10 @@ export const useRegister = () => {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         toast.success('Registrasi berhasil!');
         
-        if (data.user.role === 'admin') {
+        if (['admin', 'super_admin', 'pic_top_management', 'pic_manager', 'pic'].includes(data.user.role)) {
           navigate('/dashboard');
+        } else if (data.user.role === 'member') {
+          navigate('/member');
         } else {
           navigate('/');
         }
@@ -199,8 +207,10 @@ export const useLogin = () => {
         toast.success('Login berhasil!');
         
         // Redirect berdasarkan role dari backend
-        if (profile.role === 'admin') {
+        if (['admin', 'super_admin', 'pic_top_management', 'pic_manager', 'pic'].includes(profile.role)) {
           navigate('/dashboard');
+        } else if (profile.role === 'member') {
+          navigate('/member');
         } else {
           navigate('/');
         }
@@ -209,8 +219,10 @@ export const useLogin = () => {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         toast.success('Login berhasil!');
         
-        if (data.user.role === 'admin') {
+        if (['admin', 'super_admin', 'pic_top_management', 'pic_manager', 'pic'].includes(data.user.role)) {
           navigate('/dashboard');
+        } else if (data.user.role === 'member') {
+          navigate('/member');
         } else {
           navigate('/');
         }

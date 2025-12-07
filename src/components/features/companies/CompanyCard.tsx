@@ -3,6 +3,7 @@ import { Users, MapPin, Calendar, Mail, Edit, Trash2, Eye, ExternalLink, Shield 
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { Company as APICompany } from '@/types/api';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface Company extends Omit<APICompany, 'pk'> {
   id: string;
@@ -91,7 +92,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
 
           <div className="flex flex-col items-center">
             <Avatar
-              src={company.logo}
+              src={getBackendImageUrl(company.logo)}
               name={company.display_name}
               size="lg"
               className="mb-4 border-4 border-white shadow-lg"
@@ -179,7 +180,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         <CardContent className="p-4">
           <div className="flex gap-4">
             <Avatar
-              src={company.logo}
+              src={getBackendImageUrl(company.logo)}
               name={company.display_name}
               size="md"
               className="flex-shrink-0"
@@ -367,7 +368,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                   href={company.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-md border border-orange-300 bg-transparent hover:bg-orange-50 text-orange-700 h-9 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-md border border-orange-300 bg-transparent hover:bg-orange-50 text-orange-700 h-9 px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Website

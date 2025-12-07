@@ -106,6 +106,7 @@ const PublicNavbar: React.FC = () => {
             <nav className="hidden md:flex items-center gap-1 ml-4">
               <NavLink to="/" className={navLinkClass}>Beranda</NavLink>
               <NavLink to="/events" className={navLinkClass}>Event</NavLink>
+              <NavLink to="/members" className={navLinkClass}>Members</NavLink>
               <NavLink to="/blog" className={navLinkClass}>Blog</NavLink>
               <NavLink to="/about" className={navLinkClass}>About</NavLink>
             </nav>
@@ -205,7 +206,7 @@ const PublicNavbar: React.FC = () => {
                   <Button variant="outline" size="sm">Masuk</Button>
                 </Link>
                 <Link to="/register" className="inline-flex">
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700">Daftar Gratis</Button>
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700">Daftar Sekarang</Button>
                 </Link>
               </>
             )}
@@ -271,7 +272,7 @@ const PublicNavbar: React.FC = () => {
                     <Button variant="outline" size="sm" className="w-full">Masuk</Button>
                   </Link>
                   <Link to="/register" className="inline-flex" onClick={() => setOpen(false)}>
-                    <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Daftar Gratis</Button>
+                    <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Daftar Sekarang</Button>
                   </Link>
                 </div>
               )}

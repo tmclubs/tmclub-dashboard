@@ -25,7 +25,7 @@ export interface User {
   lastName: string;
   phone?: string;
   avatar?: string;
-  role: 'admin' | 'member' | 'pic';
+  role: 'admin' | 'member' | 'pic' | 'pic_top_management' | 'pic_manager' | 'super_admin';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

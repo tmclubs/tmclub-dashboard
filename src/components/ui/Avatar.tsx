@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, Camera, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
@@ -66,10 +67,11 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
     };
 
     const renderAvatar = () => {
-      if (src) {
+      const imageUrl = getBackendImageUrl(src);
+      if (imageUrl) {
         return (
           <img
-            src={src}
+            src={imageUrl}
             alt={alt || name || 'Avatar'}
             className={cn(
               'h-full w-full object-cover',
@@ -92,7 +94,7 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             shape === 'circle' ? 'rounded-full' : 'rounded-md',
             name && getRandomColor(name)
           )}
-          style={{ display: src ? 'none' : 'flex' }}
+          style={{ display: imageUrl ? 'none' : 'flex' }}
         >
           {name ? getInitials(name) : <User className="h-1/2 w-1/2" />}
         </div>

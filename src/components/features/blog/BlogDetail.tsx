@@ -4,6 +4,7 @@ import { Button, Modal } from '@/components/ui';
 import { ArrowLeft, Calendar, Clock, Eye, User, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { type BlogArticle } from './BlogArticleCard';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 interface BlogDetailProps {
   article: BlogArticle;
@@ -271,7 +272,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
               <div className="flex items-center gap-3 sm:gap-4">
                 {article.author.avatar ? (
                   <img
-                    src={article.author.avatar}
+                    src={getBackendImageUrl(article.author.avatar)}
                     alt={article.author.name}
                     className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
                     onError={(e) => {
@@ -314,7 +315,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
                 >
                   <div className="flex items-center justify-center overflow-hidden max-h-[70vh]">
                     <img
-                      src={article.albums[activeImageIndex]}
+                      src={getBackendImageUrl(article.albums[activeImageIndex])}
                       alt={`Preview ${activeImageIndex + 1}`}
                       className={`w-auto rounded-lg select-none ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                       style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: 'center center' }}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { getBackendImageUrl } from '@/lib/utils/image';
 import { 
   Bold, 
   Italic, 
@@ -84,8 +85,9 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
   const addImage = () => {
     const url = window.prompt('Enter image URL:');
     if (url) {
+      const fullUrl = getBackendImageUrl(url);
       // Insert HTML image tag instead of markdown
-      editor.chain().focus().insertContent(`<img src="${url}" alt="Image" style="max-width: 100%; height: auto;" />`).run();
+      editor.chain().focus().insertContent(`<img src="${fullUrl}" alt="Image" style="max-width: 100%; height: auto;" />`).run();
     }
   };
 

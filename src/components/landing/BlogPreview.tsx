@@ -3,22 +3,22 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, Badge, Button, LoadingSkeleton } from '@/components/ui';
 import { useBlogPosts } from '@/lib/hooks';
 import type { BlogPost } from '@/types/api';
-import { env } from '@/lib/config/env';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 const BlogPreview: React.FC = () => {
   const { data, isLoading, isError } = useBlogPosts({ status: 'published', ordering: '-published_at' });
 
   const getMainImageUrl = (post: BlogPost): string | undefined => {
+    let url: string | undefined;
     if ((post as any).main_image_url) {
-      const url = (post as any).main_image_url as string;
-      return url.startsWith('http') ? url : `${env.apiUrl}${url}`;
+      url = (post as any).main_image_url as string;
+    } else {
+      const mi = post.main_image as { image?: string } | number | null | undefined;
+      if (mi && typeof mi === 'object' && 'image' in mi) {
+        url = mi.image as string;
+      }
     }
-    const mi = post.main_image as { image?: string } | number | null | undefined;
-    if (mi && typeof mi === 'object' && 'image' in mi) {
-      const url = mi.image as string;
-      return url.startsWith('http') ? url : `${env.apiUrl}${url}`;
-    }
-    return undefined;
+    return getBackendImageUrl(url);
   };
 
   return (
