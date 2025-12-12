@@ -23,6 +23,9 @@ export type { BadgeProps, StatusBadgeProps } from './Badge';
 export { Modal, ConfirmDialog } from './Modal';
 export type { ModalProps, ConfirmDialogProps } from './Modal';
 
+export { RichTextEditor } from './RichTextEditor';
+export type { RichTextEditorProps } from './RichTextEditor';
+
 export { Table } from './Table';
 export type { TableProps, Column } from './Table';
 

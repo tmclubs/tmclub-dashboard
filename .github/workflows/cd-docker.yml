@@ -1,0 +1,88 @@
+name: CD - Build & Push Docker Image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/tmclub-dashboard
+
+jobs:
+  docker-build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix={{branch}}-
+            type=ref,event=branch
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NODE_ENV=production
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'TMClub' }}
+            VITE_APP_DESCRIPTION=${{ vars.VITE_APP_DESCRIPTION || 'Toyota Manufacturers Club' }}
+            VITE_APP_URL=${{ secrets.VITE_APP_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}
+            VITE_FASPAY_API_URL=${{ secrets.VITE_FASPAY_API_URL }}
+            VITE_FASPAY_MERCHANT_ID=${{ secrets.VITE_FASPAY_MERCHANT_ID }}
+            VITE_FASPAY_MERCHANT_SECRET=${{ secrets.VITE_FASPAY_MERCHANT_SECRET }}
+            VITE_FASPAY_ENVIRONMENT=${{ vars.VITE_FASPAY_ENVIRONMENT || 'production' }}
+            VITE_ENABLE_GOOGLE_AUTH=${{ vars.VITE_ENABLE_GOOGLE_AUTH || 'true' }}
+            VITE_ENABLE_ANALYTICS=${{ vars.VITE_ENABLE_ANALYTICS || 'true' }}
+            VITE_ENABLE_NOTIFICATIONS=${{ vars.VITE_ENABLE_NOTIFICATIONS || 'true' }}
+            VITE_ENABLE_PAYMENT=${{ vars.VITE_ENABLE_PAYMENT || 'true' }}
+            VITE_ENABLE_QR_SCANNER=${{ vars.VITE_ENABLE_QR_SCANNER || 'true' }}
+            VITE_DEV_TOOLS=${{ vars.VITE_DEV_TOOLS || 'false' }}
+            VITE_LOG_LEVEL=${{ vars.VITE_LOG_LEVEL || 'error' }}
+            VITE_MAX_FILE_SIZE=${{ vars.VITE_MAX_FILE_SIZE || '10485760' }}
+            VITE_ALLOWED_FILE_TYPES=${{ vars.VITE_ALLOWED_FILE_TYPES || 'jpg,jpeg,png,pdf,doc,docx' }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+      
+      - name: Image digest
+        run: |
+          echo "Image digest: ${{ steps.meta.outputs.digest }}"
+      
+      - name: Deployment summary
+        run: |
+          echo "## Docker Image Published :whale:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry:** Docker Hub" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pull Commands" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

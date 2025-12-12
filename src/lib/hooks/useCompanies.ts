@@ -9,18 +9,17 @@ export const useCompanies = () => {
   return useQuery({
     queryKey: ['companies'],
     queryFn: () => companiesApi.getCompanies(),
-    enabled: isAuthenticated(),
     retry: 1,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
-// Hook for getting single company
+// Hook for getting single company (Public - no auth required)
 export const useCompany = (companyId: number) => {
   return useQuery({
     queryKey: ['companies', companyId],
     queryFn: () => companiesApi.getCompany(companyId),
-    enabled: isAuthenticated() && !!companyId,
+    enabled: !!companyId,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

@@ -62,9 +62,7 @@ export const PublicAboutPage: React.FC = () => {
             <CardTitle className="text-lg">Profil dan Informasi</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose max-w-none">
-              <MarkdownRenderer content={about.md} />
-            </div>
+            <MarkdownRenderer content={about.md} />
           </CardContent>
         </Card>
       </div>

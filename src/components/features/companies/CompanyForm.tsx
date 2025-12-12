@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Building, MapPin, Phone, Mail } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Textarea } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, RichTextEditor } from '@/components/ui';
 import { CompanyFormData, Company } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
@@ -145,7 +145,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
-              
+
               <div className="grid grid-cols-1 gap-4">
                 <Input
                   label="Company Name *"
@@ -160,13 +160,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description *
                   </label>
-                  <Textarea
-                    placeholder="Describe the company..."
+                  <RichTextEditor
+                    placeholder="Describe the company using rich text formatting..."
                     value={formData.description}
-                    onChange={handleInputChange('description')}
-                    className="w-full resize-none"
-                    rows={4}
-                    required
+                    onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                   />
                 </div>
               </div>

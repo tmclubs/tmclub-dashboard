@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { getBackendImageUrl } from '@/lib/utils/image';
- 
+
 
 interface MarkdownRendererProps {
   content: string;
@@ -19,16 +19,16 @@ const isHtmlContent = (content: string): boolean => {
 // Enhanced HTML to Markdown conversion for TiptapEditor output
 const htmlToMarkdown = (html: string): string => {
   if (!html) return '';
-  
+
   let markdown = html;
-  
+
   // Convert headers (h1-h6)
   markdown = markdown.replace(/<h([1-6])(?:[^>]*)>(.*?)<\/h[1-6]>/gis, (_, level, content) => {
     const headerLevel = '#'.repeat(parseInt(level));
     const cleanContent = content.replace(/<[^>]+>/g, '').trim();
     return `${headerLevel} ${cleanContent}\n\n`;
   });
-  
+
   // Convert code blocks (pre + code)
   markdown = markdown.replace(/<pre(?:[^>]*)><code(?:[^>]*)>(.*?)<\/code><\/pre>/gis, (_, content) => {
     const cleanContent = content
@@ -39,13 +39,13 @@ const htmlToMarkdown = (html: string): string => {
       .trim();
     return '```\n' + cleanContent + '\n```\n\n';
   });
-  
+
   // Convert inline code
   markdown = markdown.replace(/<code(?:[^>]*)>(.*?)<\/code>/gi, (_, content) => {
     const cleanContent = content.replace(/<[^>]+>/g, '').trim();
     return `\`${cleanContent}\``;
   });
-  
+
   // Convert blockquotes
   markdown = markdown.replace(/<blockquote(?:[^>]*)>(.*?)<\/blockquote>/gis, (_, content) => {
     const cleanContent = content
@@ -54,10 +54,10 @@ const htmlToMarkdown = (html: string): string => {
       .replace(/<[^>]+>/g, '')
       .trim();
     const lines = cleanContent.split('\n').filter((line: string) => line.trim());
-     const quotedLines = lines.map((line: string) => `> ${line.trim()}`).join('\n');
+    const quotedLines = lines.map((line: string) => `> ${line.trim()}`).join('\n');
     return quotedLines + '\n\n';
   });
-  
+
   // Convert unordered lists
   markdown = markdown.replace(/<ul(?:[^>]*)>(.*?)<\/ul>/gis, (_, content) => {
     const items = content.match(/<li(?:[^>]*)>(.*?)<\/li>/gis);
@@ -74,7 +74,7 @@ const htmlToMarkdown = (html: string): string => {
     }
     return '';
   });
-  
+
   // Convert ordered lists
   markdown = markdown.replace(/<ol(?:[^>]*)>(.*?)<\/ol>/gis, (_, content) => {
     const items = content.match(/<li(?:[^>]*)>(.*?)<\/li>/gis);
@@ -91,33 +91,33 @@ const htmlToMarkdown = (html: string): string => {
     }
     return '';
   });
-  
+
   // Convert bold text
   markdown = markdown.replace(/<(strong|b)(?:[^>]*)>(.*?)<\/(strong|b)>/gi, '**$2**');
-  
+
   // Convert italic text
   markdown = markdown.replace(/<(em|i)(?:[^>]*)>(.*?)<\/(em|i)>/gi, '*$2*');
-  
+
   // Convert links
   markdown = markdown.replace(/<a(?:[^>]*)\s+href=["']([^"']+)["'](?:[^>]*)>(.*?)<\/a>/gi, '[$3]($1)');
-  
+
   // Convert images
   markdown = markdown.replace(/<img(?:[^>]*)\s+src=["']([^"']+)["'](?:[^>]*)\s+alt=["']([^"']*)["'](?:[^>]*)\/?>/gi, '![$2]($1)');
   markdown = markdown.replace(/<img(?:[^>]*)\s+alt=["']([^"']*)["'](?:[^>]*)\s+src=["']([^"']+)["'](?:[^>]*)\/?>/gi, '![$1]($2)');
   markdown = markdown.replace(/<img(?:[^>]*)\s+src=["']([^"']+)["'](?:[^>]*)\/?>/gi, '![]($1)');
-  
+
   // Convert horizontal rules
   markdown = markdown.replace(/<hr\s*\/?>/gi, '---\n\n');
-  
+
   // Convert paragraphs
   markdown = markdown.replace(/<p(?:[^>]*)>(.*?)<\/p>/gis, '$1\n\n');
-  
+
   // Convert line breaks
   markdown = markdown.replace(/<br\s*\/?>/gi, '\n');
-  
+
   // Remove remaining HTML tags
   markdown = markdown.replace(/<[^>]+>/g, '');
-  
+
   // Decode HTML entities
   markdown = markdown
     .replace(/&amp;/g, '&')
@@ -126,19 +126,19 @@ const htmlToMarkdown = (html: string): string => {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ');
-  
+
   // Clean up extra whitespace and newlines
   markdown = markdown
     .replace(/\n\s*\n\s*\n/g, '\n\n') // Replace multiple newlines with double newlines
     .replace(/^\s+|\s+$/g, '') // Trim whitespace from start and end
     .replace(/[ \t]+/g, ' '); // Replace multiple spaces/tabs with single space
-  
+
   return markdown;
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
-  content, 
-  className = "" 
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  className = ""
 }) => {
   // Process content based on type
   const processedContent = React.useMemo(() => {
@@ -157,7 +157,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   const needsRehypeRaw = isHtmlContent(processedContent);
 
   return (
-    <div className={`prose prose-gray max-w-none dark:prose-invert ${className}`}>
+    <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={needsRehypeRaw ? [rehypeRaw] : []}
@@ -193,38 +193,44 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               {children}
             </h6>
           ),
-          
+
           // Paragraphs
-          p: ({ children }) => (
-            <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-              {children}
-            </p>
-          ),
-          
+          p: ({ children, node }) => {
+            // Check if paragraph is inside a list item
+            const isInListItem = node?.position?.start?.line &&
+              node?.position?.start?.column !== undefined;
+
+            return (
+              <p className={`text-gray-700 dark:text-gray-300 leading-relaxed ${isInListItem ? 'mb-0' : 'mb-4'}`}>
+                {children}
+              </p>
+            );
+          },
+
           // Lists
           ul: ({ children }) => (
-            <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-1">
+            <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-2 [&>li>p]:mb-0">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-1">
+            <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 mb-2 [&>li>p]:mb-0">
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-gray-700 dark:text-gray-300">
+            <li className="text-gray-700 dark:text-gray-300 leading-relaxed mb-0">
               {children}
             </li>
           ),
-          
+
           // Blockquotes
           blockquote: ({ children }) => (
             <blockquote className="border-l-4 border-blue-500 pl-4 py-2 mb-4 bg-gray-50 dark:bg-gray-800 italic text-gray-600 dark:text-gray-400">
               {children}
             </blockquote>
           ),
-          
+
           // Code
           code: ({ children, className, ...props }) => {
             const isInline = !className;
@@ -241,17 +247,17 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               </code>
             );
           },
-          
+
           pre: ({ children }) => (
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono mb-4">
               {children}
             </pre>
           ),
-          
+
           // Links
           a: ({ href, children }) => (
-            <a 
-              href={href} 
+            <a
+              href={href}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               target="_blank"
               rel="noopener noreferrer"
@@ -259,21 +265,21 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               {children}
             </a>
           ),
-          
+
           // Images
           img: ({ src, alt }) => (
-            <img 
-              src={getBackendImageUrl(src)} 
-              alt={alt} 
+            <img
+              src={getBackendImageUrl(src)}
+              alt={alt}
               className="max-w-full h-auto rounded-lg shadow-md mb-4"
             />
           ),
-          
+
           // Horizontal Rule
           hr: () => (
             <hr className="border-gray-300 dark:border-gray-600 my-6" />
           ),
-          
+
           // Tables
           table: ({ children }) => (
             <div className="overflow-x-auto mb-4">

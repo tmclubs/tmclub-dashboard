@@ -184,12 +184,25 @@ export interface ReferenceEvent {
 export interface Company {
   pk: number;
   display_name: string;
+  slug?: string; // Only in detail view
   address: string;
   main_image?: any;
+  main_image_url?: string | null; // From backend serializer
+  image_url?: string; // Alias for main_image_url
   description: string;
   contact: string;
   email: string;
   city: string;
+  members_count?: number; // Computed field
+  members?: CompanyMember[]; // Only in detail view
+}
+
+export interface CompanyMember {
+  id: number;
+  name: string;
+  email: string;
+  is_pic: boolean;
+  invited_at: string;
 }
 
 export interface CompanyFormData {

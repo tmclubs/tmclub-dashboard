@@ -6,8 +6,7 @@ import { useAuth, useLogout } from '@/lib/hooks/useAuth';
 import { usePermissions } from '../../lib/hooks/usePermissions';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-    isActive ? 'text-orange-600 bg-orange-50' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'
+  `px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'text-orange-600 bg-orange-50' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'
   }`;
 
 const PublicNavbar: React.FC = () => {
@@ -43,16 +42,16 @@ const PublicNavbar: React.FC = () => {
 
   const getDisplayName = () => {
     if (!user) return 'User';
-    
+
     // Prioritaskan nama dari backend (first_name)
     if (user.first_name) return user.first_name;
-    
+
     // Jika tidak ada first_name, gunakan username
     if (user.username) return user.username;
-    
+
     // Fallback ke Google profile hanya jika data backend tidak tersedia
     if (hasGoogleProfileName()) return getGoogleProfileName() || 'User';
-    
+
     return 'User';
   };
 
@@ -63,12 +62,12 @@ const PublicNavbar: React.FC = () => {
       const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
       return firstInitial + lastInitial;
     }
-    
+
     // Jika tidak ada first_name dari backend, coba dari username
     if (user?.username) {
       return user.username.charAt(0).toUpperCase();
     }
-    
+
     // Fallback ke Google profile hanya jika data backend tidak tersedia
     if (hasGoogleProfileName()) {
       const givenName = getGoogleProfileGivenName();
@@ -76,13 +75,13 @@ const PublicNavbar: React.FC = () => {
       if (givenName && familyName) return givenName.charAt(0).toUpperCase() + familyName.charAt(0).toUpperCase();
       if (givenName) return givenName.charAt(0).toUpperCase();
     }
-    
+
     return 'U';
   };
 
   const getRoleDisplay = () => {
     if (!user?.role) return 'Member';
-    
+
     switch (user.role.toLowerCase()) {
       case 'admin':
         return 'Administrator';
@@ -100,12 +99,17 @@ const PublicNavbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/" className="inline-flex items-center font-bold text-orange-600">
-              TMClub
+            <Link to="/" className="inline-flex items-center">
+              <img
+                src="/Logo.png"
+                alt="TMClub"
+                className="h-8 w-auto"
+              />
             </Link>
             <nav className="hidden md:flex items-center gap-1 ml-4">
               <NavLink to="/" className={navLinkClass}>Beranda</NavLink>
               <NavLink to="/events" className={navLinkClass}>Event</NavLink>
+              <NavLink to="/companies" className={navLinkClass}>Company</NavLink>
               <NavLink to="/members" className={navLinkClass}>Members</NavLink>
               <NavLink to="/blog" className={navLinkClass}>Blog</NavLink>
               <NavLink to="/about" className={navLinkClass}>About</NavLink>
@@ -162,7 +166,7 @@ const PublicNavbar: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Menu Items */}
                     <NavLink
                       to="/member/profile"
@@ -227,6 +231,7 @@ const PublicNavbar: React.FC = () => {
           <div className="px-4 py-3 space-y-2">
             <NavLink to="/" className={navLinkClass} onClick={() => setOpen(false)}>Beranda</NavLink>
             <NavLink to="/events" className={navLinkClass} onClick={() => setOpen(false)}>Event</NavLink>
+            <NavLink to="/companies" className={navLinkClass} onClick={() => setOpen(false)}>Company</NavLink>
             <NavLink to="/blog" className={navLinkClass} onClick={() => setOpen(false)}>Blog</NavLink>
             <NavLink to="/about" className={navLinkClass} onClick={() => setOpen(false)}>About</NavLink>
             <div className="pt-2 border-t border-gray-200">
@@ -249,7 +254,7 @@ const PublicNavbar: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="flex flex-col space-y-2">
                     <Link to="/member/profile" className="inline-flex" onClick={() => setOpen(false)}>

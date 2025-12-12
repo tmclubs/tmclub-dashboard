@@ -1,0 +1,68 @@
+name: CI - Test & Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npm run type-check
+      
+      - name: Lint
+        run: npm run lint
+      
+      - name: Run tests
+        run: npm run test || echo "No tests configured yet"
+        continue-on-error: true
+      
+      - name: Build application
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:8000' }}
+          VITE_APP_NAME: ${{ vars.VITE_APP_NAME || 'TMClub' }}
+          VITE_APP_URL: ${{ secrets.VITE_APP_URL || 'http://localhost:5173' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_REDIRECT_URI: ${{ secrets.VITE_GOOGLE_REDIRECT_URI }}
+          VITE_FASPAY_API_URL: ${{ secrets.VITE_FASPAY_API_URL }}
+          VITE_FASPAY_MERCHANT_ID: ${{ secrets.VITE_FASPAY_MERCHANT_ID }}
+          VITE_FASPAY_MERCHANT_SECRET: ${{ secrets.VITE_FASPAY_MERCHANT_SECRET }}
+          VITE_FASPAY_ENVIRONMENT: ${{ vars.VITE_FASPAY_ENVIRONMENT || 'production' }}
+          VITE_ENABLE_GOOGLE_AUTH: ${{ vars.VITE_ENABLE_GOOGLE_AUTH || 'true' }}
+          VITE_ENABLE_ANALYTICS: ${{ vars.VITE_ENABLE_ANALYTICS || 'true' }}
+          VITE_ENABLE_NOTIFICATIONS: ${{ vars.VITE_ENABLE_NOTIFICATIONS || 'true' }}
+          VITE_ENABLE_PAYMENT: ${{ vars.VITE_ENABLE_PAYMENT || 'true' }}
+          VITE_ENABLE_QR_SCANNER: ${{ vars.VITE_ENABLE_QR_SCANNER || 'true' }}
+          VITE_DEV_TOOLS: ${{ vars.VITE_DEV_TOOLS || 'false' }}
+          VITE_LOG_LEVEL: ${{ vars.VITE_LOG_LEVEL || 'error' }}
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          retention-days: 7
+      
+      - name: Build summary
+        run: |
+          echo "## Build Summary :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY

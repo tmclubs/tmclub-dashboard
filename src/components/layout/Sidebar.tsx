@@ -52,21 +52,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Mobile sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden lg:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Mobile header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">T</span>
-              </div>
-              <div className="ml-3">
-                <h1 className="text-lg font-bold text-gray-900">TMC</h1>
-                <p className="text-xs text-gray-500">Web App</p>
-              </div>
+              <img
+                src="/Logo.png"
+                alt="TMClub"
+                className="h-10 w-auto"
+              />
             </div>
             <button
               onClick={handleClose}
@@ -86,19 +83,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   end={item.href === '/dashboard'}
                   onClick={handleClose}
                   className={({ isActive }) =>
-                    `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${
-                      isActive
-                        ? 'bg-orange-100 text-orange-700 shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${isActive
+                      ? 'bg-orange-100 text-orange-700 shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
                       <item.icon
-                        className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                          isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
+                        className={`mr-3 h-6 w-6 flex-shrink-0 ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
+                          }`}
                       />
                       {item.name}
                     </>
@@ -115,19 +110,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     to={item.href}
                     onClick={handleClose}
                     className={({ isActive }) =>
-                      `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${
-                        isActive
-                          ? 'bg-orange-100 text-orange-700 shadow-sm'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      `group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all ${isActive
+                        ? 'bg-orange-100 text-orange-700 shadow-sm'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`
                     }
                   >
                     {({ isActive }) => (
                       <>
                         <item.icon
-                          className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                            isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
-                          }`}
+                          className={`mr-3 h-6 w-6 flex-shrink-0 ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
+                            }`}
                         />
                         {item.name}
                       </>
@@ -160,13 +153,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-orange-500 rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-white font-bold text-lg">T</span>
-              </div>
-              <div className="ml-3">
-                <h1 className="text-lg font-bold text-gray-900">TMC</h1>
-                <p className="text-xs text-gray-500">Web App</p>
-              </div>
+              <img
+                src="/Logo.png"
+                alt="TMClub"
+                className="h-10 w-auto"
+              />
             </div>
           </div>
 
@@ -179,19 +170,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   to={item.href}
                   end={item.href === '/dashboard'}
                   className={({ isActive }) =>
-                    `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-orange-100 text-orange-700 shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${isActive
+                      ? 'bg-orange-100 text-orange-700 shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
                       <item.icon
-                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                          isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
-                        }`}
+                        className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
+                          }`}
                       />
                       {item.name}
                     </>
@@ -207,19 +196,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     key={item.name}
                     to={item.href}
                     className={({ isActive }) =>
-                      `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                        isActive
-                          ? 'bg-orange-100 text-orange-700 shadow-sm'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${isActive
+                        ? 'bg-orange-100 text-orange-700 shadow-sm'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`
                     }
                   >
                     {({ isActive }) => (
                       <>
                         <item.icon
-                          className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                            isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
-                          }`}
+                          className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'
+                            }`}
                         />
                         {item.name}
                       </>

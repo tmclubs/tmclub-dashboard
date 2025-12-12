@@ -5,8 +5,8 @@ import {
   CompanyList,
   Company as CompanyCardType,
 } from '@/components/features/companies';
-import { Button, ConfirmDialog, EmptyState, LoadingSpinner, Input } from '@/components/ui';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Button, ConfirmDialog, EmptyState, LoadingSpinner, Input, Badge } from '@/components/ui';
+import { Plus, Search, Filter, Grid3x3, List, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/lib/hooks/useCompanies';
 import { Company as APICompany, CompanyFormData } from '@/types/api';
 
@@ -21,7 +21,7 @@ const adaptCompanyForCard = (apiCompany: APICompany): CompanyCardType => ({
   contact: apiCompany.contact,
   email: apiCompany.email,
   city: apiCompany.city,
-  memberCount: 0, // Default values - these would come from additional API calls
+  memberCount: apiCompany.members_count || 0,
   eventCount: 0,
   joinDate: new Date().toISOString(),
   verified: true,
@@ -30,7 +30,7 @@ const adaptCompanyForCard = (apiCompany: APICompany): CompanyCardType => ({
     name: apiCompany.contact || 'Unknown',
     email: apiCompany.email,
   },
-  industry: 'Technology', // Default - this would come from API
+  industry: 'Manufacturing',
   location: apiCompany.city,
   website: undefined,
   logo: apiCompany.main_image,
@@ -83,17 +83,14 @@ export const CompaniesPage: React.FC = () => {
   };
 
   const handleViewCompany = (company: CompanyCardType) => {
-    // Convert back to API format for state management
     const apiCompany = companies.find(c => c.pk === company.pk);
     if (apiCompany) {
       setSelectedCompany(apiCompany);
-      // TODO: Navigate to company detail page or show detail modal
       console.log('View company:', apiCompany);
     }
   };
 
   const handleEditCompany = (company: CompanyCardType) => {
-    // Convert back to API format for state management
     const apiCompany = companies.find(c => c.pk === company.pk);
     if (apiCompany) {
       setSelectedCompany(apiCompany);
@@ -102,7 +99,6 @@ export const CompaniesPage: React.FC = () => {
   };
 
   const handleDeleteClick = (company: CompanyCardType) => {
-    // Convert back to API format for state management
     const apiCompany = companies.find(c => c.pk === company.pk);
     if (apiCompany) {
       setSelectedCompany(apiCompany);
@@ -111,7 +107,6 @@ export const CompaniesPage: React.FC = () => {
   };
 
   const handleExport = () => {
-    // TODO: Implement export functionality
     console.log('Exporting companies...');
   };
 
@@ -125,40 +120,59 @@ export const CompaniesPage: React.FC = () => {
     {
       label: 'Total Companies',
       value: companies.length,
-      color: 'text-orange-600',
+      icon: Building2,
+      color: 'from-orange-500 to-orange-600',
+      bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      textColor: 'text-orange-700',
     },
     {
       label: 'With Contact',
       value: companies.filter(c => c.contact).length,
-      color: 'text-green-600',
+      icon: Phone,
+      color: 'from-green-500 to-green-600',
+      bgColor: 'bg-gradient-to-br from-green-50 to-green-100',
+      textColor: 'text-green-700',
     },
     {
       label: 'With Email',
       value: companies.filter(c => c.email).length,
-      color: 'text-blue-600',
+      icon: Mail,
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      textColor: 'text-blue-700',
     },
     {
-      label: 'With Address',
-      value: companies.filter(c => c.address).length,
-      color: 'text-purple-600',
+      label: 'Active Locations',
+      value: new Set(companies.map(c => c.city).filter(Boolean)).size,
+      icon: MapPin,
+      color: 'from-purple-500 to-purple-600',
+      bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100',
+      textColor: 'text-purple-700',
     },
   ];
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Failed to load companies. Please try again.</p>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] p-6">
+        <Building2 className="w-16 h-16 text-gray-300 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to load companies</h3>
+        <p className="text-gray-600 mb-6">Please try again later</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     );
   }
 
   if (showForm) {
     return (
-      <div className="p-6">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
         <CompanyForm
           company={selectedCompany || undefined}
           onSubmit={selectedCompany ? handleUpdateCompany : handleCreateCompany}
@@ -175,7 +189,7 @@ export const CompaniesPage: React.FC = () => {
 
   if (companies.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <EmptyState
           type="companies"
           title="No companies yet"
@@ -191,101 +205,166 @@ export const CompaniesPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Companies</h1>
-          <p className="text-muted-foreground mt-1">Manage partner companies and their members</p>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={view === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setView('list')}
-            >
-              List
-            </Button>
-            <Button
-              variant={view === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setView('grid')}
-            >
-              Grid
-            </Button>
-          </div>
-          <Button 
-            leftIcon={<Plus className="w-4 h-4" />} 
-            onClick={() => {
-              setSelectedCompany(null);
-              setShowForm(true);
-            }}
-          >
-            Add Company
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search companies..." 
-            className="pl-8" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <Button variant="outline">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-            <div className="text-sm font-medium text-gray-600">{stat.label}</div>
-            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Companies Display */}
-      {view === 'list' ? (
-        <CompanyList
-          companies={filteredCompanies}
-          loading={isLoading}
-          onView={(company) => handleViewCompany(adaptCompanyForCard(company))}
-          onEdit={(company) => handleEditCompany(adaptCompanyForCard(company))}
-          onDelete={(company) => handleDeleteClick(adaptCompanyForCard(company))}
-          onCreate={() => {
-            setSelectedCompany(null);
-            setShowForm(true);
-          }}
-          onExport={handleExport}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCompanies.map((company) => (
-            <CompanyCard
-              key={company.pk}
-              company={adaptCompanyForCard(company)}
-              variant="grid"
-              onView={handleViewCompany}
-              onEdit={handleEditCompany}
-              onDelete={handleDeleteClick}
-            />
-          ))}
-          {filteredCompanies.length === 0 && (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              No companies found matching your search.
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-gray-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+        {/* Modern Header with Gradient */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 p-6 sm:p-8 shadow-xl">
+          <div className="absolute inset-0 bg-grid-white/10" />
+          <div className="relative">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Companies</h1>
+                    <Badge className="mt-1 bg-white/20 text-white border-white/30">
+                      {companies.length} Partner{companies.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                </div>
+                <p className="text-orange-100 text-sm sm:text-base max-w-2xl">
+                  Manage partner companies, their profiles, and member relationships
+                </p>
+              </div>
+              <Button
+                size="lg"
+                className="text-orange-700 hover:bg-orange-50 shadow-lg hover:shadow-xl transition-all font-semibold"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => {
+                  setSelectedCompany(null);
+                  setShowForm(true);
+                }}
+              >
+                Add Company
+              </Button>
             </div>
-          )}
+          </div>
         </div>
-      )}
+
+        {/* Modern Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={index}
+                className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
+                    <p className={`text-3xl font-bold ${stat.textColor}`}>{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <Icon className={`w-6 h-6 ${stat.textColor}`} />
+                  </div>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.color} transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Search and View Toggle */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Search companies by name, description, or city..."
+                className="pl-10 h-11 border-gray-200 focus:border-orange-300 focus:ring-orange-200"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* View Toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setView('grid')}
+                  className={`px-4 py-2 rounded-md transition-all flex items-center gap-2 ${view === 'grid'
+                    ? 'bg-white text-orange-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  <Grid3x3 className="w-4 h-4" />
+                  <span className="hidden sm:inline text-sm font-medium">Grid</span>
+                </button>
+                <button
+                  onClick={() => setView('list')}
+                  className={`px-4 py-2 rounded-md transition-all flex items-center gap-2 ${view === 'list'
+                    ? 'bg-white text-orange-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  <List className="w-4 h-4" />
+                  <span className="hidden sm:inline text-sm font-medium">List</span>
+                </button>
+              </div>
+              <Button variant="outline" size="sm" className="hidden sm:flex">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Companies Display */}
+        {view === 'list' ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <CompanyList
+              companies={filteredCompanies}
+              loading={isLoading}
+              onView={(company) => {
+                setSelectedCompany(company);
+                console.log('View company:', company);
+              }}
+              onEdit={(company) => {
+                setSelectedCompany(company);
+                setShowForm(true);
+              }}
+              onDelete={(company) => {
+                setSelectedCompany(company);
+                setShowDeleteDialog(true);
+              }}
+              onCreate={() => {
+                setSelectedCompany(null);
+                setShowForm(true);
+              }}
+              onExport={handleExport}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredCompanies.map((company) => (
+              <CompanyCard
+                key={company.pk}
+                company={adaptCompanyForCard(company)}
+                variant="grid"
+                onView={handleViewCompany}
+                onEdit={handleEditCompany}
+                onDelete={handleDeleteClick}
+              />
+            ))}
+            {filteredCompanies.length === 0 && (
+              <div className="col-span-full">
+                <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
+                  <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No companies found</h3>
+                  <p className="text-gray-600 mb-6">Try adjusting your search terms</p>
+                  <Button variant="outline" onClick={() => setSearchTerm('')}>
+                    Clear Search
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
