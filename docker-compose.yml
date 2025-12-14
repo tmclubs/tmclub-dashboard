@@ -1,6 +1,7 @@
 services:
   # React App Service
   app:
+    image: ${DOCKER_USERNAME}/tmclub-dashboard:latest
     build:
       context: .
       args:
