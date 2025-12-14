@@ -53,28 +53,30 @@ jobs:
             mkdir -p $DEPLOY_DIR
             cd $DEPLOY_DIR
             
-            # Create .env file from secrets
-            echo "NODE_ENV=production" > .env
-            echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-            echo "VITE_APP_URL=${{ secrets.VITE_APP_URL }}" >> .env
-            echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
-            echo "VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}" >> .env
-            echo "VITE_FASPAY_API_URL=${{ secrets.VITE_FASPAY_API_URL }}" >> .env
-            echo "VITE_FASPAY_MERCHANT_ID=${{ secrets.VITE_FASPAY_MERCHANT_ID }}" >> .env
-            echo "VITE_FASPAY_MERCHANT_SECRET=${{ secrets.VITE_FASPAY_MERCHANT_SECRET }}" >> .env
-            echo "VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'TMClub' }}" >> .env
-            echo "VITE_APP_DESCRIPTION=${{ vars.VITE_APP_DESCRIPTION || 'Toyota Manufacturers Club' }}" >> .env
-            echo "VITE_FASPAY_ENVIRONMENT=${{ vars.VITE_FASPAY_ENVIRONMENT || 'production' }}" >> .env
-            echo "VITE_ENABLE_GOOGLE_AUTH=${{ vars.VITE_ENABLE_GOOGLE_AUTH || 'true' }} " >> .env
-            echo "VITE_ENABLE_ANALYTICS=${{ vars.VITE_ENABLE_ANALYTICS || 'true' }} " >> .env
-            echo "VITE_ENABLE_NOTIFICATIONS=${{ vars.VITE_ENABLE_NOTIFICATIONS || 'true' }} " >> .env
-            echo "VITE_ENABLE_PAYMENT=${{ vars.VITE_ENABLE_PAYMENT || 'true' }} " >> .env
-            echo "VITE_ENABLE_QR_SCANNER=${{ vars.VITE_ENABLE_QR_SCANNER || 'true' }} " >> .env
-            echo "VITE_DEV_TOOLS=${{ vars.VITE_DEV_TOOLS || 'false' }} " >> .env
-            echo "VITE_LOG_LEVEL=${{ vars.VITE_LOG_LEVEL || 'error' }} " >> .env
-            echo "VITE_MAX_FILE_SIZE=${{ vars.VITE_MAX_FILE_SIZE || '10485760' }} " >> .env
-            echo "VITE_ALLOWED_FILE_TYPES=${{ vars.VITE_ALLOWED_FILE_TYPES || 'jpg,jpeg,png,pdf,doc,docx' }} " >> .env
-            echo "NGINX_PORT=${{ vars.NGINX_PORT || '1380' }}" >> .env
+            # Create .env file from secrets - USING CAT HEREDOC to avoid multiple echo calls and escaping issues
+            cat <<EOF > .env
+            NODE_ENV=production
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_APP_URL=${{ secrets.VITE_APP_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}
+            VITE_FASPAY_API_URL=${{ secrets.VITE_FASPAY_API_URL }}
+            VITE_FASPAY_MERCHANT_ID=${{ secrets.VITE_FASPAY_MERCHANT_ID }}
+            VITE_FASPAY_MERCHANT_SECRET=${{ secrets.VITE_FASPAY_MERCHANT_SECRET }}
+            VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'TMClub' }}
+            VITE_APP_DESCRIPTION=${{ vars.VITE_APP_DESCRIPTION || 'Toyota Manufacturers Club' }}
+            VITE_FASPAY_ENVIRONMENT=${{ vars.VITE_FASPAY_ENVIRONMENT || 'production' }}
+            VITE_ENABLE_GOOGLE_AUTH=${{ vars.VITE_ENABLE_GOOGLE_AUTH || 'true' }}
+            VITE_ENABLE_ANALYTICS=${{ vars.VITE_ENABLE_ANALYTICS || 'true' }}
+            VITE_ENABLE_NOTIFICATIONS=${{ vars.VITE_ENABLE_NOTIFICATIONS || 'true' }}
+            VITE_ENABLE_PAYMENT=${{ vars.VITE_ENABLE_PAYMENT || 'true' }}
+            VITE_ENABLE_QR_SCANNER=${{ vars.VITE_ENABLE_QR_SCANNER || 'true' }}
+            VITE_DEV_TOOLS=${{ vars.VITE_DEV_TOOLS || 'false' }}
+            VITE_LOG_LEVEL=${{ vars.VITE_LOG_LEVEL || 'error' }}
+            VITE_MAX_FILE_SIZE=${{ vars.VITE_MAX_FILE_SIZE || '10485760' }}
+            VITE_ALLOWED_FILE_TYPES=${{ vars.VITE_ALLOWED_FILE_TYPES || 'jpg,jpeg,png,pdf,doc,docx' }}
+            NGINX_PORT=${{ vars.NGINX_PORT || '1380' }}
+            EOF
             
             echo "✅ .env file created"
             
@@ -108,6 +110,14 @@ jobs:
           script: |
             # Check container status
             cd ${{ secrets.DEPLOY_PATH || '~/tmclub-dashboard' }}
+            
+            # Ensure .env exists (double check)
+            if [ ! -f .env ]; then
+              echo "⚠️ .env file missing in verification step, attempting to recreate basic env..."
+              echo "NODE_ENV=production" > .env
+              echo "NGINX_PORT=1380" >> .env
+            fi
+            
             docker-compose ps
             
             # Check logs
