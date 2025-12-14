@@ -1,6 +1,13 @@
-name: CD - Deploy to Server (Optional)
+name: CD - Deploy to Server
 
 on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'production'
+        type: string
   workflow_dispatch:
     inputs:
       environment:
