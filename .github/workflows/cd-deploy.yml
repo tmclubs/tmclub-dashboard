@@ -84,19 +84,19 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/tmclub-dashboard:latest
             
             # Update docker-compose with latest image
-            docker-compose pull
+            docker compose pull
             
             # Stop and remove old containers
-            docker-compose down
+            docker compose down
             
             # Start new containers
-            docker-compose up -d
+            docker compose up -d
             
             # Wait for health check
             sleep 10
             
             # Verify deployment
-            docker-compose ps
+            docker compose ps
             
             echo "✅ Deployment completed!"
       
@@ -118,10 +118,10 @@ jobs:
               echo "NGINX_PORT=1380" >> .env
             fi
             
-            docker-compose ps
+            docker compose ps
             
             # Check logs
-            docker-compose logs --tail=50 app
+            docker compose logs --tail=50 app
       
       - name: Deployment summary
         run: |
