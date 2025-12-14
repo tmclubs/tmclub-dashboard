@@ -3,10 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useBlogPosts } from '@/lib/hooks/useBlog';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const { data: blogPosts, isLoading } = useBlogPosts({ status: 'published', ordering: '-created_at' });
+
+  const latestPosts = blogPosts?.slice(0, 4) || [];
 
   const handleStartClick = () => {
     if (isAuthenticated) {
@@ -61,15 +66,61 @@ const Hero: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden lg:block">
-            <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <img
-                src="/hero.png"
-                alt="TMClub Community"
-                loading="lazy"
-                className="w-full h-auto object-cover rounded-xl"
-              />
-            </div>
+          <div className="hidden lg:block h-full min-h-[500px]">
+            {isLoading ? (
+               <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm h-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+               </div>
+            ) : latestPosts.length > 0 ? (
+              <div 
+                className="relative group w-full h-full rounded-2xl overflow-hidden cursor-pointer shadow-xl transition-all hover:shadow-2xl"
+                onClick={() => navigate(`/blog/${latestPosts[0].slug}`)}
+              >
+                <img
+                  src={getBackendImageUrl(latestPosts[0].main_image_url) || '/hero.png'}
+                  alt={latestPosts[0].title}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/hero.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                
+                <div className="absolute bottom-0 left-0 right-0 p-8 transform transition-transform duration-300 translate-y-2 group-hover:translate-y-0">
+                  <div className="mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-orange-600/90 text-white text-xs font-bold tracking-wide uppercase backdrop-blur-sm">
+                      Latest Update
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-white text-2xl md:text-3xl lg:text-4xl font-bold leading-tight mb-3 drop-shadow-lg">
+                    {latestPosts[0].title}
+                  </h3>
+                  
+                  {latestPosts[0].summary && (
+                    <p className="text-gray-200 text-base md:text-lg line-clamp-3 mb-6 max-w-2xl font-medium drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                      {latestPosts[0].summary}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-4 text-white/90 text-sm font-medium">
+                    <span className="flex items-center gap-2">
+                      Read Article <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm h-full">
+                <img
+                  src="/hero.png"
+                  alt="TMClub Community"
+                  loading="lazy"
+                  className="w-full h-full object-cover rounded-xl"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
