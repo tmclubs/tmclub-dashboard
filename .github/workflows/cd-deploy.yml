@@ -27,6 +27,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: "docker-compose.yml,nginx/Dockerfile,nginx/nginx.conf"
+          target: ${{ secrets.DEPLOY_PATH || '~/tmclub-dashboard' }}
       
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -38,8 +48,17 @@ jobs:
           script: |
             echo "🚀 Starting deployment to ${{ inputs.environment }}..."
             
-            # Navigate to project directory
-            cd ${{ secrets.DEPLOY_PATH || '~/tmclub-dashboard' }}
+            # Setup deployment directory
+            DEPLOY_DIR="${{ secrets.DEPLOY_PATH || '~/tmclub-dashboard' }}"
+            mkdir -p $DEPLOY_DIR
+            cd $DEPLOY_DIR
+            
+            # Create docker-compose.yml content from environment variable or upload it
+            # Since we can't easily upload file in this step without scp, 
+            # we'll assume the docker-compose.yml is managed manually or we can echo it here if it's simple.
+            # BETTER APPROACH: Use scp to copy the docker-compose.yml file from the repository to the server
+            
+            echo "✅ Directory setup complete"
             
             # Pull latest Docker image
             docker pull ${{ secrets.DOCKER_USERNAME }}/tmclub-dashboard:latest
@@ -70,7 +89,7 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT || 22 }}
           script: |
             # Check container status
-            cd ${{ secrets.DEPLOY_PATH || '/opt/tmclub-dashboard' }}
+            cd ${{ secrets.DEPLOY_PATH || '~/tmclub-dashboard' }}
             docker-compose ps
             
             # Check logs
