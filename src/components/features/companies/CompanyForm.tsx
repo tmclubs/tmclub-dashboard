@@ -17,7 +17,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   onSubmit,
   loading = false,
   onCancel,
-  title = company ? 'Edit Company' : 'Add New Company',
+  title = company ? 'Edit Member' : 'Add New Member',
 }) => {
   const [formData, setFormData] = useState<CompanyFormData>({
     display_name: company?.display_name || '',
@@ -94,7 +94,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Company Logo */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Company Logo</h3>
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Member Logo</h3>
               <div className="flex items-center gap-6">
                 {logoPreview ? (
                   <div className="relative">
@@ -148,8 +148,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
               <div className="grid grid-cols-1 gap-4">
                 <Input
-                  label="Company Name *"
-                  placeholder="Enter company name"
+                  label="Member Name *"
+                  placeholder="Enter member name"
                   value={formData.display_name}
                   onChange={handleInputChange('display_name')}
                   required
@@ -161,7 +161,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                     Description *
                   </label>
                   <RichTextEditor
-                    placeholder="Describe the company using rich text formatting..."
+                    placeholder="Describe the member using rich text formatting..."
                     value={formData.description}
                     onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                   />
@@ -177,7 +177,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                 <Input
                   label="Email *"
                   type="email"
-                  placeholder="company@example.com"
+                  placeholder="member@example.com"
                   value={formData.email}
                   onChange={handleInputChange('email')}
                   required
@@ -242,8 +242,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                 {loading
                   ? 'Saving...'
                   : company
-                    ? 'Update Company'
-                    : 'Create Company'
+                    ? 'Update Member'
+                    : 'Create Member'
                 }
               </Button>
             </div>

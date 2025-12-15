@@ -36,7 +36,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
   const columns: any[] = [
     {
       key: 'display_name',
-      title: 'Company Name',
+      title: 'Member Name',
       sortable: true,
       render: (_: any, company: Company) => (
         <div className="flex items-center gap-3">
@@ -156,7 +156,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm sticky bottom-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              {selectedRows.length} companies selected
+              {selectedRows.length} members selected
             </span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm">

@@ -109,8 +109,8 @@ const PublicNavbar: React.FC = () => {
             <nav className="hidden md:flex items-center gap-1 ml-4">
               <NavLink to="/" className={navLinkClass}>Beranda</NavLink>
               <NavLink to="/events" className={navLinkClass}>Event</NavLink>
-              <NavLink to="/companies" className={navLinkClass}>Company</NavLink>
-              <NavLink to="/members" className={navLinkClass}>Members</NavLink>
+              <NavLink to="/companies" className={navLinkClass}>Members</NavLink>
+              <NavLink to="/members" className={navLinkClass}>Users</NavLink>
               <NavLink to="/blog" className={navLinkClass}>Blog</NavLink>
               <NavLink to="/about" className={navLinkClass}>About</NavLink>
             </nav>
@@ -231,7 +231,8 @@ const PublicNavbar: React.FC = () => {
           <div className="px-4 py-3 space-y-2">
             <NavLink to="/" className={navLinkClass} onClick={() => setOpen(false)}>Beranda</NavLink>
             <NavLink to="/events" className={navLinkClass} onClick={() => setOpen(false)}>Event</NavLink>
-            <NavLink to="/companies" className={navLinkClass} onClick={() => setOpen(false)}>Company</NavLink>
+            <NavLink to="/companies" className={navLinkClass} onClick={() => setOpen(false)}>Members</NavLink>
+            <NavLink to="/members" className={navLinkClass} onClick={() => setOpen(false)}>Users</NavLink>
             <NavLink to="/blog" className={navLinkClass} onClick={() => setOpen(false)}>Blog</NavLink>
             <NavLink to="/about" className={navLinkClass} onClick={() => setOpen(false)}>About</NavLink>
             <div className="pt-2 border-t border-gray-200">

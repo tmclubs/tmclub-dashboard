@@ -52,8 +52,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       case 'companies':
         return {
           icon: <Building className="h-12 w-12" />,
-          title: title || 'No companies yet',
-          description: description || 'Invite companies to join your community',
+          title: title || 'No members yet',
+          description: description || 'Invite members to join your community',
         };
 
       case 'users':

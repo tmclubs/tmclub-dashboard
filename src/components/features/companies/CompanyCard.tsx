@@ -119,7 +119,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 <Users className="w-4 h-4" />
                 <span className="font-semibold">{company.memberCount}</span>
               </div>
-              <p className="text-xs text-gray-500">Members</p>
+              <p className="text-xs text-gray-500">Users</p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-orange-600">

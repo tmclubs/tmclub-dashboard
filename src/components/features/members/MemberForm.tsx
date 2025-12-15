@@ -46,7 +46,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
   onSubmit,
   loading = false,
   onCancel,
-  title = member ? 'Edit Member' : 'Add New Member',
+  title = member ? 'Edit User' : 'Add New User',
 }) => {
   const [formData, setFormData] = useState<MemberFormData>({
     firstName: member?.firstName || '',
@@ -246,7 +246,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   >
-                    <option value="member">Member</option>
+                    <option value="member">User</option>
                     <option value="moderator">Moderator</option>
                     <option value="admin">Admin</option>
                   </select>
@@ -287,14 +287,14 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               </div>
             </div>
 
-            {/* Company Information */}
+            {/* Member Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Company Information</h3>
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Member Information</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Company
+                    Member
                   </label>
                   <select
                     value={formData.companyId}

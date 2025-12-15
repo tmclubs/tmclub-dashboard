@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
       loading: eventsLoading,
     },
     {
-      name: 'Active Members',
+      name: 'Active Users',
       value: totalParticipants.toString(),
       change: 'registered users',
       changeType: 'positive' as const,
@@ -55,9 +55,9 @@ export const Dashboard: React.FC = () => {
       loading: eventsLoading,
     },
     {
-      name: 'Companies',
+      name: 'Members',
       value: companies.length.toString(),
-      change: 'partner companies',
+      change: 'registered members',
       changeType: 'positive' as const,
       icon: Building2,
       color: 'bg-gradient-to-br from-green-400 to-emerald-400',
@@ -321,18 +321,18 @@ export const Dashboard: React.FC = () => {
                 <Button
                   variant="outline"
                   className="h-auto p-2 sm:p-3 flex-col hover:bg-white hover:shadow-md transition-all touch-manipulation"
-                  aria-label="Add new company"
+                  aria-label="Add new member"
                 >
                   <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mb-1 sm:mb-2 text-blue-600" />
-                  <span className="text-xs font-medium text-center">Add Company</span>
+                  <span className="text-xs font-medium text-center">Add Member</span>
                 </Button>
                 <Button
                   variant="outline"
                   className="h-auto p-2 sm:p-3 flex-col hover:bg-white hover:shadow-md transition-all touch-manipulation"
-                  aria-label="Invite new member"
+                  aria-label="Invite new user"
                 >
                   <Users className="h-4 w-4 sm:h-5 sm:w-5 mb-1 sm:mb-2 text-green-600" />
-                  <span className="text-xs font-medium text-center">Invite Member</span>
+                  <span className="text-xs font-medium text-center">Invite User</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -362,7 +362,7 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Active Companies</span>
+                  <span className="text-sm text-gray-600">Active Members</span>
                   <div className="flex items-center gap-1">
                     <ArrowUpRight className="h-4 w-4 text-green-600" />
                     <span className="text-sm font-semibold text-gray-900">{companies.length}</span>

@@ -24,11 +24,11 @@ interface SidebarProps {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
-  { name: 'Companies', href: '/dashboard/companies', icon: Building2 },
+  { name: 'Members', href: '/dashboard/companies', icon: Building2 },
   { name: 'Surveys (Coming Soon)', href: '/dashboard/surveys', icon: ClipboardList },
   { name: 'Blog', href: '/dashboard/blog', icon: FileText },
   { name: 'About', href: '/dashboard/about', icon: Info },
-  { name: 'Members', href: '/dashboard/members', icon: Users },
+  { name: 'Users', href: '/dashboard/members', icon: Users },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
 ];
 

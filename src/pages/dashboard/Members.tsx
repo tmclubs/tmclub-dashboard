@@ -27,7 +27,7 @@ export const MembersPage: React.FC = () => {
       setMembers(data);
     } catch (error) {
       console.error(error);
-      toast.error('Gagal memuat data member');
+      toast.error('Gagal memuat data user');
     } finally {
       setLoading(false);
     }
@@ -41,16 +41,16 @@ export const MembersPage: React.FC = () => {
     try {
       if (selectedMember) {
         await memberService.updateMember(selectedMember.id, data);
-        toast.success('Member berhasil diperbarui');
+        toast.success('User berhasil diperbarui');
       } else {
         await memberService.createMember(data);
-        toast.success('Member berhasil ditambahkan');
+        toast.success('User berhasil ditambahkan');
       }
       setShowForm(false);
       setSelectedMember(null);
       fetchMembers();
     } catch (error) {
-      toast.error(selectedMember ? 'Gagal memperbarui member' : 'Gagal menambahkan member');
+      toast.error(selectedMember ? 'Gagal memperbarui user' : 'Gagal menambahkan user');
       console.error(error);
     }
   };
@@ -64,7 +64,7 @@ export const MembersPage: React.FC = () => {
     if (member.username) {
       navigate(`/member/${member.username}`);
     } else {
-      toast.error('Username tidak tersedia untuk member ini');
+      toast.error('Username tidak tersedia untuk user ini');
     }
   };
 
@@ -84,7 +84,7 @@ export const MembersPage: React.FC = () => {
             setShowForm(false);
             setSelectedMember(null);
           }}
-          title={selectedMember ? 'Edit Member' : 'Add New Member'}
+          title={selectedMember ? 'Edit User' : 'Add New User'}
         />
       </div>
     );
@@ -94,15 +94,15 @@ export const MembersPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Member Management</h1>
-          <p className="text-muted-foreground">Kelola semua member dalam komunitas Anda</p>
+          <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
+          <p className="text-muted-foreground">Kelola semua user dalam komunitas Anda</p>
         </div>
         <Button onClick={() => {
           setSelectedMember(null);
           setShowForm(true);
         }}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Member
+          Add User
         </Button>
       </div>
 
@@ -110,7 +110,7 @@ export const MembersPage: React.FC = () => {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search members..." 
+            placeholder="Search users..." 
             className="pl-8" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -138,7 +138,7 @@ export const MembersPage: React.FC = () => {
           ))}
           {filteredMembers.length === 0 && (
             <div className="col-span-full text-center py-12 text-muted-foreground">
-              Tidak ada member ditemukan
+              Tidak ada user ditemukan
             </div>
           )}
         </div>

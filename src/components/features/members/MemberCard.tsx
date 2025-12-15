@@ -183,7 +183,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                   <h3 className="text-lg font-semibold text-gray-900">{fullName}</h3>
                   <Badge variant={getRoleColor(member.role)}>
                     <Shield className="w-3 h-3 mr-1" />
-                    {member.role}
+                    {member.role === 'member' ? 'User' : member.role}
                   </Badge>
                   <Badge variant={getMembershipColor(member.membershipType)}>
                     {member.membershipType}
@@ -314,7 +314,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-900">{fullName}</h3>
                 <Badge variant={getRoleColor(member.role)} size="sm">
-                  {member.role}
+                  {member.role === 'member' ? 'User' : member.role}
                 </Badge>
                 <Badge variant={getStatusColor(member.status)} size="sm">
                   {member.status}

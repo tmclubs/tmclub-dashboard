@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   CompanyCard,
   CompanyForm,
-  CompanyList,
   Company as CompanyCardType,
 } from '@/components/features/companies';
+import { CompanyList } from '@/components/features/companies/CompanyList';
 import { Button, ConfirmDialog, EmptyState, LoadingSpinner, Input, Badge } from '@/components/ui';
 import { Plus, Search, Filter, Grid3x3, List, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/lib/hooks/useCompanies';
@@ -111,7 +111,7 @@ export const CompaniesPage: React.FC = () => {
   };
 
   const handleExport = () => {
-    console.log('Exporting companies...');
+    console.log('Exporting members...');
   };
 
   const filteredCompanies = companies.filter(company =>
@@ -122,7 +122,7 @@ export const CompaniesPage: React.FC = () => {
 
   const stats = [
     {
-      label: 'Total Companies',
+      label: 'Total Members',
       value: companies.length,
       icon: Building2,
       color: 'from-orange-500 to-orange-600',
@@ -167,7 +167,7 @@ export const CompaniesPage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] p-6">
         <Building2 className="w-16 h-16 text-gray-300 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to load companies</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to load members</h3>
         <p className="text-gray-600 mb-6">Please try again later</p>
         <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
@@ -185,7 +185,7 @@ export const CompaniesPage: React.FC = () => {
             setShowForm(false);
             setSelectedCompany(null);
           }}
-          title={selectedCompany ? 'Edit Company' : 'Create New Company'}
+          title={selectedCompany ? 'Edit Member' : 'Create New Member'}
         />
       </div>
     );
@@ -196,10 +196,10 @@ export const CompaniesPage: React.FC = () => {
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <EmptyState
           type="companies"
-          title="No companies yet"
-          description={isAdmin ? "Get started by adding your first company to the platform." : "No companies found."}
+          title="No members yet"
+          description={isAdmin ? "Get started by adding your first member to the platform." : "No members found."}
           action={isAdmin ? {
-            text: 'Add Company',
+            text: 'Add Member',
             onClick: () => setShowForm(true),
             icon: <Plus className="w-4 h-4" />
           } : undefined}
@@ -222,14 +222,14 @@ export const CompaniesPage: React.FC = () => {
                     <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Companies</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Members</h1>
                     <Badge className="mt-1 bg-white/20 text-white border-white/30">
-                      {companies.length} Partner{companies.length !== 1 ? 's' : ''}
+                      {companies.length} Member{companies.length !== 1 ? 's' : ''}
                     </Badge>
                   </div>
                 </div>
                 <p className="text-orange-100 text-sm sm:text-base max-w-2xl">
-                  Manage partner companies, their profiles, and member relationships
+                  Manage members, their profiles, and relationships
                 </p>
               </div>
               {isAdmin && (
@@ -242,7 +242,7 @@ export const CompaniesPage: React.FC = () => {
                   setShowForm(true);
                 }}
               >
-                Add Company
+                Add Member
               </Button>
               )}
             </div>
@@ -280,7 +280,7 @@ export const CompaniesPage: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
-                placeholder="Search companies by name, description, or city..."
+                placeholder="Search members by name, description, or city..."
                 className="pl-10 h-11 border-gray-200 focus:border-orange-300 focus:ring-orange-200"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -360,7 +360,7 @@ export const CompaniesPage: React.FC = () => {
               <div className="col-span-full">
                 <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
                   <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No companies found</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No members found</h3>
                   <p className="text-gray-600 mb-6">Try adjusting your search terms</p>
                   <Button variant="outline" onClick={() => setSearchTerm('')}>
                     Clear Search
@@ -377,9 +377,9 @@ export const CompaniesPage: React.FC = () => {
         open={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={handleDeleteCompany}
-        title="Delete Company"
+        title="Delete Member"
         description={`Are you sure you want to delete "${selectedCompany?.display_name}"? This action cannot be undone and will also remove all associated data.`}
-        confirmText="Delete Company"
+        confirmText="Delete Member"
         cancelText="Cancel"
         variant="destructive"
         loading={deleteCompanyMutation.isPending}
