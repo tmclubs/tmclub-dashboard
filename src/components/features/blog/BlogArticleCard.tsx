@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import {
-  Calendar,
-  Heart,
-  Share2,
   Edit,
   Trash2,
   BookOpen,
   Star,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
-import { formatDate, formatRelativeTime } from '@/lib/utils/date';
+import { formatRelativeTime } from '@/lib/utils/date';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface BlogAuthor {
@@ -66,387 +64,194 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
   onView,
   onEdit,
   onDelete,
-  onLike,
-  onShare,
   className,
 }) => {
-  const [imageErrorCompact, setImageErrorCompact] = useState(false);
-  
-
-  const isGrid = variant === 'grid';
+  const [imageError, setImageError] = useState(false);
   const isCompact = variant === 'compact';
-  
-  if (isGrid) {
-    return (
-      <Card
-        className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 overflow-hidden h-full flex flex-col", onView ? "cursor-pointer" : "", className)}
-        onClick={() => onView?.(article)}
-        onKeyDown={(e) => {
-          if ((e.key === "Enter" || e.key === " ") && onView) {
-            e.preventDefault();
-            onView(article);
-          }
-        }}
-        role={onView ? "button" : undefined}
-        tabIndex={onView ? 0 : undefined}
-        aria-label={onView ? `Open ${article.title}` : undefined}
-      >
-        {/* Image Section - Proportional aspect ratio */}
-        {article.featuredImage ? (
-          <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden">
-            <img
-              src={getBackendImageUrl(article.featuredImage)}
-              alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-wrap gap-1 sm:gap-2">
-              {article.featured && (
-                <Badge className="bg-yellow-500 text-white border-yellow-600 text-xs">
-                  <Star className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">Featured</span>
-                </Badge>
-              )}
-            </div>
-            <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3">
-              {/* Category removed */}
-            </div>
-          </div>
-        ) : (
-          <div className="relative aspect-[16/9] sm:aspect-[4/3] bg-gradient-to-br from-purple-400 to-pink-400">
-            <div className="absolute inset-0 bg-black bg-opacity-40" />
-            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-wrap gap-1 sm:gap-2">
-              {article.featured && (
-                <Badge className="bg-yellow-500 text-white border-yellow-600 text-xs">
-                  <Star className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">Featured</span>
-                </Badge>
-              )}
-            </div>
-            <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3">
-              {/* Category removed */}
-            </div>
-          </div>
-        )}
 
-        <CardContent className="blog-card-padding flex-1 flex flex-col">
-          <div className="blog-section-spacing flex-1">
-            {/* Title - Using blog-title utility */}
-            <h3 className="blog-title line-clamp-2 group-hover:text-purple-600 transition-colors">
-              {article.title}
-            </h3>
-
-            {/* Excerpt - Using blog-excerpt utility */}
-            <p className="blog-excerpt line-clamp-2 sm:line-clamp-3 flex-1">
-              {article.excerpt}
-            </p>
-
-            {/* Tags - Using blog-tag utility */}
-            {article.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {article.tags.slice(0, 2).map((tag, index) => (
-                  <span key={index} className="blog-tag">
-                    #{tag}
-                  </span>
-                ))}
-                {article.tags.length > 2 && (
-                  <span className="blog-tag">
-                    +{article.tags.length - 2}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Stats removed from card */}
-
-          {/* Author - Using blog-meta utility */}
-          {showAuthor && (
-            <div className="flex items-center gap-2 pt-2 sm:pt-3 border-t border-gray-100">
-              <Avatar
-                src={article.author.avatar}
-                name={article.author.name}
-                size="sm"
-                className="w-6 h-6 sm:w-8 sm:h-8"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="blog-meta font-medium line-clamp-1">
-                  {article.author.name}
-                </p>
-                <p className="blog-meta">
-                  {formatRelativeTime(article.publishedAt || article.createdAt)}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Actions - Using blog-button-group utility */}
-          {showActions && (
-            <div className="blog-button-group pt-2 sm:pt-3 border-t border-gray-100">
-              <Button
-                variant="outline"
-                size="default"
-                onClick={(e) => { e.stopPropagation(); onView?.(article); }}
-                fullWidth
-                className="blog-button flex-1"
-                leftIcon={<BookOpen className="w-4 h-4" />}
-              >
-                Read
-              </Button>
-              {onEdit && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={(e) => { e.stopPropagation(); onEdit(article); }}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
-              {onDelete && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={(e) => { e.stopPropagation(); onDelete(article); }}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
+  // Helper for formatting date
+  const displayDate = article.publishedAt 
+    ? formatRelativeTime(article.publishedAt)
+    : formatRelativeTime(article.createdAt);
 
   if (isCompact) {
     return (
-      <Card className={cn("hover:shadow-md transition-shadow border-gray-200", className)}>
-        <CardContent className="p-3 sm:p-4">
-          <div className="flex gap-3 sm:gap-4">
-            {/* Image - Responsive size */}
-            {article.featuredImage && !imageErrorCompact ? (
+      <Card className={cn("group hover:shadow-md transition-all duration-300 border-gray-200 bg-white overflow-hidden", className)}>
+        <div className="flex p-3 sm:p-4 gap-4 h-full">
+          {/* Image Section */}
+          <div className="relative w-24 sm:w-32 aspect-square flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+             {article.featuredImage && !imageError ? (
               <img
                 src={getBackendImageUrl(article.featuredImage)}
                 alt={article.title}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0"
-                onError={() => setImageErrorCompact(true)}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                onError={() => setImageError(true)}
               />
             ) : (
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0" />
+              <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-orange-300">
+                <BookOpen className="w-8 h-8" />
+              </div>
             )}
+          </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  {/* Title - Responsive font size */}
-                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-2 mb-1 sm:mb-2 leading-tight">
-                    {article.title}
-                  </h3>
-                  
-                  {/* Badges - Responsive layout */}
-                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
-                    
-                  </div>
-                  
-                  {/* Stats - Responsive grid */}
-                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="truncate">{formatDate(article.publishedAt || article.createdAt)}</span>
-                  </div>
-                </div>
-
-                {/* Actions - Responsive buttons */}
-                {showActions && (
-                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(article)}
-                        className="h-7 w-7 sm:h-8 sm:w-8"
-                      >
-                        <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDelete(article)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
+          {/* Content Section */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+            <div>
+              <h3 className="font-bold text-gray-900 line-clamp-2 text-base mb-1 group-hover:text-orange-600 transition-colors">
+                {article.title}
+              </h3>
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                 <span>{displayDate}</span>
+                 <span>•</span>
+                 <span className="font-medium text-gray-700">{article.author.name}</span>
               </div>
             </div>
+
+            {showActions && (
+              <div className="flex items-center gap-2">
+                {onEdit && (
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(article)} className="h-8 px-2 text-gray-500 hover:text-gray-900">
+                    <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="ghost" size="sm" onClick={() => onDelete(article)} className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50">
+                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-        </CardContent>
+        </div>
       </Card>
     );
   }
 
-  // Featured/Default variant - Enhanced mobile-optimized
+  // Modern Card Design (Default & Grid)
   return (
-    <Card
-      className={cn("group hover:shadow-lg transition-all duration-300 border-gray-200 h-full flex flex-col", onView ? "cursor-pointer" : "", className)}
+    <Card 
+      className={cn(
+        "group flex flex-col h-full bg-white border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden",
+        onView ? "cursor-pointer" : "",
+        className
+      )}
       onClick={() => onView?.(article)}
-      onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === " ") && onView) {
-          e.preventDefault();
-          onView(article);
-        }
-      }}
-      role={onView ? "button" : undefined}
-      tabIndex={onView ? 0 : undefined}
-      aria-label={onView ? `Open ${article.title}` : undefined}
     >
-      {/* Featured Image - Proportional aspect ratio */}
-      {article.featuredImage && (
-        <div className="relative overflow-hidden rounded-t-lg aspect-[16/9] sm:aspect-[4/3]">
+      {/* Image Header */}
+      <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
+        {article.featuredImage && !imageError ? (
           <img
             src={getBackendImageUrl(article.featuredImage)}
             alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onError={() => setImageError(true)}
           />
-        {article.featured && (
-          <Badge className="absolute top-3 left-3 bg-yellow-500 text-white border-yellow-600 text-xs">
-            <Star className="w-3 h-3 mr-1" />
-            <span className="hidden sm:inline">Featured</span>
-          </Badge>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center">
+            <BookOpen className="w-12 h-12 text-white/50" />
+          </div>
         )}
-      </div>
-    )}
+        
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      <CardContent className="p-4 sm:p-6">
-        <div className="space-y-3 sm:space-y-4">
-          {/* Header with badges for no-image cards */}
-          {!article.featuredImage && (
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              {article.featured && (
-                <Badge className="bg-yellow-500 text-white border-yellow-600 text-xs">
-                  <Star className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">Featured</span>
-                </Badge>
-              )}
-            </div>
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {article.featured && (
+            <Badge className="bg-yellow-400 hover:bg-yellow-500 text-yellow-950 border-none shadow-sm backdrop-blur-sm">
+              <Star className="w-3 h-3 mr-1 fill-current" /> Featured
+            </Badge>
           )}
+        </div>
+      </div>
 
-          {/* Title and Actions - Responsive layout */}
-          <div className="flex items-start justify-between gap-3 sm:gap-4">
-            <h3 className="font-semibold text-lg sm:text-xl lg:text-2xl text-gray-900 line-clamp-2 group-hover:text-purple-600 transition-colors leading-tight flex-1">
-              {article.title}
-            </h3>
-            {showActions && (
-              <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+      {/* Content Body */}
+      <CardContent className="flex-1 flex flex-col p-5">
+        
+        {/* Tags */}
+        {article.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {article.tags.slice(0, 2).map((tag) => (
+              <span key={tag} className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-50 text-orange-700">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Title */}
+        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 mb-2 group-hover:text-orange-600 transition-colors leading-snug">
+          {article.title}
+        </h3>
+
+        {/* Excerpt */}
+        <p className="text-gray-500 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
+          {article.excerpt || "No summary available for this article."}
+        </p>
+
+        {/* Footer Info */}
+        <div className="pt-4 border-t border-gray-100 mt-auto">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            {showAuthor && (
+              <div className="flex items-center gap-2.5">
+                <Avatar 
+                  src={article.author.avatar} 
+                  name={article.author.name} 
+                  className="w-8 h-8 ring-2 ring-white"
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-gray-900 line-clamp-1">
+                    {article.author.name}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {displayDate}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 hover:text-orange-800 hover:border-orange-300 transition-colors group/btn"
+              onClick={(e) => { e.stopPropagation(); onView?.(article); }}
+              title="Read Article"
+            >
+              <Eye className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+            </Button>
+            
+            {showActions ? (
+               <div className="flex gap-2">
                 {onEdit && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    onClick={() => onEdit(article)}
+                    onClick={(e) => { e.stopPropagation(); onEdit(article); }}
+                    className="flex-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                    title="Edit"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
                 )}
                 {onDelete && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    onClick={() => onDelete(article)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={(e) => { e.stopPropagation(); onDelete(article); }}
+                    className="flex-1 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
-              </div>
+               </div>
+            ) : (
+               <div className="flex justify-end items-center text-gray-400 gap-3 text-sm">
+                  {/* Stats placeholders could go here */}
+               </div>
             )}
-          </div>
-
-          {/* Excerpt - Responsive text size */}
-          <p className="text-sm sm:text-base text-gray-600 line-clamp-3 leading-relaxed">
-            {article.excerpt}
-          </p>
-
-          {/* Tags - Responsive layout */}
-          {article.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {article.tags.slice(0, window.innerWidth < 640 ? 2 : 3).map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
-                  #{tag}
-                </Badge>
-              ))}
-              {article.tags.length > (window.innerWidth < 640 ? 2 : 3) && (
-                <Badge variant="secondary" className="text-xs px-2 py-1">
-                  +{article.tags.length - (window.innerWidth < 640 ? 2 : 3)}
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {/* Stats removed from card */}
-
-          {/* Author & Date - Enhanced responsive layout */}
-          {showAuthor && (
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Avatar
-                  src={article.author.avatar}
-                  name={article.author.name}
-                  size="sm"
-                  className="w-8 h-8 sm:w-10 sm:h-10"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{article.author.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(article.publishedAt || article.createdAt)}
-                  </p>
-                </div>
-              </div>
-              {/* Trending indicator removed */}
-            </div>
-          )}
-
-          {/* Actions - Enhanced responsive layout */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-4 border-t border-gray-100">
-            {onView && (
-              <Button
-                variant="outline"
-                size="default"
-                onClick={(e) => { e.stopPropagation(); onView(article); }}
-                className="flex-1 sm:flex-none"
-                leftIcon={<BookOpen className="w-4 h-4" />}
-              >
-                <span className="hidden sm:inline">Read Article</span>
-                <span className="sm:hidden">Read</span>
-              </Button>
-            )}
-            <div className="flex gap-2">
-              {onLike && (
-                <Button
-                  variant="outline"
-                  size="default"
-                  onClick={() => onLike(article)}
-                  className="flex-1 sm:flex-none text-red-600 hover:text-red-700 hover:bg-red-50"
-                  leftIcon={<Heart className="w-4 h-4" />}
-                >
-                  <span className="hidden sm:inline">Like</span>
-                </Button>
-              )}
-              {onShare && (
-                <Button
-                  variant="outline"
-                  size="default"
-                  onClick={() => onShare(article)}
-                  className="flex-1 sm:flex-none"
-                  leftIcon={<Share2 className="w-4 h-4" />}
-                >
-                  <span className="hidden sm:inline">Share</span>
-                </Button>
-              )}
-            </div>
           </div>
         </div>
       </CardContent>
