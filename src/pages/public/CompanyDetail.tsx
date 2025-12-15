@@ -28,11 +28,11 @@ const CompanyDetail: React.FC = () => {
                 <PublicNavbar />
                 <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
                     <Building2 className="w-16 h-16 text-gray-300 mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Perusahaan Tidak Ditemukan</h2>
-                    <p className="text-gray-600 mb-6">Data perusahaan tidak tersedia</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Company Member Tidak Ditemukan</h2>
+                    <p className="text-gray-600 mb-6">Data Company Member tidak tersedia</p>
                     <Button onClick={() => navigate('/companies')}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Kembali ke Daftar Perusahaan
+                        Kembali ke Daftar Company Members
                     </Button>
                 </div>
             </>
@@ -97,7 +97,7 @@ const CompanyDetail: React.FC = () => {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <Building2 className="w-5 h-5 text-orange-600" />
-                                        Tentang Perusahaan
+                                        Tentang Company Member
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>

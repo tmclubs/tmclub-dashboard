@@ -27,7 +27,7 @@ const Companies: React.FC = () => {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                     <Card className="max-w-md">
                         <CardContent className="p-6 text-center">
-                            <p className="text-red-600">Gagal memuat data perusahaan</p>
+                            <p className="text-red-600">Gagal memuat data Company Members</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -44,15 +44,15 @@ const Companies: React.FC = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
                         <div className="flex items-center gap-3 mb-4">
                             <Building2 className="w-8 h-8 sm:w-10 sm:h-10" />
-                            <h1 className="text-3xl sm:text-4xl font-bold">Perusahaan Partner</h1>
+                            <h1 className="text-3xl sm:text-4xl font-bold">Company Members</h1>
                         </div>
                         <p className="text-lg sm:text-xl text-orange-100 max-w-3xl">
-                            Bergabunglah dengan ekosistem perusahaan-perusahaan terkemuka yang menjadi bagian dari Toyota Manufacturers Club
+                            Bergabunglah dengan ekosistem Company Members terkemuka yang menjadi bagian dari Toyota Manufacturers Club
                         </p>
                         <div className="mt-6 flex items-center gap-6 text-sm sm:text-base">
                             <div className="flex items-center gap-2">
                                 <Users className="w-5 h-5" />
-                                <span className="font-semibold">{companies?.length || 0} Perusahaan</span>
+                                <span className="font-semibold">{companies?.length || 0} Company Members</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Badge className="bg-white/20 text-white border-white/30">
@@ -138,8 +138,8 @@ const Companies: React.FC = () => {
                         <Card className="text-center py-12">
                             <CardContent>
                                 <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                                <p className="text-gray-500 text-lg font-medium mb-2">Belum Ada Data Perusahaan</p>
-                                <p className="text-gray-400 text-sm">Perusahaan partner akan ditampilkan di sini</p>
+                                <p className="text-gray-500 text-lg font-medium mb-2">Belum Ada Data Company Members</p>
+                                <p className="text-gray-400 text-sm">Company Members akan ditampilkan di sini</p>
                             </CardContent>
                         </Card>
                     )}
