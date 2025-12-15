@@ -112,31 +112,46 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   };
 
   // Albums management functions
-  const handleAlbumsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAlbumsUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    const newAlbumsFiles = Array.from(files);
-    const newPreviews: string[] = [];
+    try {
+      const rawFiles = Array.from(files);
+      const validFiles: File[] = [];
+      const newPreviews: string[] = [];
 
-    for (const file of newAlbumsFiles) {
-      // Validate file
-      const validation = validateFile(file);
-      if (!validation.isValid) {
-        alert(`Invalid file: ${file.name} - ${validation.error}`);
-        continue;
+      for (const file of rawFiles) {
+        // Validate file
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+          alert(`Invalid file: ${file.name} - ${validation.error}`);
+          continue;
+        }
+
+        // Create preview
+        try {
+          const preview = createImagePreview(file);
+          validFiles.push(file);
+          newPreviews.push(preview);
+        } catch (err) {
+          console.error(`Failed to create preview for ${file.name}`, err);
+        }
       }
 
-      // Create preview
-      const preview = await createImagePreview(file);
-      newPreviews.push(preview);
+      if (validFiles.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          albumsFiles: [...(prev.albumsFiles || []), ...validFiles],
+        }));
+        setAlbumsPreviews(prev => [...prev, ...newPreviews]);
+      }
+    } catch (error) {
+      console.error("Error handling album upload:", error);
+    } finally {
+      // Reset input value to allow selecting the same file again
+      e.target.value = '';
     }
-
-    setFormData(prev => ({
-      ...prev,
-      albumsFiles: [...(prev.albumsFiles || []), ...newAlbumsFiles],
-    }));
-    setAlbumsPreviews(prev => [...prev, ...newPreviews]);
   };
 
   const removeAlbum = (index: number) => {
