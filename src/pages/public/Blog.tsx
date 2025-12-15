@@ -5,6 +5,7 @@ import { LoadingSpinner, EmptyState } from '@/components/ui';
 import { useBlogPosts } from '@/lib/hooks/useBlog';
 import type { BlogPost } from '@/types/api';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 import { env } from '@/lib/config/env';
 
 export const PublicBlogPage: React.FC = () => {
@@ -107,6 +108,7 @@ export const PublicBlogPage: React.FC = () => {
           ))}
         </div>
       </div>
+      <PublicFooter />
     </div>
   );
 };

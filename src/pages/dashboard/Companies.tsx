@@ -8,6 +8,7 @@ import {
 import { Button, ConfirmDialog, EmptyState, LoadingSpinner, Input, Badge } from '@/components/ui';
 import { Plus, Search, Filter, Grid3x3, List, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/lib/hooks/useCompanies';
+import { useProfile } from '@/lib/hooks/useAuth';
 import { Company as APICompany, CompanyFormData } from '@/types/api';
 
 // Adapter function to convert API Company to CompanyCard format
@@ -44,10 +45,13 @@ export const CompaniesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // API hooks
+  const { data: userProfile } = useProfile();
   const { data: companies = [], isLoading, error } = useCompanies();
   const createCompanyMutation = useCreateCompany();
   const updateCompanyMutation = useUpdateCompany();
   const deleteCompanyMutation = useDeleteCompany();
+
+  const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
   const handleCreateCompany = async (data: CompanyFormData) => {
     createCompanyMutation.mutate(data, {
@@ -193,12 +197,12 @@ export const CompaniesPage: React.FC = () => {
         <EmptyState
           type="companies"
           title="No companies yet"
-          description="Get started by adding your first company to the platform."
-          action={{
+          description={isAdmin ? "Get started by adding your first company to the platform." : "No companies found."}
+          action={isAdmin ? {
             text: 'Add Company',
             onClick: () => setShowForm(true),
             icon: <Plus className="w-4 h-4" />
-          }}
+          } : undefined}
         />
       </div>
     );
@@ -228,6 +232,7 @@ export const CompaniesPage: React.FC = () => {
                   Manage partner companies, their profiles, and member relationships
                 </p>
               </div>
+              {isAdmin && (
               <Button
                 size="lg"
                 className="text-orange-700 hover:bg-orange-50 shadow-lg hover:shadow-xl transition-all font-semibold"
@@ -239,6 +244,7 @@ export const CompaniesPage: React.FC = () => {
               >
                 Add Company
               </Button>
+              )}
             </div>
           </div>
         </div>
@@ -323,18 +329,18 @@ export const CompaniesPage: React.FC = () => {
                 setSelectedCompany(company);
                 console.log('View company:', company);
               }}
-              onEdit={(company) => {
+              onEdit={isAdmin ? (company) => {
                 setSelectedCompany(company);
                 setShowForm(true);
-              }}
-              onDelete={(company) => {
+              } : undefined}
+              onDelete={isAdmin ? (company) => {
                 setSelectedCompany(company);
                 setShowDeleteDialog(true);
-              }}
-              onCreate={() => {
+              } : undefined}
+              onCreate={isAdmin ? () => {
                 setSelectedCompany(null);
                 setShowForm(true);
-              }}
+              } : undefined}
               onExport={handleExport}
             />
           </div>
@@ -346,8 +352,8 @@ export const CompaniesPage: React.FC = () => {
                 company={adaptCompanyForCard(company)}
                 variant="grid"
                 onView={handleViewCompany}
-                onEdit={handleEditCompany}
-                onDelete={handleDeleteClick}
+                onEdit={isAdmin ? handleEditCompany : undefined}
+                onDelete={isAdmin ? handleDeleteClick : undefined}
               />
             ))}
             {filteredCompanies.length === 0 && (

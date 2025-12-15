@@ -4,6 +4,7 @@ import { useCompanies } from '@/lib/hooks/useCompanies';
 import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Badge } from '@/components/ui';
 import { Building2, Users, MapPin, ExternalLink } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 const Companies: React.FC = () => {
     const { data: companies, isLoading, error } = useCompanies();
@@ -144,33 +145,10 @@ const Companies: React.FC = () => {
                     )}
                 </section>
 
-                {/* CTA Section */}
-                <section className="bg-white border-t border-gray-200">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-                        <div className="text-center max-w-2xl mx-auto">
-                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                                Tertarik Bergabung?
-                            </h2>
-                            <p className="text-gray-600 mb-6 sm:mb-8">
-                                Jadilah bagian dari komunitas perusahaan-perusahaan inovatif di Toyota Manufacturers Club
-                            </p>
-                            <a
-                                href="/register"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
-                            >
-                                <Building2 className="w-5 h-5" />
-                                <span>Daftarkan Perusahaan Anda</span>
-                            </a>
-                        </div>
-                    </div>
-                </section>
+
 
                 {/* Footer */}
-                <footer className="border-t border-gray-200 bg-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-gray-600 text-center">
-                        © {new Date().getFullYear()} TMClub. Semua hak dilindungi.
-                    </div>
-                </footer>
+                <PublicFooter />
             </main>
         </>
     );

@@ -7,6 +7,7 @@ import { env } from '@/lib/config/env';
 import { type BlogPost } from '@/types/api';
 import { type BlogArticle, type BlogAuthor } from '@/components/features/blog';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 export const PublicBlogDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -152,6 +153,7 @@ export const PublicBlogDetailPage: React.FC = () => {
     <>
       <PublicNavbar />
       <BlogDetail article={article} onBack={handleBack} />
+      <PublicFooter />
     </>
   );
 };

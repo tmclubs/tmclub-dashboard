@@ -6,6 +6,7 @@ import { MemberBio } from '@/components/public/MemberBio';
 import { memberLandingService } from '@/services/memberLandingService';
 import { MemberLandingData } from '@/types/memberLanding';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 interface PublicMemberProfileData extends MemberLandingData {
   role: string;
@@ -146,6 +147,7 @@ const PublicMemberProfilePage: React.FC = () => {
           </div>
         </div>
       </main>
+      <PublicFooter />
     </>
   );
 };

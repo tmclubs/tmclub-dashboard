@@ -4,6 +4,7 @@ import { useCompany } from '@/lib/hooks/useCompanies';
 import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Button } from '@/components/ui';
 import { Building2, MapPin, Mail, Phone, ArrowLeft, Users } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 const CompanyDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -272,11 +273,7 @@ const CompanyDetail: React.FC = () => {
                 </section>
 
                 {/* Footer */}
-                <footer className="border-t border-gray-200 bg-white mt-12">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-gray-600 text-center">
-                        © {new Date().getFullYear()} TMClub. Semua hak dilindungi.
-                    </div>
-                </footer>
+                <PublicFooter />
             </main>
         </>
     );

@@ -5,6 +5,7 @@ import { MemberLandingData } from '@/types/memberLanding';
 import { Avatar, Card, CardHeader, CardContent, Button, LoadingSpinner, Input } from '@/components/ui';
 import { Search, User } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 export const PublicMembersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -114,6 +115,7 @@ export const PublicMembersPage: React.FC = () => {
         )}
       </div>
       </main>
+      <PublicFooter />
     </div>
   );
 };

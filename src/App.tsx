@@ -7,6 +7,8 @@ import { EventDetailPage } from './pages/dashboard/EventDetailPage';
 import { CompaniesPage } from './pages/dashboard/Companies';
 import { SurveysPage } from './pages/dashboard/Surveys';
 import { BlogPage } from './pages/dashboard/Blog';
+import { BlogCreatePage } from './pages/dashboard/BlogCreatePage';
+import { BlogEditPage } from './pages/dashboard/BlogEditPage';
 import { BlogDetailPage } from './pages/dashboard/BlogDetailPage';
 import { AnalyticsPage } from './pages/dashboard/Analytics';
 import { ProfilePage } from './pages/dashboard/Profile';
@@ -76,6 +78,8 @@ function App() {
           <Route path="companies" element={<CompaniesPage />} />
           <Route path="surveys" element={<SurveysPage />} />
           <Route path="blog" element={<BlogPage />} />
+          <Route path="blog/create" element={<BlogCreatePage />} />
+          <Route path="blog/edit/:id" element={<BlogEditPage />} />
           <Route path="blog/:slug" element={<BlogDetailPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

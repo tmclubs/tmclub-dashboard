@@ -1,5 +1,6 @@
 import React from 'react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, EmptyState } from '@/components/ui';
 import { useAbout } from '@/lib/hooks/useAbout';
 import { MarkdownRenderer } from '@/components/features/blog/MarkdownRenderer';
@@ -66,6 +67,7 @@ export const PublicAboutPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      <PublicFooter />
     </div>
   );
 };

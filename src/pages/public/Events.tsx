@@ -5,6 +5,7 @@ import { LoadingSpinner, EmptyState } from '@/components/ui';
 import { usePublicEvents } from '@/lib/hooks';
 import type { Event } from '@/types/api';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 export const PublicEventsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -85,6 +86,7 @@ export const PublicEventsPage: React.FC = () => {
           ))}
         </div>
       </div>
+      <PublicFooter />
     </div>
   );
 };

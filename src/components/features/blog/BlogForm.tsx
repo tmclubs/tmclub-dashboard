@@ -4,8 +4,13 @@ import {
   Eye,
   Save,
   Image as ImageIcon,
+  UploadCloud,
+  Youtube,
+  Link as LinkIcon,
+  FileText,
+  LayoutGrid,
 } from 'lucide-react';
-import { Button, Input, Textarea } from '@/components/ui';
+import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui';
 import { env } from '@/lib/config/env';
 import { parseYouTubeId } from '@/lib/utils/validators';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
@@ -25,7 +30,6 @@ export interface BlogFormProps {
   onSubmit: (data: BlogFormData) => void;
   loading?: boolean;
   onCancel?: () => void;
-  title?: string;
   mode?: 'create' | 'edit';
 }
 
@@ -34,7 +38,6 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   onSubmit,
   loading = false,
   onCancel,
-  title = article ? 'Edit Article' : 'Create New Article',
   mode = 'create',
 }) => {
   const normalizeUrl = (u?: string) => {
@@ -143,7 +146,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
         setFormData(prev => ({
           ...prev,
           albumsFiles: [...(prev.albumsFiles || []), ...validFiles],
-        }));
+          }));
         setAlbumsPreviews(prev => [...prev, ...newPreviews]);
       }
     } catch (error) {
@@ -172,313 +175,387 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePreview}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            Preview
-          </Button>
-          <Button
-            type="submit"
-            form="blog-form"
-            disabled={loading}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {loading ? 'Saving...' : (mode === 'create' ? 'Create' : 'Update')}
-          </Button>
-        </div>
-      </div>
+    <>
+      <form id="blog-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column: Main Content */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* Article Details Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-orange-500" />
+                Article Details
+              </CardTitle>
+              <CardDescription>
+                Basic information about your article
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Title */}
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Enter a catchy title..."
+                  required
+                  maxLength={200}
+                  className="text-lg font-medium"
+                />
+                <div className="mt-1 flex justify-between text-xs text-gray-500">
+                  <span>Ideally between 20-70 characters</span>
+                  <span>{formData.title.length}/200</span>
+                </div>
+              </div>
 
-      <form id="blog-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        {/* Title */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Title *
-          </label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => handleInputChange('title', e.target.value)}
-            placeholder="Enter article title"
-            required
-            maxLength={200}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            {formData.title.length}/200 characters
-          </p>
+              {/* Slug */}
+              <div>
+                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
+                  URL Slug
+                </label>
+                <div className="flex rounded-md shadow-sm">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    /blog/
+                  </span>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => handleInputChange('slug', e.target.value)}
+                    placeholder="url-friendly-title"
+                    className="rounded-l-none"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Leave empty to auto-generate from title. Use dashes for spaces.
+                </p>
+              </div>
+
+              {/* Summary */}
+              <div>
+                <label htmlFor="summary" className="block text-sm font-medium text-gray-700 mb-2">
+                  Summary <span className="text-red-500">*</span>
+                </label>
+                <Textarea
+                  id="summary"
+                  value={formData.summary}
+                  onChange={(e) => handleInputChange('summary', e.target.value)}
+                  placeholder="Write a brief summary or excerpt..."
+                  rows={3}
+                  required
+                  maxLength={255}
+                  className="resize-none"
+                />
+                <div className="mt-1 flex justify-between text-xs text-gray-500">
+                  <span>Appears in blog cards and search results</span>
+                  <span>{formData.summary.length}/255</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Content Editor Card */}
+          <Card className="min-h-[500px] flex flex-col">
+            <CardHeader>
+              <CardTitle>Content</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col">
+               <div className="prose-editor flex-1">
+                <TiptapEditor
+                  content={formData.content}
+                  onChange={(content) => handleInputChange('content', content)}
+                  placeholder="Start writing your amazing story..."
+                  className="min-h-[400px]"
+                  disabled={loading}
+                />
+               </div>
+            </CardContent>
+          </Card>
+
         </div>
 
-        {/* Summary */}
-        <div>
-          <label htmlFor="summary" className="block text-sm font-medium text-gray-700 mb-2">
-            Summary *
-          </label>
-          <Textarea
-            id="summary"
-            value={formData.summary}
-            onChange={(e) => handleInputChange('summary', e.target.value)}
-            placeholder="Brief description of the article"
-            rows={3}
-            required
-            maxLength={255}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            {formData.summary.length}/255 characters
-          </p>
-        </div>
+        {/* Right Column: Sidebar */}
+        <div className="space-y-8">
+          
+          {/* Publish Action Card (Sticky on desktop) */}
+          <div className="sticky top-24 z-20">
+            <Card className="border-orange-100 shadow-md">
+              <CardHeader className="bg-orange-50/50 pb-4">
+                <CardTitle className="text-lg text-orange-900">Publishing</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                  size="lg"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {loading ? 'Saving...' : (mode === 'create' ? 'Publish Article' : 'Update Article')}
+                </Button>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePreview}
+                    className="w-full"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                  </Button>
+                  {onCancel && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={onCancel}
+                      disabled={loading}
+                      className="w-full text-gray-500 hover:text-gray-900"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Slug */}
-        <div>
-          <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-            URL Slug
-          </label>
-          <Input
-            id="slug"
-            value={formData.slug}
-            onChange={(e) => handleInputChange('slug', e.target.value)}
-            placeholder="url-friendly-article-title"
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Leave empty to auto-generate from title
-          </p>
-        </div>
-
-        {/* Main Image */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Featured Image
-          </label>
-          {formData.previewImage ? (
-            <div className="relative">
-              <img
-                src={formData.previewImage}
-                alt="Featured image preview"
-                className="w-full max-h-96 object-contain rounded-lg bg-gray-50"
-                onError={() => setFormData(prev => ({ ...prev, previewImage: '' }))}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={removeImage}
-                className="absolute top-2 right-2 bg-white/90 hover:bg-white"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-              <div className="text-center">
-                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="mt-4">
-                  <label htmlFor="main-image" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-gray-900">
-                      Upload an image
-                    </span>
-                    <input
+          {/* Featured Image Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ImageIcon className="w-5 h-5" />
+                Featured Image
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {formData.previewImage ? (
+                <div className="relative group">
+                  <img
+                    src={formData.previewImage}
+                    alt="Featured image preview"
+                    className="w-full aspect-video object-cover rounded-lg border border-gray-200"
+                    onError={() => setFormData(prev => ({ ...prev, previewImage: '' }))}
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={removeImage}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer relative">
+                   <input
                       id="main-image"
                       name="main-image"
                       type="file"
-                      className="sr-only"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       accept="image/*"
                       onChange={handleImageUpload}
                     />
-                  </label>
-                  <p className="mt-1 text-xs text-gray-500">
-                    PNG, JPG, GIF up to {maxSizeText}
-                  </p>
+                  <UploadCloud className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+                  <p className="text-sm font-medium text-gray-900">Click to upload</p>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG up to {maxSizeText}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* YouTube Integration Card */}
+          <Card>
+             <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Youtube className="w-5 h-5 text-red-600" />
+                Video Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label htmlFor="youtube_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  YouTube Link
+                </label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="youtube_id"
+                    value={formData.youtube_id}
+                    onChange={(e) => handleInputChange('youtube_id', e.target.value)}
+                    placeholder="Paste YouTube URL"
+                    className="pl-9"
+                  />
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+              
+              {formData.youtube_embeded && (
+                <div className="w-full aspect-video bg-black rounded-md overflow-hidden border border-gray-200">
+                  <iframe
+                    src={formData.youtube_embeded}
+                    title="YouTube preview"
+                    className="w-full h-full"
+                    loading="lazy"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* YouTube ID */}
-        <div>
-          <label htmlFor="youtube_id" className="block text-sm font-medium text-gray-700 mb-2">
-            YouTube Video ID
-          </label>
-          <Input
-            id="youtube_id"
-            value={formData.youtube_id}
-            onChange={(e) => handleInputChange('youtube_id', e.target.value)}
-            placeholder="YouTube link atau ID (optional)"
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Tempel link YouTube, otomatis diubah menjadi ID
-          </p>
-          {formData.youtube_embeded && (
-            <div className="mt-3">
-              <div className="w-full aspect-video bg-black rounded-md overflow-hidden">
-                <iframe
-                  src={formData.youtube_embeded}
-                  title="YouTube preview"
-                  className="w-full h-full"
-                  loading="lazy"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">Preview video otomatis jika ID valid</p>
-            </div>
-          )}
-        </div>
-
-        {/* Albums Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Additional Images (Albums)
-          </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6">
-            <div className="text-center">
-              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <div className="mt-4">
-                <label htmlFor="albums-upload" className="cursor-pointer">
-                  <span className="mt-2 block text-sm font-medium text-gray-900">
-                    Upload additional images
-                  </span>
+          {/* Gallery / Albums Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5" />
+                Photo Gallery
+              </CardTitle>
+              <CardDescription>Add extra photos to your post</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors text-center relative">
                   <input
                     id="albums-upload"
                     name="albums-upload"
                     type="file"
-                    className="sr-only"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     accept="image/*"
                     multiple
                     onChange={handleAlbumsUpload}
                   />
-                </label>
-                <p className="mt-1 text-xs text-gray-500">
-                  PNG, JPG, GIF up to {maxSizeText} per file. Multiple files allowed.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Albums Previews */}
-          {albumsPreviews.length > 0 && (
-            <div className="mt-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Uploaded Images ({albumsPreviews.length})
-              </p>
-              <div className="flex gap-2 overflow-x-auto sm:overflow-visible sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
-                {albumsPreviews.map((preview, index) => (
-                  <div key={index} className="relative group flex-none w-24 h-24 sm:w-auto sm:h-auto sm:aspect-square">
-                    <img
-                      src={preview}
-                      alt={`Album image ${index + 1}`}
-                      className="w-full h-full object-contain bg-gray-50 rounded-lg"
-                      onError={() => removeAlbum(index)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeAlbum(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                  <div className="flex flex-col items-center">
+                    <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-600">Upload Photos</span>
                   </div>
-                ))}
               </div>
-            </div>
-          )}
-        </div>
 
-        {/* Content */}
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-            Content *
-          </label>
-          <TiptapEditor
-            content={formData.content}
-            onChange={(content) => handleInputChange('content', content)}
-            placeholder="Write your article content using the rich text editor"
-            className="w-full"
-            disabled={loading}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Use the rich text editor to format your article content. Content will be rendered as HTML.
-          </p>
-        </div>
+              {albumsPreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {albumsPreviews.map((preview, index) => (
+                    <div key={index} className="relative group aspect-square">
+                      <img
+                        src={preview}
+                        alt={`Gallery ${index + 1}`}
+                        className="w-full h-full object-cover rounded-md border border-gray-200"
+                        onError={() => removeAlbum(index)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeAlbum(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity transform hover:scale-110"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Form Actions */}
-        <div className="flex justify-end gap-3 pt-6 border-t">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? 'Saving...' : (mode === 'create' ? 'Create Article' : 'Update Article')}
-          </Button>
         </div>
       </form>
 
-      {/* Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black opacity-25" onClick={() => setShowPreview(false)} />
-            <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">Preview</h3>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowPreview(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+      {/* Full Screen Preview Modal */}
+            {showPreview && (
+              <div className="fixed inset-0 z-50 overflow-y-auto bg-white/95 backdrop-blur-sm">
+                <div className="min-h-screen">
+                   {/* Preview Header */}
+                  <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b px-6 py-4 flex justify-between items-center">
+                     <h3 className="text-xl font-bold text-gray-900">Article Preview</h3>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPreview(false)}
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Close Preview
+                      </Button>
+                  </div>
 
-              <article className="prose prose-lg max-w-none">
-                <h1>{formData.title || 'Article Title'}</h1>
-                {formData.summary && (
-                  <div className="text-gray-600 text-lg mb-4">{formData.summary}</div>
-                )}
-                {formData.previewImage && (
-                  <img
-                    src={formData.previewImage}
-                    alt="Featured image"
-                    className="w-full max-h-96 object-contain rounded-lg mb-6 bg-gray-50"
-                  />
-                )}
-                {formData.youtube_embeded && (
-                  <div className="w-full aspect-video bg-black rounded-md overflow-hidden mb-6">
-                    <iframe
-                      src={formData.youtube_embeded}
-                      title="YouTube preview"
-                      className="w-full h-full"
-                      loading="lazy"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
+                  {/* Preview Content */}
+                  <div className="max-w-4xl mx-auto px-6 py-12">
+                    <article className="prose prose-lg prose-orange max-w-none">
+                      <h1 className="text-4xl font-bold text-gray-900 mb-4">{formData.title || 'Untitled Article'}</h1>
+                      
+                      {formData.summary && (
+                        <p className="text-xl text-gray-600 leading-relaxed mb-8 border-l-4 border-orange-500 pl-4 italic">
+                          {formData.summary}
+                        </p>
+                      )}
+
+                      {formData.previewImage && (
+                        <div className="rounded-xl overflow-hidden shadow-lg mb-10">
+                          <img
+                            src={formData.previewImage}
+                            alt="Featured"
+                            className="w-full max-h-[600px] object-cover"
+                          />
+                        </div>
+                      )}
+
+                      {formData.youtube_embeded && (
+                        <div className="aspect-video rounded-xl overflow-hidden shadow-lg mb-10">
+                          <iframe
+                            src={formData.youtube_embeded}
+                            title="YouTube preview"
+                            className="w-full h-full"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+
+                      {formData.content ? (
+                         <MarkdownRenderer content={formData.content} />
+                      ) : (
+                        <p className="text-gray-400 italic">No content written yet...</p>
+                      )}
+
+                      {albumsPreviews.length > 0 && (
+                         <div className="mt-12 pt-12 border-t">
+                            <h3 className="text-2xl font-bold mb-6">Gallery</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                              {albumsPreviews.map((src, i) => (
+                                 <div key={i} className="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                    <img src={src} alt={`Gallery ${i}`} className="w-full h-full object-cover aspect-square" />
+                                 </div>
+                              ))}
+                            </div>
+                         </div>
+                      )}
+                    </article>
                   </div>
-                )}
-                {formData.content && (
-                  <div className="mt-6">
-                    <MarkdownRenderer content={formData.content} />
-                  </div>
-                )}
-              </article>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Sticky Footer Action Bar */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-40 flex gap-3 items-center safe-area-bottom">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePreview}
+                className="flex-1"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </Button>
+              <Button
+                type="submit"
+                form="blog-form"
+                disabled={loading}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white shadow-sm"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {loading ? 'Saving...' : 'Save'}
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+          </>
+        );
 };

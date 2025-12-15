@@ -58,7 +58,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
     editable: !disabled,
     editorProps: {
       attributes: {
-        class: 'tiptap-editor-content focus:outline-none min-h-[200px] sm:min-h-[300px] p-3 sm:p-4 text-sm sm:text-base',
+        class: 'tiptap-editor-content focus:outline-none min-h-[200px] sm:min-h-[300px] p-3 sm:p-4 text-sm sm:text-base prose prose-sm sm:prose max-w-none prose-orange focus:prose-orange',
         style: 'outline: none;',
         'data-placeholder': placeholder,
       },

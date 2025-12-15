@@ -4,6 +4,7 @@ import { EventDetail } from '@/components/features/events/EventDetail';
 import { usePublicEvent } from '@/lib/hooks/useEvents';
 import { LoadingSpinner, EmptyState } from '@/components/ui';
 import PublicNavbar from '@/components/landing/PublicNavbar';
+import PublicFooter from '@/components/landing/PublicFooter';
 
 export const PublicEventDetailPage: React.FC = () => {
   const { pk } = useParams<{ pk: string }>();
@@ -64,6 +65,7 @@ export const PublicEventDetailPage: React.FC = () => {
         showActions={false}
       />
       </div>
+      <PublicFooter />
     </>
   );
 };
