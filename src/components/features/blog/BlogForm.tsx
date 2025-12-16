@@ -228,11 +228,13 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                     onChange={(e) => handleInputChange('slug', e.target.value)}
                     placeholder="url-friendly-title"
                     className="rounded-l-none"
+                    maxLength={50}
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Leave empty to auto-generate from title. Use dashes for spaces.
-                </p>
+                <div className="mt-1 flex justify-between text-xs text-gray-500">
+                  <span>Leave empty to auto-generate from title. Use dashes for spaces.</span>
+                  <span>{(formData.slug || '').length}/50</span>
+                </div>
               </div>
 
               {/* Summary */}

@@ -16,7 +16,9 @@ export const BlogCreatePage: React.FC = () => {
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50)
+      .replace(/-+$/, '');
 
   const toApiPayload = (data: BlogFormData): ApiBlogFormData => {
     const payload: ApiBlogFormData = {
