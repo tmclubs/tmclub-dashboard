@@ -9,7 +9,7 @@ export interface ComingSoonProps {
   features?: string[];
 }
 
-const ComingSoon: React.FC<ComingSoonProps> = ({
+export const ComingSoon: React.FC<ComingSoonProps> = ({
   title,
   description = "Fitur ini sedang dalam pengembangan dan akan segera hadir!",
   icon,
