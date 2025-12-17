@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, MapPin, DollarSign, Upload, X, Loader2 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, Textarea } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, Textarea, LazyImage } from '@/components/ui';
 import { formatEventPrice } from '@/lib/utils/money';
 import { toISOWithLocalOffset } from '@/lib/utils/date';
 import { EventFormData, Event } from '@/types/api';
@@ -491,8 +491,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                 {imagePreview && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">Event Image</p>
-                    <div className="relative group inline-block">
-                      <img
+                    <div className="relative group inline-block w-full">
+                      <LazyImage
                         src={imagePreview}
                         alt="Event preview"
                         className="w-full h-32 object-cover rounded-lg"

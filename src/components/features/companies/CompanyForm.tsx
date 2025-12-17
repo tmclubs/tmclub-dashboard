@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Building, MapPin, Phone, Mail } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, RichTextEditor } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, RichTextEditor, LazyImage } from '@/components/ui';
 import { CompanyFormData, Company } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
@@ -98,7 +98,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
               <div className="flex items-center gap-6">
                 {logoPreview ? (
                   <div className="relative">
-                    <img
+                    <LazyImage
                       src={logoPreview}
                       alt="Logo preview"
                       className="w-32 h-32 rounded-lg object-contain border border-gray-200 bg-gray-50"

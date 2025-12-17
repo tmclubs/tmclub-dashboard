@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useUIStore } from '@/lib/stores';
+import { LazyImage } from '@/components/ui';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -59,10 +60,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Mobile header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center">
-              <img
+              <LazyImage
                 src="/Logo.png"
                 alt="TMClub"
                 className="h-10 w-auto"
+                showSkeleton={false}
               />
             </div>
             <button
@@ -153,10 +155,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4">
             <div className="flex items-center">
-              <img
+              <LazyImage
                 src="/Logo.png"
                 alt="TMClub"
                 className="h-10 w-auto"
+                showSkeleton={false}
               />
             </div>
           </div>

@@ -11,7 +11,7 @@ import {
   Search,
   Loader2
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, LazyImage } from '@/components/ui';
 import { BlogFormData } from '@/types/api';
 import { ContentScheduler } from './ContentScheduler';
 import { TiptapEditor } from './TiptapEditor';
@@ -353,10 +353,11 @@ export const EnhancedBlogForm: React.FC<EnhancedBlogFormProps> = ({
                   <div className="space-y-3">
                     {imagePreview ? (
                       <div className="relative w-full rounded-lg overflow-hidden">
-                        <img
+                        <LazyImage
                           src={imagePreview}
                           alt="Featured image preview"
                           className="w-full max-h-96 object-contain bg-gray-50"
+                          showSkeleton={false}
                         />
                         <button
                           type="button"

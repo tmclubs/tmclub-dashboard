@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, MapPin, Users, Eye, Edit, Trash2 } from 'lucide-react';
-import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
+import { Card, CardContent, Badge, Button, Avatar, LazyImage } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { formatEventDateTime } from '@/lib/utils/date';
 import { formatEventPrice } from '@/lib/utils/money';
@@ -62,7 +62,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Image Section */}
         {imageSrc ? (
           <div className="relative h-48 overflow-hidden">
-            <img
+            <LazyImage
               src={imageSrc}
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -178,7 +178,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {!isCompact && (
           <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
             {imageSrc ? (
-              <img
+              <LazyImage
                 src={imageSrc}
                 alt={event.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

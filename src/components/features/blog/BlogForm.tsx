@@ -10,7 +10,7 @@ import {
   FileText,
   LayoutGrid,
 } from 'lucide-react';
-import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription, LoadingSpinner } from '@/components/ui';
+import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription, LoadingSpinner, LazyImage } from '@/components/ui';
 import { env } from '@/lib/config/env';
 import { parseYouTubeId } from '@/lib/utils/validators';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
@@ -388,14 +388,14 @@ export const BlogForm: React.FC<BlogFormProps> = ({
             </CardHeader>
             <CardContent>
               {formData.previewImage ? (
-                <div className="relative group">
-                  <img
+                <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-200 group">
+                  <LazyImage
                     src={formData.previewImage}
                     alt="Featured image preview"
-                    className="w-full aspect-video object-cover rounded-lg border border-gray-200"
+                    className="w-full h-full object-cover"
                     onError={() => setFormData(prev => ({ ...prev, previewImage: '' }))}
                   />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Button
                       type="button"
                       variant="destructive"
@@ -494,7 +494,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                 <div className="grid grid-cols-3 gap-2">
                   {albumsPreviews.map((preview, index) => (
                     <div key={index} className="relative group aspect-square">
-                      <img
+                      <LazyImage
                         src={preview}
                         alt={`Gallery ${index + 1}`}
                         className="w-full h-full object-cover rounded-md border border-gray-200"
@@ -546,7 +546,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
                       {formData.previewImage && (
                         <div className="rounded-xl overflow-hidden shadow-lg mb-10">
-                          <img
+                          <LazyImage
                             src={formData.previewImage}
                             alt="Featured"
                             className="w-full max-h-[600px] object-cover"
@@ -577,7 +577,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                               {albumsPreviews.map((src, i) => (
                                  <div key={i} className="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                    <img src={src} alt={`Gallery ${i}`} className="w-full h-full object-cover aspect-square" />
+                                    <LazyImage src={src} alt={`Gallery ${i}`} className="w-full h-full object-cover aspect-square" />
                                  </div>
                               ))}
                             </div>

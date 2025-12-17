@@ -13,7 +13,7 @@ import {
   FileText,
   Eye
 } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, LazyImage } from '@/components/ui';
 import { format } from 'date-fns';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
@@ -100,10 +100,11 @@ export function AuthorProfile({
       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
         <div className="relative">
           {author.avatar ? (
-            <img
+            <LazyImage
               src={getBackendImageUrl(author.avatar)}
               alt={getFullName()}
               className="w-10 h-10 rounded-full object-cover"
+              showSkeleton={false}
             />
           ) : (
             <div className="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-semibold">
@@ -164,7 +165,7 @@ export function AuthorProfile({
         <div className="flex items-start gap-4 mb-6">
           <div className="relative">
             {author.avatar ? (
-              <img
+              <LazyImage
                 src={getBackendImageUrl(author.avatar)}
                 alt={getFullName()}
                 className="w-20 h-20 rounded-full object-cover"

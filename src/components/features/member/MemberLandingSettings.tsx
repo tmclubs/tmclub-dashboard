@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Card, CardHeader, CardContent, LoadingSpinner } from '@/components/ui';
+import { Button, Input, Card, CardHeader, CardContent, LoadingSpinner, LazyImage } from '@/components/ui';
 import { Plus, Trash2, Save, Eye, Upload, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { MemberLandingData } from '@/types/memberLanding';
@@ -193,7 +193,7 @@ export const MemberLandingSettings: React.FC<MemberLandingSettingsProps> = ({ us
               <Label>Foto Profil (Avatar)</Label>
               <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
                 {data.avatarUrl ? (
-                  <img src={getBackendImageUrl(data.avatarUrl)} alt="Avatar" className="w-full h-full object-cover" />
+                  <LazyImage src={getBackendImageUrl(data.avatarUrl)} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <User className="w-8 h-8" />
@@ -220,7 +220,7 @@ export const MemberLandingSettings: React.FC<MemberLandingSettingsProps> = ({ us
               <Label>Gambar Header</Label>
               <div className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-100">
                 {data.headerUrl ? (
-                  <img src={getBackendImageUrl(data.headerUrl)} alt="Header" className="w-full h-full object-cover" />
+                  <LazyImage src={getBackendImageUrl(data.headerUrl)} alt="Header" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     No Header Image

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/hooks/useCompanies';
-import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Button } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Button, LazyImage } from '@/components/ui';
 import { Building2, MapPin, Mail, Phone, ArrowLeft, Users } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import PublicFooter from '@/components/landing/PublicFooter';
@@ -59,7 +59,7 @@ const CompanyDetail: React.FC = () => {
                         <div className="flex flex-col sm:flex-row items-start gap-6">
                             {company.main_image_url && (
                                 <div className="flex-shrink-0">
-                                    <img
+                                    <LazyImage
                                         src={company.main_image_url}
                                         alt={company.display_name}
                                         className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border-4 border-white shadow-lg"

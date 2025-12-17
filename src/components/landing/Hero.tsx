@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui';
+import { Button, LazyImage } from '@/components/ui';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useBlogPosts } from '@/lib/hooks/useBlog';
@@ -76,14 +76,11 @@ const Hero: React.FC = () => {
                 className="relative group w-full h-full rounded-2xl overflow-hidden cursor-pointer shadow-xl transition-all hover:shadow-2xl"
                 onClick={() => navigate(`/blog/${latestPosts[0].slug}`)}
               >
-                <img
+                <LazyImage
                   src={getBackendImageUrl(latestPosts[0].main_image_url) || '/hero.png'}
                   alt={latestPosts[0].title}
-                  loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/hero.png';
-                  }}
+                  fallback={<LazyImage src="/hero.png" alt={latestPosts[0].title} className="w-full h-full object-cover" showSkeleton={false} />}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
                 
@@ -113,10 +110,9 @@ const Hero: React.FC = () => {
               </div>
             ) : (
               <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm h-full">
-                <img
+                <LazyImage
                   src="/hero.png"
                   alt="TMClub Community"
-                  loading="lazy"
                   className="w-full h-full object-cover rounded-xl"
                 />
               </div>

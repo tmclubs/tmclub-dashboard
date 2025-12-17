@@ -2,6 +2,7 @@ import React from 'react';
 import { User, Camera, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { getBackendImageUrl } from '@/lib/utils/image';
+import { LazyImage } from './LazyImage';
 
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
@@ -68,37 +69,35 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
 
     const renderAvatar = () => {
       const imageUrl = getBackendImageUrl(src);
-      if (imageUrl) {
-        return (
-          <img
-            src={imageUrl}
-            alt={alt || name || 'Avatar'}
-            className={cn(
-              'h-full w-full object-cover',
-              shape === 'circle' ? 'rounded-full' : 'rounded-md'
-            )}
-            onError={(e) => {
-              // Fallback to initials if image fails to load
-              e.currentTarget.style.display = 'none';
-              const fallback = e.currentTarget.nextElementSibling as HTMLDivElement;
-              if (fallback) fallback.style.display = 'flex';
-            }}
-          />
-        );
-      }
-
-      return (
+      
+      const fallbackContent = (
         <div
           className={cn(
             'h-full w-full flex items-center justify-center text-white font-medium',
             shape === 'circle' ? 'rounded-full' : 'rounded-md',
             name && getRandomColor(name)
           )}
-          style={{ display: imageUrl ? 'none' : 'flex' }}
         >
           {name ? getInitials(name) : <User className="h-1/2 w-1/2" />}
         </div>
       );
+
+      if (imageUrl) {
+        return (
+          <LazyImage
+            src={imageUrl}
+            alt={alt || name || 'Avatar'}
+            className={cn(
+              'h-full w-full object-cover',
+              shape === 'circle' ? 'rounded-full' : 'rounded-md'
+            )}
+            fallback={fallbackContent}
+            containerClassName="w-full h-full"
+          />
+        );
+      }
+
+      return fallbackContent;
     };
 
     return (

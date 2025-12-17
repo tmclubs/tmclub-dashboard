@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui';
+import { Card, CardHeader, CardContent, LazyImage } from '@/components/ui';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface PublicPost {
@@ -27,10 +27,9 @@ export const MemberContent: React.FC<MemberContentProps> = ({ posts }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {posts.map((post) => (
               <div key={post.id} className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition">
-                <img 
+                <LazyImage
                   src={getBackendImageUrl(post.image)} 
                   alt={post.title} 
-                  loading="lazy" 
                   className="w-full h-40 object-cover" 
                 />
                 <div className="p-4">

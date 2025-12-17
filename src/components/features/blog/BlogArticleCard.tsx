@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Edit,
   Trash2,
@@ -6,7 +6,7 @@ import {
   Star,
   Eye,
 } from 'lucide-react';
-import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
+import { Card, CardContent, Badge, Button, Avatar, LazyImage } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { getBackendImageUrl } from '@/lib/utils/image';
@@ -66,7 +66,6 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
   onDelete,
   className,
 }) => {
-  const [imageError, setImageError] = useState(false);
   const isCompact = variant === 'compact';
 
   // Helper for formatting date
@@ -80,12 +79,16 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
         <div className="flex p-3 sm:p-4 gap-4 h-full">
           {/* Image Section */}
           <div className="relative w-24 sm:w-32 aspect-square flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-             {article.featuredImage && !imageError ? (
-              <img
+            {article.featuredImage ? (
+              <LazyImage
                 src={getBackendImageUrl(article.featuredImage)}
                 alt={article.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                onError={() => setImageError(true)}
+                fallback={
+                  <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-orange-300">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
+                }
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-orange-300">
@@ -139,12 +142,16 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
     >
       {/* Image Header */}
       <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
-        {article.featuredImage && !imageError ? (
-          <img
+        {article.featuredImage ? (
+          <LazyImage
             src={getBackendImageUrl(article.featuredImage)}
             alt={article.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            onError={() => setImageError(true)}
+            fallback={
+              <div className="w-full h-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center">
+                <BookOpen className="w-12 h-12 text-white/50" />
+              </div>
+            }
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center">

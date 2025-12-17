@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, Badge, Button, LoadingSkeleton } from '@/components/ui';
+import { Card, CardContent, Badge, Button, LoadingSkeleton, LazyImage } from '@/components/ui';
 import { useBlogPosts } from '@/lib/hooks';
 import type { BlogPost } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';
@@ -60,11 +60,10 @@ const BlogPreview: React.FC = () => {
                   {(() => {
                     const imageUrl = getMainImageUrl(post);
                     return imageUrl ? (
-                      <img
+                      <LazyImage
                         src={imageUrl}
                         alt={post.title}
                         className="w-full h-32 object-cover rounded-md"
-                        loading="lazy"
                       />
                     ) : null;
                   })()}

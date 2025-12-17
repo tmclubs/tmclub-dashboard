@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Building2, MapPin, MoreHorizontal } from 'lucide-react';
-import { Table, Button } from '@/components/ui';
+import { Table, Button, LazyImage } from '@/components/ui';
 import { Company } from '@/types/api';
 
 export interface CompanyListProps {
@@ -42,7 +42,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
             {company.main_image ? (
-              <img
+              <LazyImage
                 src={company.main_image}
                 alt={company.display_name}
                 className="w-10 h-10 rounded-full object-cover"

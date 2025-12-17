@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Modal } from '@/components/ui';
+import { Button, Modal, LazyImage } from '@/components/ui';
 import { ArrowLeft, Calendar, Clock, Eye, User, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { type BlogArticle } from './BlogArticleCard';
 import { MarkdownRenderer } from './MarkdownRenderer';
@@ -160,7 +160,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
           {/* Featured Image */}
           {article.featuredImage && (
             <div className={`w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg ${article.youtubeEmbedUrl ? 'mb-4 sm:mb-6 md:mb-8' : ''}`}>
-              <img
+              <LazyImage
                 src={article.featuredImage}
                 alt={article.title}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
@@ -236,7 +236,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
                       onClick={() => openImageModal(idx)}
                       aria-label={`Buka gambar album ${idx + 1}`}
                     >
-                      <img
+                      <LazyImage
                         src={url}
                         alt={`Album ${idx + 1}`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
@@ -271,27 +271,33 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
             <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
               <div className="flex items-center gap-3 sm:gap-4">
                 {article.author.avatar ? (
-                  <img
+                  <LazyImage
                     src={getBackendImageUrl(article.author.avatar)}
                     alt={article.author.name}
                     className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.nextElementSibling as HTMLDivElement | null;
-                      if (fallback) fallback.style.display = 'flex';
-                    }}
+                    fallback={
+                      <div
+                        className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-orange-500 text-white flex items-center justify-center font-medium flex-shrink-0"
+                      >
+                        {article.author.name
+                          .split(' ')
+                          .map((w) => w.charAt(0).toUpperCase())
+                          .slice(0, 2)
+                          .join('')}
+                      </div>
+                    }
                   />
-                ) : null}
-                <div
-                  className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-orange-500 text-white flex items-center justify-center font-medium flex-shrink-0"
-                  style={{ display: article.author.avatar ? 'none' : 'flex' }}
-                >
-                  {article.author.name
-                    .split(' ')
-                    .map((w) => w.charAt(0).toUpperCase())
-                    .slice(0, 2)
-                    .join('')}
-                </div>
+                ) : (
+                  <div
+                    className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-orange-500 text-white flex items-center justify-center font-medium flex-shrink-0"
+                  >
+                    {article.author.name
+                      .split(' ')
+                      .map((w) => w.charAt(0).toUpperCase())
+                      .slice(0, 2)
+                      .join('')}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{article.author.name}</h3>
                   <p className="text-xs sm:text-sm text-gray-600">{article.author.role}</p>
@@ -314,7 +320,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
                   onTouchEnd={onTouchEnd}
                 >
                   <div className="flex items-center justify-center overflow-hidden max-h-[70vh]">
-                    <img
+                    <LazyImage
                       src={getBackendImageUrl(article.albums[activeImageIndex])}
                       alt={`Preview ${activeImageIndex + 1}`}
                       className={`w-auto rounded-lg select-none ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}

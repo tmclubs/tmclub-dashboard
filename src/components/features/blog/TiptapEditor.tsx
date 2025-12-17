@@ -86,8 +86,8 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
     const url = window.prompt('Enter image URL:');
     if (url) {
       const fullUrl = getBackendImageUrl(url);
-      // Insert HTML image tag instead of markdown
-      editor.chain().focus().insertContent(`<img src="${fullUrl}" alt="Image" style="max-width: 100%; height: auto;" />`).run();
+      // Insert HTML image tag with lazy loading
+      editor.chain().focus().insertContent(`<img src="${fullUrl}" alt="Image" style="max-width: 100%; height: auto;" loading="lazy" />`).run();
     }
   };
 

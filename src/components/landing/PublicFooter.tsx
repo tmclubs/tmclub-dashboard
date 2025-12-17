@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { LazyImage } from '@/components/ui';
 
 export const PublicFooter: React.FC = () => {
   return (
@@ -10,10 +11,11 @@ export const PublicFooter: React.FC = () => {
           {/* Brand & Description */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <img
+              <LazyImage
                 src="/Logo.png"
                 alt="TMClub"
                 className="h-10 w-auto"
+                showSkeleton={false}
               />
             </div>
             <p className="text-gray-600 text-sm leading-relaxed">

@@ -17,6 +17,7 @@ import {
 import { Button } from '../../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/Card';
 import { Badge } from '../../ui/Badge';
+import { LazyImage } from '../../ui/LazyImage';
 import { format } from 'date-fns';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
@@ -465,7 +466,7 @@ export function ContentEventIntegration({
                   <div key={media.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="aspect-video bg-gray-100 rounded mb-3 flex items-center justify-center">
                       {media.type === 'image' ? (
-                        <img src={getBackendImageUrl(media.url)} alt={media.filename} className="max-w-full max-h-full object-contain" />
+                        <LazyImage src={getBackendImageUrl(media.url)} alt={media.filename} className="max-w-full max-h-full object-contain" />
                       ) : (
                         <div className="text-center">
                           <ImageIcon className="w-8 h-8 text-gray-400 mx-auto" />

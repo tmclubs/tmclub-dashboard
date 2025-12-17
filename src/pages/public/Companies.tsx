@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCompanies } from '@/lib/hooks/useCompanies';
-import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Badge } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Badge, LazyImage } from '@/components/ui';
 import { Building2, Users, MapPin, ExternalLink } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import PublicFooter from '@/components/landing/PublicFooter';
@@ -81,7 +81,7 @@ const Companies: React.FC = () => {
                                             </div>
                                             {company.main_image_url && (
                                                 <div className="flex-shrink-0">
-                                                    <img
+                                                    <LazyImage
                                                         src={company.main_image_url}
                                                         alt={company.display_name}
                                                         className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border-2 border-gray-100 group-hover:border-orange-200 transition-colors"

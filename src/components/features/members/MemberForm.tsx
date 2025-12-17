@@ -8,7 +8,7 @@ import {
   MapPin,
   Building2,
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, LazyImage } from '@/components/ui';
 import { type Member } from './MemberCard';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
@@ -122,7 +122,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               <div className="flex items-center gap-6">
                 {imagePreview ? (
                   <div className="relative">
-                    <img
+                    <LazyImage
                       src={imagePreview}
                       alt="Profile preview"
                       className="w-24 h-24 rounded-full object-cover border border-gray-200"

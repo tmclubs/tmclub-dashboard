@@ -28,7 +28,8 @@ import {
   Modal,
   ConfirmDialog,
   LoadingSpinner,
-  EmptyState
+  EmptyState,
+  LazyImage
 } from '@/components/ui';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Event } from '@/types/api';
@@ -228,7 +229,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
       {/* Event Image */}
       {event.main_image_url && (
         <div className="relative h-64 md:h-80 rounded-lg overflow-hidden">
-          <img
+          <LazyImage
             src={getBackendImageUrl(event.main_image_url)}
             alt={event.title}
             className="w-full h-full object-cover"
@@ -389,7 +390,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {event.medias_url.map((url, index) => (
                         <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                          <img
+                          <LazyImage
                             src={url}
                             alt={`Event media ${index + 1}`}
                             className="w-full h-full object-cover"
@@ -522,7 +523,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
           ) : qrCodeData ? (
             <div className="space-y-4">
               <div className="flex justify-center">
-                <img
+                <LazyImage
                   src={qrCodeData.qr_code}
                   alt="Event QR Code"
                   className="w-64 h-64 border rounded-lg"

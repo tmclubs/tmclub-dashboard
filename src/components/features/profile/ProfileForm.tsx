@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Textarea, Card } from '@/components/ui';
+import { Button, Input, Textarea, Card, LazyImage } from '@/components/ui';
 import { Upload, Camera, User, Mail, Phone, MapPin, Calendar, Briefcase, Link2, Save } from 'lucide-react';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
@@ -146,7 +146,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <div className="relative">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
               {avatarPreview ? (
-                <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
+                <LazyImage src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <User className="w-12 h-12 text-gray-400" />
               )}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Button, Avatar } from '@/components/ui';
+import { Button, Avatar, LazyImage } from '@/components/ui';
 import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard, LogOut, Calendar } from 'lucide-react';
 import { useAuth, useLogout } from '@/lib/hooks/useAuth';
 import { usePermissions } from '../../lib/hooks/usePermissions';
@@ -100,10 +100,11 @@ const PublicNavbar: React.FC = () => {
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/" className="inline-flex items-center">
-              <img
+              <LazyImage
                 src="/Logo.png"
                 alt="TMClub"
                 className="h-8 w-auto"
+                showSkeleton={false}
               />
             </Link>
             <nav className="hidden md:flex items-center gap-1 ml-4">

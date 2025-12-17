@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { LazyImage } from '@/components/ui';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
 
@@ -289,10 +290,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
           // Images
           img: ({ src, alt }) => (
-            <img
+            <LazyImage
               src={getBackendImageUrl(src)}
               alt={alt}
               className="max-w-full h-auto rounded-lg shadow-md mb-4"
+              containerClassName="mb-4"
             />
           ),
 
