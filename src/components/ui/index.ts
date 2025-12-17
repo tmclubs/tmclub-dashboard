@@ -14,4 +14,4 @@ export * from './Select';
 export * from './Switch';
 export * from './Table';
 export * from './Textarea';
-export * from './LazyImage';
+

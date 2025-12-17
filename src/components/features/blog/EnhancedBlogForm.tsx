@@ -12,7 +12,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { BlogFormData } from '@/types/api';
 import { ContentScheduler } from './ContentScheduler';
 import { TiptapEditor } from './TiptapEditor';

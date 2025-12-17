@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input, Textarea, Card } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { Upload, Camera, User, Mail, Phone, MapPin, Calendar, Briefcase, Link2, Save } from 'lucide-react';
 import { getBackendImageUrl } from '@/lib/utils/image';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompany } from '@/lib/hooks/useCompanies';
 import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Button } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { Building2, MapPin, Mail, Phone, ArrowLeft, Users } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import PublicFooter from '@/components/landing/PublicFooter';

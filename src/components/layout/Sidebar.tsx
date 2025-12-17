@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useUIStore } from '@/lib/stores';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 
 interface SidebarProps {
   isOpen?: boolean;

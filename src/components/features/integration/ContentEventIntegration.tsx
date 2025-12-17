@@ -17,7 +17,7 @@ import {
 import { Button } from '../../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/Card';
 import { Badge } from '../../ui/Badge';
-import { LazyImage } from '../../ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { format } from 'date-fns';
 import { getBackendImageUrl } from '@/lib/utils/image';
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { LoadingSkeleton } from './Loading';
+import { LoadingSkeleton } from '@/components/ui/Loading';
 import { ImageOff } from 'lucide-react';
 
 export interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {

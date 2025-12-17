@@ -11,7 +11,7 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription, LoadingSpinner } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { env } from '@/lib/config/env';
 import { parseYouTubeId } from '@/lib/utils/validators';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, MapPin, MoreHorizontal } from 'lucide-react';
 import { Table, Button } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { Company } from '@/types/api';
 
 export interface CompanyListProps {

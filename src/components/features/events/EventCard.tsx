@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, MapPin, Users, Eye, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { cn } from '@/lib/utils/cn';
 import { formatEventDateTime } from '@/lib/utils/date';
 import { formatEventPrice } from '@/lib/utils/money';

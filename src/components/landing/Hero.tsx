@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useBlogPosts } from '@/lib/hooks/useBlog';

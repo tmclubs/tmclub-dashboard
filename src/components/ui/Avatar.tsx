@@ -2,7 +2,7 @@ import React from 'react';
 import { User, Camera, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { getBackendImageUrl } from '@/lib/utils/image';
-import { LazyImage } from './LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;

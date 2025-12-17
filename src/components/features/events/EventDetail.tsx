@@ -30,7 +30,7 @@ import {
   LoadingSpinner,
   EmptyState
 } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Event } from '@/types/api';
 import {

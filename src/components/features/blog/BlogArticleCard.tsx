@@ -7,7 +7,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { Card, CardContent, Badge, Button, Avatar } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { cn } from '@/lib/utils/cn';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { getBackendImageUrl } from '@/lib/utils/image';

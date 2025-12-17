@@ -14,7 +14,7 @@ import {
   Eye
 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { format } from 'date-fns';
 import { getBackendImageUrl } from '@/lib/utils/image';
 

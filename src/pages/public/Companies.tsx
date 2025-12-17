@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCompanies } from '@/lib/hooks/useCompanies';
 import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Badge } from '@/components/ui';
-import { LazyImage } from '@/components/ui/LazyImage';
+import { LazyImage } from '@/components/common/LazyImage';
 import { Building2, Users, MapPin, ExternalLink } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import PublicFooter from '@/components/landing/PublicFooter';
