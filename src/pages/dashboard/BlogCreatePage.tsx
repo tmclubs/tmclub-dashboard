@@ -10,6 +10,7 @@ import { type BlogFormData as ApiBlogFormData } from '@/types/api';
 export const BlogCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const createBlogMutation = useCreateBlogPost();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const slugify = (text: string) =>
     text
@@ -39,37 +40,45 @@ export const BlogCreatePage: React.FC = () => {
   };
 
   const handleSubmit = async (data: BlogFormData) => {
-    const apiPayload = toApiPayload(data);
+    setIsSubmitting(true);
+    try {
+      const apiPayload = toApiPayload(data);
 
-    // Upload main image first if a new file is provided
-    if (data.mainImageFile) {
-      try {
-        const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
-        apiPayload.main_image = String(uploadRes.pk);
-      } catch (err) {
-        console.error('Failed to upload main image', err);
+      // Upload main image first if a new file is provided
+      if (data.mainImageFile) {
+        try {
+          const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
+          apiPayload.main_image = String(uploadRes.pk);
+        } catch (err) {
+          console.error('Failed to upload main image', err);
+        }
       }
+
+      if (data.albumsFiles && data.albumsFiles.length > 0) {
+        try {
+          const uploaded = await Promise.all(
+            data.albumsFiles.map(async (f) => {
+              const res = await blogApi.uploadBlogImage(f);
+              return res.pk;
+            })
+          );
+          apiPayload.albums_id = uploaded;
+        } catch (err) {
+          console.error('Failed to upload albums', err);
+        }
+      }
+
+      createBlogMutation.mutate(apiPayload, {
+        onSuccess: () => {
+          navigate('/blog');
+        },
+        onSettled: () => {
+          setIsSubmitting(false);
+        }
+      });
+    } catch (error) {
+      setIsSubmitting(false);
     }
-
-    if (data.albumsFiles && data.albumsFiles.length > 0) {
-      try {
-        const uploaded = await Promise.all(
-          data.albumsFiles.map(async (f) => {
-            const res = await blogApi.uploadBlogImage(f);
-            return res.pk;
-          })
-        );
-        apiPayload.albums_id = uploaded;
-      } catch (err) {
-        console.error('Failed to upload albums', err);
-      }
-    }
-
-    createBlogMutation.mutate(apiPayload, {
-      onSuccess: () => {
-        navigate('/blog');
-      }
-    });
   };
 
   return (
@@ -97,7 +106,7 @@ export const BlogCreatePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <BlogForm
           onSubmit={handleSubmit}
-          loading={createBlogMutation.isPending}
+          loading={isSubmitting || createBlogMutation.isPending}
           onCancel={() => navigate('/blog')}
           mode="create"
         />

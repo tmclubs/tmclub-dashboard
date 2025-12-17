@@ -12,6 +12,7 @@ export const BlogEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const updateBlogMutation = useUpdateBlogPost();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['blog-post', id],
@@ -46,40 +47,48 @@ export const BlogEditPage: React.FC = () => {
   const handleSubmit = async (data: BlogFormData) => {
     if (!id) return;
 
-    const apiPayload = toApiPayload(data, article?.slug);
+    setIsSubmitting(true);
+    try {
+      const apiPayload = toApiPayload(data, article?.slug);
 
-    // Upload main image first if a new file is provided
-    if (data.mainImageFile) {
-      try {
-        const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
-        apiPayload.main_image = String(uploadRes.pk);
-      } catch (err) {
-        console.error('Failed to upload main image', err);
-      }
-    }
-
-    if (data.albumsFiles && data.albumsFiles.length > 0) {
-      try {
-        const uploaded = await Promise.all(
-          data.albumsFiles.map(async (f) => {
-            const res = await blogApi.uploadBlogImage(f);
-            return res.pk;
-          })
-        );
-        apiPayload.albums_id = uploaded;
-      } catch (err) {
-        console.error('Failed to upload albums', err);
-      }
-    }
-
-    updateBlogMutation.mutate(
-      { postId: Number(id), data: apiPayload },
-      {
-        onSuccess: () => {
-          navigate('/blog');
+      // Upload main image first if a new file is provided
+      if (data.mainImageFile) {
+        try {
+          const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
+          apiPayload.main_image = String(uploadRes.pk);
+        } catch (err) {
+          console.error('Failed to upload main image', err);
         }
       }
-    );
+
+      if (data.albumsFiles && data.albumsFiles.length > 0) {
+        try {
+          const uploaded = await Promise.all(
+            data.albumsFiles.map(async (f) => {
+              const res = await blogApi.uploadBlogImage(f);
+              return res.pk;
+            })
+          );
+          apiPayload.albums_id = uploaded;
+        } catch (err) {
+          console.error('Failed to upload albums', err);
+        }
+      }
+
+      updateBlogMutation.mutate(
+        { postId: Number(id), data: apiPayload },
+        {
+          onSuccess: () => {
+            navigate('/blog');
+          },
+          onSettled: () => {
+            setIsSubmitting(false);
+          }
+        }
+      );
+    } catch (error) {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -111,7 +120,7 @@ export const BlogEditPage: React.FC = () => {
         <BlogForm
           article={article}
           onSubmit={handleSubmit}
-          loading={updateBlogMutation.isPending}
+          loading={isSubmitting || updateBlogMutation.isPending}
           onCancel={() => navigate('/blog')}
           mode="edit"
         />
