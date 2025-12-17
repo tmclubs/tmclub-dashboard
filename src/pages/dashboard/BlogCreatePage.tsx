@@ -11,6 +11,7 @@ export const BlogCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const createBlogMutation = useCreateBlogPost();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [loadingMessage, setLoadingMessage] = React.useState('');
 
   const slugify = (text: string) =>
     text
@@ -41,11 +42,13 @@ export const BlogCreatePage: React.FC = () => {
 
   const handleSubmit = async (data: BlogFormData) => {
     setIsSubmitting(true);
+    setLoadingMessage('Preparing article data...');
     try {
       const apiPayload = toApiPayload(data);
 
       // Upload main image first if a new file is provided
       if (data.mainImageFile) {
+        setLoadingMessage('Uploading main image...');
         try {
           const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
           apiPayload.main_image = String(uploadRes.pk);
@@ -55,10 +58,16 @@ export const BlogCreatePage: React.FC = () => {
       }
 
       if (data.albumsFiles && data.albumsFiles.length > 0) {
+        const total = data.albumsFiles.length;
+        let completed = 0;
+        setLoadingMessage(`Uploading album images (0/${total})...`);
+
         try {
           const uploaded = await Promise.all(
             data.albumsFiles.map(async (f) => {
               const res = await blogApi.uploadBlogImage(f);
+              completed++;
+              setLoadingMessage(`Uploading album images (${completed}/${total})...`);
               return res.pk;
             })
           );
@@ -68,16 +77,19 @@ export const BlogCreatePage: React.FC = () => {
         }
       }
 
+      setLoadingMessage('Saving article...');
       createBlogMutation.mutate(apiPayload, {
         onSuccess: () => {
           navigate('/blog');
         },
         onSettled: () => {
           setIsSubmitting(false);
+          setLoadingMessage('');
         }
       });
     } catch (error) {
       setIsSubmitting(false);
+      setLoadingMessage('');
     }
   };
 
@@ -107,6 +119,7 @@ export const BlogCreatePage: React.FC = () => {
         <BlogForm
           onSubmit={handleSubmit}
           loading={isSubmitting || createBlogMutation.isPending}
+          loadingMessage={loadingMessage}
           onCancel={() => navigate('/blog')}
           mode="create"
         />

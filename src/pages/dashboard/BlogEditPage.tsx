@@ -13,6 +13,7 @@ export const BlogEditPage: React.FC = () => {
   const navigate = useNavigate();
   const updateBlogMutation = useUpdateBlogPost();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [loadingMessage, setLoadingMessage] = React.useState('');
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['blog-post', id],
@@ -48,11 +49,13 @@ export const BlogEditPage: React.FC = () => {
     if (!id) return;
 
     setIsSubmitting(true);
+    setLoadingMessage('Preparing article data...');
     try {
       const apiPayload = toApiPayload(data, article?.slug);
 
       // Upload main image first if a new file is provided
       if (data.mainImageFile) {
+        setLoadingMessage('Uploading main image...');
         try {
           const uploadRes = await blogApi.uploadBlogImage(data.mainImageFile);
           apiPayload.main_image = String(uploadRes.pk);
@@ -62,10 +65,16 @@ export const BlogEditPage: React.FC = () => {
       }
 
       if (data.albumsFiles && data.albumsFiles.length > 0) {
+        const total = data.albumsFiles.length;
+        let completed = 0;
+        setLoadingMessage(`Uploading album images (0/${total})...`);
+
         try {
           const uploaded = await Promise.all(
             data.albumsFiles.map(async (f) => {
               const res = await blogApi.uploadBlogImage(f);
+              completed++;
+              setLoadingMessage(`Uploading album images (${completed}/${total})...`);
               return res.pk;
             })
           );
@@ -75,6 +84,7 @@ export const BlogEditPage: React.FC = () => {
         }
       }
 
+      setLoadingMessage('Updating article...');
       updateBlogMutation.mutate(
         { postId: Number(id), data: apiPayload },
         {
@@ -83,11 +93,13 @@ export const BlogEditPage: React.FC = () => {
           },
           onSettled: () => {
             setIsSubmitting(false);
+            setLoadingMessage('');
           }
         }
       );
     } catch (error) {
       setIsSubmitting(false);
+      setLoadingMessage('');
     }
   };
 
@@ -121,6 +133,7 @@ export const BlogEditPage: React.FC = () => {
           article={article}
           onSubmit={handleSubmit}
           loading={isSubmitting || updateBlogMutation.isPending}
+          loadingMessage={loadingMessage}
           onCancel={() => navigate('/blog')}
           mode="edit"
         />

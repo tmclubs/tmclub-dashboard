@@ -29,6 +29,7 @@ export interface BlogFormProps {
   article?: Partial<BlogPost>;
   onSubmit: (data: BlogFormData) => void;
   loading?: boolean;
+  loadingMessage?: string;
   onCancel?: () => void;
   mode?: 'create' | 'edit';
 }
@@ -37,6 +38,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   article,
   onSubmit,
   loading = false,
+  loadingMessage,
   onCancel,
   mode = 'create',
 }) => {
@@ -204,7 +206,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                 {mode === 'create' ? 'Publishing Article...' : 'Updating Article...'}
               </h3>
               <p className="text-sm text-gray-500 max-w-[200px]">
-                Please wait while we save your changes to the server.
+                {loadingMessage || 'Please wait while we save your changes to the server.'}
               </p>
             </div>
           </div>
