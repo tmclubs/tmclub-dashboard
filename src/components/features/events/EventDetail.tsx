@@ -28,9 +28,9 @@ import {
   Modal,
   ConfirmDialog,
   LoadingSpinner,
-  EmptyState,
-  LazyImage
+  EmptyState
 } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Event } from '@/types/api';
 import {

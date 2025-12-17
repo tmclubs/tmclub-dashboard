@@ -11,7 +11,8 @@ import {
   Search,
   Loader2
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, LazyImage } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { BlogFormData } from '@/types/api';
 import { ContentScheduler } from './ContentScheduler';
 import { TiptapEditor } from './TiptapEditor';

@@ -13,7 +13,8 @@ import {
   FileText,
   Eye
 } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle, LazyImage } from '@/components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { format } from 'date-fns';
 import { getBackendImageUrl } from '@/lib/utils/image';
 

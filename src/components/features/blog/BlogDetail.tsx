@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Modal, LazyImage } from '@/components/ui';
+import { Button, Modal } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { ArrowLeft, Calendar, Clock, Eye, User, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { type BlogArticle } from './BlogArticleCard';
 import { MarkdownRenderer } from './MarkdownRenderer';

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, MapPin, DollarSign, Upload, X, Loader2 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, Textarea, LazyImage } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, Textarea } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { formatEventPrice } from '@/lib/utils/money';
 import { toISOWithLocalOffset } from '@/lib/utils/date';
 import { EventFormData, Event } from '@/types/api';

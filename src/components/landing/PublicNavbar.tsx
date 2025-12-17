@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Button, Avatar, LazyImage } from '@/components/ui';
+import { Button, Avatar } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { Menu, X, ChevronDown, User as UserIcon, LayoutDashboard, LogOut, Calendar } from 'lucide-react';
 import { useAuth, useLogout } from '@/lib/hooks/useAuth';
 import { usePermissions } from '../../lib/hooks/usePermissions';

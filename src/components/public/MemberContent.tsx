@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, LazyImage } from '@/components/ui';
+import { Card, CardHeader, CardContent } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
 export interface PublicPost {

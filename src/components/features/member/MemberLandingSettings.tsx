@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Card, CardHeader, CardContent, LoadingSpinner, LazyImage } from '@/components/ui';
+import { Button, Input, Card, CardHeader, CardContent, LoadingSpinner } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { Plus, Trash2, Save, Eye, Upload, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { MemberLandingData } from '@/types/memberLanding';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-import { LazyImage } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 
 export const PublicFooter: React.FC = () => {
   return (

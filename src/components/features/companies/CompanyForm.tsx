@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Building, MapPin, Phone, Mail } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, RichTextEditor, LazyImage } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, RichTextEditor } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { CompanyFormData, Company } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';
 

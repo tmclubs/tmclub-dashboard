@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, Badge, Button, LoadingSkeleton, LazyImage } from '@/components/ui';
+import { Card, CardContent, Badge, Button, LoadingSkeleton } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { useBlogPosts } from '@/lib/hooks';
 import type { BlogPost } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';

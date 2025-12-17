@@ -8,7 +8,8 @@ import {
   MapPin,
   Building2,
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, LazyImage } from '@/components/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { type Member } from './MemberCard';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
