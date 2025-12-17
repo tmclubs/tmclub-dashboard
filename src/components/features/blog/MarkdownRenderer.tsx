@@ -8,6 +8,7 @@ import { getBackendImageUrl } from '@/lib/utils/image';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  variant?: 'default' | 'prose';
 }
 
 // Helper function to detect if content is HTML
@@ -138,7 +139,8 @@ const htmlToMarkdown = (html: string): string => {
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
-  className = ""
+  className = "",
+  variant = 'default'
 }) => {
   // Process content based on type
   const processedContent = React.useMemo(() => {
@@ -155,6 +157,25 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   }, [content]);
 
   const needsRehypeRaw = isHtmlContent(processedContent);
+
+  if (variant === 'prose') {
+    return (
+      <div className={`prose prose-orange max-w-none dark:prose-invert ${className}`}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={needsRehypeRaw ? [rehypeRaw] : []}
+          components={{
+             // Preserve custom code block styling if desired, or let prose handle it.
+             // Letting prose handle it for now to be fully "tailwind typography".
+             // However, often images need to be handled to not overflow or be responsive if prose doesn't do it perfectly,
+             // but prose usually handles images well (w-full).
+          }}
+        >
+          {processedContent}
+        </ReactMarkdown>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>

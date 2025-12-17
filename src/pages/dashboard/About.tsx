@@ -478,7 +478,7 @@ export const AboutPage: React.FC = () => {
               <CardTitle className="text-lg">Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <MarkdownRenderer content={previewMd} />
+              <MarkdownRenderer content={previewMd} variant="prose" />
             </CardContent>
           </Card>
         </div>

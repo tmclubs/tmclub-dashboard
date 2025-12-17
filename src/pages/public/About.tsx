@@ -63,7 +63,7 @@ export const PublicAboutPage: React.FC = () => {
             <CardTitle className="text-lg">Profil dan Informasi</CardTitle>
           </CardHeader>
           <CardContent>
-            <MarkdownRenderer content={about.md} />
+            <MarkdownRenderer content={about.md} variant="prose" />
           </CardContent>
         </Card>
       </div>
