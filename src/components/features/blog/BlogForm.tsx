@@ -58,7 +58,26 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     albums_id: article?.albums_id || [],
     mainImageFile: undefined,
     previewImage: normalizeUrl(article?.main_image_url),
+    published_at: article?.published_at || '',
   });
+
+  const getLocalDateTime = (isoString?: string) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const offset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - offset);
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) {
+        handleInputChange('published_at', null);
+        return;
+    }
+    const date = new Date(val);
+    handleInputChange('published_at', date.toISOString());
+  };
 
   const maxSizeText = formatFileSize(env.maxFileSize);
 
@@ -305,6 +324,22 @@ export const BlogForm: React.FC<BlogFormProps> = ({
                 <CardTitle className="text-lg text-orange-900">Publishing</CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="published_at" className="text-sm font-medium text-gray-700">
+                    Published Date
+                  </label>
+                  <Input
+                    id="published_at"
+                    type="datetime-local"
+                    value={getLocalDateTime(formData.published_at)}
+                    onChange={handleDateChange}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Leave blank to use current time upon publishing
+                  </p>
+                </div>
+
                 <Button
                   type="submit"
                   disabled={loading}

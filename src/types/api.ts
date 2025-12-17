@@ -305,6 +305,7 @@ export interface BlogFormData {
   albums_id?: number[]; // Sesuai dengan backend serializer
   status?: 'draft' | 'published' | 'archived'; // Status for blog post
   tags?: string[]; // Tags for blog post
+  published_at?: string; // Optional published date
 }
 
 // SEO Types
