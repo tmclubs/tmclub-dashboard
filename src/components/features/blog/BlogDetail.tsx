@@ -162,7 +162,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
           {article.featuredImage && (
             <div className={`w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg ${article.youtubeEmbedUrl ? 'mb-4 sm:mb-6 md:mb-8' : ''}`}>
               <LazyImage
-                src={article.featuredImage}
+                src={getBackendImageUrl(article.featuredImage)}
                 alt={article.title}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
               />
@@ -238,7 +238,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
                       aria-label={`Buka gambar album ${idx + 1}`}
                     >
                       <LazyImage
-                        src={url}
+                        src={getBackendImageUrl(url)}
                         alt={`Album ${idx + 1}`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
