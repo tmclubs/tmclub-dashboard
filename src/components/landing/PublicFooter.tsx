@@ -65,18 +65,21 @@ export const PublicFooter: React.FC = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 <span className="text-sm text-gray-600">
-                  Jl. Gaya Motor Raya, Sunter II, Jakarta Utara 14330
+                  PT Toyota Motor Manufacturing Indonesia<br />
+                  Purchasing Division (6th Floor)<br />
+                  Jl. Laks. Yos Sudarso 10, Sunter II<br />
+                  Jakarta 14330 - Indonesia
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                <a href="mailto:info@tmclub.id" className="text-sm text-gray-600 hover:text-orange-600">
-                  info@tmclub.id
+                <a href="mailto:tmclub@toyota.co.id" className="text-sm text-gray-600 hover:text-orange-600">
+                  tmclub@toyota.co.id
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                <span className="text-sm text-gray-600">+62 21 6511228</span>
+                <span className="text-sm text-gray-600">+62 21 651 5551 ext 2689</span>
               </li>
             </ul>
           </div>
@@ -91,7 +94,7 @@ export const PublicFooter: React.FC = () => {
               <a href="#" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-orange-100 hover:text-orange-600 transition-colors">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-orange-100 hover:text-orange-600 transition-colors">
+              <a href="https://instagram.com/tmclub.id" target="_blank" rel="noopener noreferrer" title="@tmclub.id" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-orange-100 hover:text-orange-600 transition-colors">
                 <Instagram className="w-5 h-5" />
               </a>
               <a href="#" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-orange-100 hover:text-orange-600 transition-colors">
