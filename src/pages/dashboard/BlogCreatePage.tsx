@@ -31,6 +31,7 @@ export const BlogCreatePage: React.FC = () => {
       youtube_embeded: data.youtube_embeded || '',
       main_image: data.main_image ?? '',
       slug: data.slug || slugify(data.title),
+      published_at: data.published_at || new Date().toISOString(),
     };
 
     if (data.albums_id && data.albums_id.length > 0) {

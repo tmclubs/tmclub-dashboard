@@ -28,6 +28,7 @@ export const BlogEditPage: React.FC = () => {
       content: data.content,
       youtube_id: data.youtube_id || '',
       youtube_embeded: data.youtube_embeded || '',
+      published_at: data.published_at || new Date().toISOString(),
     };
 
     if (data.main_image !== undefined) {
