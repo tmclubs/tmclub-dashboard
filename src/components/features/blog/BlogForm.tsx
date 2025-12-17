@@ -10,7 +10,7 @@ import {
   FileText,
   LayoutGrid,
 } from 'lucide-react';
-import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui';
+import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription, LoadingSpinner } from '@/components/ui';
 import { env } from '@/lib/config/env';
 import { parseYouTubeId } from '@/lib/utils/validators';
 import { type BlogPost, type BlogFormData as ApiBlogFormData } from '@/types/api';
@@ -176,6 +176,21 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
   return (
     <>
+      {loading && (
+        <div className="fixed inset-0 z-[60] bg-white/50 backdrop-blur-sm flex items-center justify-center transition-all duration-200">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-200">
+            <LoadingSpinner size="lg" className="text-orange-600 w-12 h-12" />
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-bold text-gray-900">
+                {mode === 'create' ? 'Publishing Article...' : 'Updating Article...'}
+              </h3>
+              <p className="text-sm text-gray-500 max-w-[200px]">
+                Please wait while we save your changes to the server.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <form id="blog-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Column: Main Content */}

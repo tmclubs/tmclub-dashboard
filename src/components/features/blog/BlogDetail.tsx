@@ -193,7 +193,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({ article, onBack }) => {
 
             {/* Excerpt */}
             {article.excerpt && (
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-4 sm:mb-6 leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-4 sm:mb-6 leading-relaxed text-justify">
                 {article.excerpt}
               </p>
             )}

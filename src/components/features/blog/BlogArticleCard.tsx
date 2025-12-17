@@ -185,7 +185,7 @@ export const BlogArticleCard: React.FC<BlogArticleCardProps> = ({
         </h3>
 
         {/* Excerpt */}
-        <p className="text-gray-500 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
+        <p className="text-gray-500 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed text-justify">
           {article.excerpt || "No summary available for this article."}
         </p>
 

@@ -201,7 +201,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               node?.position?.start?.column !== undefined;
 
             return (
-              <p className={`text-gray-700 dark:text-gray-300 leading-relaxed ${isInListItem ? 'mb-0' : 'mb-4'}`}>
+              <p className={`text-gray-700 dark:text-gray-300 leading-relaxed text-justify ${isInListItem ? 'mb-0' : 'mb-4'}`}>
                 {children}
               </p>
             );
@@ -219,7 +219,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-gray-700 dark:text-gray-300 leading-relaxed mb-0">
+            <li className="text-gray-700 dark:text-gray-300 leading-relaxed mb-0 text-justify">
               {children}
             </li>
           ),
