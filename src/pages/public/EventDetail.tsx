@@ -63,6 +63,7 @@ export const PublicEventDetailPage: React.FC = () => {
         event={event}
         onBack={handleBack}
         showActions={false}
+        showQuickActions={false}
       />
       </div>
       <PublicFooter />

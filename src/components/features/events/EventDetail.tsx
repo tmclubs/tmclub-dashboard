@@ -52,6 +52,7 @@ export interface EventDetailProps {
   onDelete?: (event: Event) => void;
   onRegister?: (event: Event) => void;
   showActions?: boolean;
+  showQuickActions?: boolean;
   loading?: boolean;
 }
 
@@ -62,6 +63,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({
   onDelete,
   onRegister,
   showActions = true,
+  showQuickActions = true,
   loading = false
 }) => {
   const navigate = useNavigate();
@@ -387,11 +389,14 @@ export const EventDetail: React.FC<EventDetailProps> = ({
                     </Button>
                   </div>
                   {event.medias_url && event.medias_url.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3">
                       {event.medias_url.map((url, index) => (
-                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-sm overflow-hidden group cursor-pointer hover:opacity-90 transition-opacity"
+                        >
                           <LazyImage
-                            src={url}
+                            src={getBackendImageUrl(url)}
                             alt={`Event media ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
@@ -430,51 +435,53 @@ export const EventDetail: React.FC<EventDetailProps> = ({
         {/* Right Column - Quick Actions */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => setShowQRCode(true)}
-                disabled={qrLoading}
-              >
-                <QrCode className="w-4 h-4 mr-2" />
-                Show QR Code
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={handleExportRegistrants}
-                disabled={exportRegistrants.isPending}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export Registrants
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={handleDownloadCertificate}
-                disabled={downloadCertificate.isPending}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Certificate
-              </Button>
-              {!isPast && (
+          {showQuickActions && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={handleMarkAsDone}
-                  disabled={setEventDone.isPending}
+                  onClick={() => setShowQRCode(true)}
+                  disabled={qrLoading}
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Mark as Done
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Show QR Code
                 </Button>
-              )}
-            </CardContent>
-          </Card>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={handleExportRegistrants}
+                  disabled={exportRegistrants.isPending}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Registrants
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={handleDownloadCertificate}
+                  disabled={downloadCertificate.isPending}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Certificate
+                </Button>
+                {!isPast && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={handleMarkAsDone}
+                    disabled={setEventDone.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Done
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Event Status */}
           <Card>
