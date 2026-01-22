@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { companiesApi } from '@/lib/api/companies';
-import { CompanyFormData, CompanyInviteData } from '@/types/api';
+import { companiesApi, companyProductsApi } from '@/lib/api/companies';
+import { CompanyFormData, CompanyInviteData, CompanyProductFormData } from '@/types/api';
 
 // Hook for getting all companies
 export const useCompanies = () => {
@@ -155,6 +155,71 @@ export const useSetCompanyVA = () => {
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Gagal menyet Virtual Account');
+    },
+  });
+};
+
+// Hook for getting company products
+export const useCompanyProducts = (companyId: number) => {
+  return useQuery({
+    queryKey: ['company-products', companyId],
+    queryFn: () => companyProductsApi.getProducts(companyId),
+    enabled: !!companyId,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Hook for creating company product
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ companyId, data }: { companyId: number; data: CompanyProductFormData }) =>
+      companyProductsApi.createProduct(companyId, data),
+    onSuccess: (_, { companyId }) => {
+      queryClient.invalidateQueries({ queryKey: ['company-products', companyId] });
+      queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
+      toast.success('Produk berhasil dibuat!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal membuat produk');
+    },
+  });
+};
+
+// Hook for updating company product
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ companyId, productId, data }: { companyId: number; productId: number; data: Partial<CompanyProductFormData> }) =>
+      companyProductsApi.updateProduct(companyId, productId, data),
+    onSuccess: (_, { companyId }) => {
+      queryClient.invalidateQueries({ queryKey: ['company-products', companyId] });
+      queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
+      toast.success('Produk berhasil diperbarui!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal memperbarui produk');
+    },
+  });
+};
+
+// Hook for deleting company product
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ companyId, productId }: { companyId: number; productId: number }) =>
+      companyProductsApi.deleteProduct(companyId, productId),
+    onSuccess: (_, { companyId }) => {
+      queryClient.invalidateQueries({ queryKey: ['company-products', companyId] });
+      queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
+      toast.success('Produk berhasil dihapus!');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Gagal menghapus produk');
     },
   });
 };

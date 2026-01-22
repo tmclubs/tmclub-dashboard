@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Company, CompanyFormData, CompanyInviteData } from '@/types/api';
+import { Company, CompanyFormData, CompanyInviteData, CompanyProduct, CompanyProductFormData } from '@/types/api';
 
 export const companiesApi = {
   // Get all companies
@@ -72,5 +72,68 @@ export const companiesApi = {
     return apiClient.post(`/company/${companyId}/set-va/`, {
       transaction_number: transactionNumber,
     });
+  },
+};
+
+// Company Products API
+export const companyProductsApi = {
+  // Get products for a company
+  async getProducts(companyId: number): Promise<CompanyProduct[]> {
+    const response = await apiClient.get<{results: CompanyProduct[]}>(`/company/${companyId}/products/`);
+    return response.results || response;
+  },
+
+  // Get single product
+  async getProduct(companyId: number, productId: number): Promise<CompanyProduct> {
+    return apiClient.get(`/company/${companyId}/products/${productId}/`);
+  },
+
+  // Create product
+  async createProduct(companyId: number, data: CompanyProductFormData): Promise<CompanyProduct> {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (key === 'images' && Array.isArray(value)) {
+          // Handle multiple images
+          value.forEach((file, index) => {
+            if (file instanceof File) {
+              formData.append(`images`, file);
+            }
+          });
+        } else if (typeof value !== 'object') {
+          formData.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.post(`/company/${companyId}/products/`, formData);
+  },
+
+  // Update product
+  async updateProduct(companyId: number, productId: number, data: Partial<CompanyProductFormData>): Promise<CompanyProduct> {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (key === 'images' && Array.isArray(value)) {
+          // Handle multiple images
+          value.forEach((file, index) => {
+            if (file instanceof File) {
+              formData.append(`images`, file);
+            }
+          });
+        } else if (typeof value !== 'object') {
+          formData.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.put(`/company/${companyId}/products/${productId}/`, formData);
+  },
+
+  // Delete product
+  async deleteProduct(companyId: number, productId: number): Promise<void> {
+    return apiClient.delete(`/company/${companyId}/products/${productId}/`);
   },
 };

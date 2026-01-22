@@ -7,3 +7,6 @@ export type { CompanyFormProps } from './CompanyForm';
 
 export { CompanyList } from './CompanyList';
 export type { CompanyListProps } from './CompanyList';
+
+export { CompanyProductForm } from './CompanyProductForm';
+export type { CompanyProductFormProps } from './CompanyProductForm';

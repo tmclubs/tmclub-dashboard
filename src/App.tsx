@@ -5,6 +5,7 @@ import { Dashboard } from './pages/dashboard/Dashboard';
 import { EventsPage } from './pages/dashboard/Events';
 import { EventDetailPage } from './pages/dashboard/EventDetailPage';
 import { CompaniesPage } from './pages/dashboard/Companies';
+import { CompanyDetailPage } from './pages/dashboard/CompanyDetailPage';
 import { SurveysPage } from './pages/dashboard/Surveys';
 import { BlogPage } from './pages/dashboard/Blog';
 import { BlogCreatePage } from './pages/dashboard/BlogCreatePage';
@@ -76,6 +77,7 @@ function App() {
           <Route path="events" element={<EventsPage />} />
           <Route path="events/:pk" element={<EventDetailPage />} />
           <Route path="companies" element={<CompaniesPage />} />
+          <Route path="companies/:id" element={<CompanyDetailPage />} />
           <Route path="surveys" element={<SurveysPage />} />
           <Route path="blog" element={<BlogPage />} />
           <Route path="blog/create" element={<BlogCreatePage />} />

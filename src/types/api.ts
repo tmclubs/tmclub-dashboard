@@ -193,8 +193,11 @@ export interface Company {
   contact: string;
   email: string;
   city: string;
+  president_director?: string | null; // NEW: President Director field
+  products_count?: number; // NEW: Products count field
   members_count?: number; // Computed field
   members?: CompanyMember[]; // Only in detail view
+  products?: CompanyProduct[]; // NEW: Products list
 }
 
 export interface CompanyMember {
@@ -203,6 +206,27 @@ export interface CompanyMember {
   email: string;
   is_pic: boolean;
   invited_at: string;
+}
+
+export interface CompanyProduct {
+  pk: number;
+  name: string;
+  description?: string;
+  category?: string;
+  image?: any;
+  image_url?: string | null;
+  images_url?: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyProductFormData {
+  name: string;
+  description?: string;
+  category?: string;
+  image?: string | File;
+  images?: (string | File)[];
 }
 
 export interface CompanyFormData {
@@ -214,6 +238,8 @@ export interface CompanyFormData {
   contact: string;
   email: string;
   city: string;
+  president_director?: string;
+  tempProducts?: CompanyProductFormData[];
 }
 
 export interface CompanyInviteData {

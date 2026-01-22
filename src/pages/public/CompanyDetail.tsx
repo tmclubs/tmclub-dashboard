@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCompany } from '@/lib/hooks/useCompanies';
+import { useCompany, useCompanyProducts } from '@/lib/hooks/useCompanies';
 import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Button } from '@/components/ui';
 import { LazyImage } from '@/components/common/LazyImage';
-import { Building2, MapPin, Mail, Phone, ArrowLeft, Users } from 'lucide-react';
+import { Building2, MapPin, Mail, Phone, ArrowLeft, Users, UserCog, Package } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import PublicFooter from '@/components/landing/PublicFooter';
 
@@ -11,6 +11,16 @@ const CompanyDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { data: company, isLoading, error } = useCompany(Number(id));
+    const { data: products } = useCompanyProducts(Number(id));
+
+    // Merge products into company data
+    const companyWithData = useMemo(() => {
+        if (!company) return null;
+        return {
+            ...company,
+            products: products || [],
+        };
+    }, [company, products]);
 
     if (isLoading) {
         return (
@@ -23,7 +33,7 @@ const CompanyDetail: React.FC = () => {
         );
     }
 
-    if (error || !company) {
+    if (error || !companyWithData) {
         return (
             <>
                 <PublicNavbar />
@@ -58,28 +68,28 @@ const CompanyDetail: React.FC = () => {
                         </Button>
 
                         <div className="flex flex-col sm:flex-row items-start gap-6">
-                            {company.main_image_url && (
+                            {companyWithData.main_image_url && (
                                 <div className="flex-shrink-0">
                                     <LazyImage
-                                        src={company.main_image_url}
-                                        alt={company.display_name}
+                                        src={companyWithData.main_image_url}
+                                        alt={companyWithData.display_name}
                                         className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border-4 border-white shadow-lg"
                                     />
                                 </div>
                             )}
                             <div className="flex-1">
                                 <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-                                    {company.display_name}
+                                    {companyWithData.display_name}
                                 </h1>
                                 <div className="flex flex-wrap items-center gap-4 text-white/90">
                                     <div className="flex items-center gap-2">
                                         <MapPin className="w-5 h-5" />
-                                        <span>{company.city}</span>
+                                        <span>{companyWithData.city}</span>
                                     </div>
-                                    {company.members_count !== undefined && (
+                                    {companyWithData.members_count !== undefined && (
                                         <div className="flex items-center gap-2">
                                             <Users className="w-5 h-5" />
-                                            <span>{company.members_count} Members</span>
+                                            <span>{companyWithData.members_count} Members</span>
                                         </div>
                                     )}
                                 </div>
@@ -90,6 +100,23 @@ const CompanyDetail: React.FC = () => {
 
                 {/* Content */}
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                    {/* President Director Card */}
+                    {companyWithData.president_director && (
+                        <Card className="mb-6 border-l-4 border-l-orange-500">
+                            <CardContent className="py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                                        <UserCog className="w-6 h-6 text-orange-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500 font-medium">Presiden Direktur</p>
+                                        <p className="text-lg font-semibold text-gray-900">{companyWithData.president_director}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Content */}
                         <div className="lg:col-span-2 space-y-6">
@@ -103,13 +130,13 @@ const CompanyDetail: React.FC = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                        {company.description || 'Tidak ada deskripsi tersedia.'}
+                                        {companyWithData.description || 'Tidak ada deskripsi tersedia.'}
                                     </p>
                                 </CardContent>
                             </Card>
 
                             {/* Address */}
-                            {company.address && (
+                            {companyWithData.address && (
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
@@ -118,8 +145,56 @@ const CompanyDetail: React.FC = () => {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <p className="text-gray-700">{company.address}</p>
-                                        <p className="text-gray-500 text-sm mt-1">{company.city}</p>
+                                        <p className="text-gray-700">{companyWithData.address}</p>
+                                        <p className="text-gray-500 text-sm mt-1">{companyWithData.city}</p>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Products Gallery Section */}
+                            {companyWithData.products && companyWithData.products.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Package className="w-5 h-5 text-orange-600" />
+                                                Produk & Layanan
+                                            </CardTitle>
+                                            <span className="text-sm text-gray-500">
+                                                {companyWithData.products_count || companyWithData.products.length} Produk
+                                            </span>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {/* Instagram-style Grid Layout */}
+                                        <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3">
+                                            {companyWithData.products.map((product) => (
+                                                <div
+                                                    key={product.pk}
+                                                    className="relative aspect-square rounded-sm overflow-hidden group cursor-pointer hover:opacity-90 transition-opacity"
+                                                >
+                                                    <LazyImage
+                                                        src={product.image_url || '/placeholder-product.png'}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    {/* Product Info Overlay on Hover */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                                                            <p className="text-white font-semibold text-sm truncate">{product.name}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {companyWithData.products_count && companyWithData.products_count > 9 && (
+                                            <div className="text-center mt-4">
+                                                <Button variant="outline" size="sm">
+                                                    Lihat Semua Produk ({companyWithData.products_count})
+                                                </Button>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             )}
@@ -133,14 +208,14 @@ const CompanyDetail: React.FC = () => {
                                             Anggota Perusahaan
                                         </CardTitle>
                                         <span className="text-sm text-gray-500">
-                                            {company.members_count || 0} Anggota
+                                            {companyWithData.members_count || 0} Anggota
                                         </span>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    {company.members && company.members.length > 0 ? (
+                                    {companyWithData.members && companyWithData.members.length > 0 ? (
                                         <div className="space-y-3">
-                                            {company.members.slice(0, 10).map((member) => (
+                                            {companyWithData.members.slice(0, 10).map((member) => (
                                                 <div
                                                     key={member.id}
                                                     className="flex items-center gap-4 p-4 rounded-lg border border-gray-100 hover:border-orange-200 hover:bg-orange-50/50 transition-all"
@@ -197,10 +272,10 @@ const CompanyDetail: React.FC = () => {
                                             ))}
 
                                             {/* Show more indicator */}
-                                            {company.members.length > 10 && (
+                                            {companyWithData.members.length > 10 && (
                                                 <div className="text-center pt-2">
                                                     <p className="text-sm text-gray-500">
-                                                        Showing 10 of {company.members.length} members
+                                                        Showing 10 of {companyWithData.members.length} members
                                                     </p>
                                                 </div>
                                             )}
@@ -222,7 +297,7 @@ const CompanyDetail: React.FC = () => {
                                     <CardTitle className="text-lg">Informasi Kontak</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    {company.email && (
+                                    {companyWithData.email && (
                                         <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                                                 <Mail className="w-5 h-5 text-orange-600" />
@@ -230,16 +305,16 @@ const CompanyDetail: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm text-gray-500">Email</p>
                                                 <a
-                                                    href={`mailto:${company.email}`}
+                                                    href={`mailto:${companyWithData.email}`}
                                                     className="text-sm font-medium text-gray-900 hover:text-orange-600 break-all"
                                                 >
-                                                    {company.email}
+                                                    {companyWithData.email}
                                                 </a>
                                             </div>
                                         </div>
                                     )}
 
-                                    {company.contact && (
+                                    {companyWithData.contact && (
                                         <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                                                 <Phone className="w-5 h-5 text-orange-600" />
@@ -247,23 +322,23 @@ const CompanyDetail: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm text-gray-500">Telepon</p>
                                                 <a
-                                                    href={`tel:${company.contact}`}
+                                                    href={`tel:${companyWithData.contact}`}
                                                     className="text-sm font-medium text-gray-900 hover:text-orange-600"
                                                 >
-                                                    {company.contact}
+                                                    {companyWithData.contact}
                                                 </a>
                                             </div>
                                         </div>
                                     )}
 
-                                    {company.city && (
+                                    {companyWithData.city && (
                                         <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                                                 <MapPin className="w-5 h-5 text-orange-600" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm text-gray-500">Kota</p>
-                                                <p className="text-sm font-medium text-gray-900">{company.city}</p>
+                                                <p className="text-sm font-medium text-gray-900">{companyWithData.city}</p>
                                             </div>
                                         </div>
                                     )}

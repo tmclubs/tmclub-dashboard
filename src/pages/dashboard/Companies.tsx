@@ -7,9 +7,11 @@ import {
 import { CompanyList } from '@/components/features/companies/CompanyList';
 import { Button, ConfirmDialog, EmptyState, LoadingSpinner, Input, Badge } from '@/components/ui';
 import { Plus, Search, Filter, Grid3x3, List, Building2, Mail, Phone, MapPin } from 'lucide-react';
-import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/lib/hooks/useCompanies';
+import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/hooks/useCompanies';
 import { useProfile } from '@/lib/hooks/useAuth';
-import { Company as APICompany, CompanyFormData } from '@/types/api';
+import { Company as APICompany, CompanyFormData, CompanyProductFormData } from '@/types/api';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 // Adapter function to convert API Company to CompanyCard format
 const adaptCompanyForCard = (apiCompany: APICompany): CompanyCardType => ({
@@ -43,6 +45,7 @@ export const CompaniesPage: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<APICompany | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   // API hooks
   const { data: userProfile } = useProfile();
@@ -51,12 +54,35 @@ export const CompaniesPage: React.FC = () => {
   const updateCompanyMutation = useUpdateCompany();
   const deleteCompanyMutation = useDeleteCompany();
 
+  // Product hooks - only load when editing a company
+  const { data: products = [] } = useCompanyProducts(selectedCompany?.pk || 0);
+  const createProductMutation = useCreateProduct();
+  const updateProductMutation = useUpdateProduct();
+  const deleteProductMutation = useDeleteProduct();
+
   const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
   const handleCreateCompany = async (data: CompanyFormData) => {
-    createCompanyMutation.mutate(data, {
-      onSuccess: () => {
+    const { tempProducts, ...companyData } = data;
+
+    createCompanyMutation.mutate(companyData, {
+      onSuccess: async (newCompany) => {
+        // Create products if any
+        if (tempProducts && tempProducts.length > 0) {
+          for (const product of tempProducts) {
+            try {
+              await createProductMutation.mutateAsync({
+                companyId: newCompany.pk,
+                data: product
+              });
+            } catch (error) {
+              console.error('Failed to create product:', error);
+              toast.error(`Failed to create product: ${product.name}`);
+            }
+          }
+        }
         setShowForm(false);
+        toast.success('Company created successfully!');
       }
     });
   };
@@ -86,12 +112,47 @@ export const CompaniesPage: React.FC = () => {
     });
   };
 
+  const handleAddProduct = async (data: CompanyProductFormData) => {
+    if (!selectedCompany) return;
+
+    createProductMutation.mutate(
+      { companyId: selectedCompany.pk, data },
+      {
+        onSuccess: () => {
+          toast.success('Product added successfully!');
+        },
+      }
+    );
+  };
+
+  const handleUpdateProduct = async (productId: number, data: Partial<CompanyProductFormData>) => {
+    if (!selectedCompany) return;
+
+    updateProductMutation.mutate(
+      { companyId: selectedCompany.pk, productId, data },
+      {
+        onSuccess: () => {
+          toast.success('Product updated successfully!');
+        },
+      }
+    );
+  };
+
+  const handleDeleteProduct = async (productId: number) => {
+    if (!selectedCompany) return;
+
+    deleteProductMutation.mutate(
+      { companyId: selectedCompany.pk, productId },
+      {
+        onSuccess: () => {
+          toast.success('Product deleted successfully!');
+        },
+      }
+    );
+  };
+
   const handleViewCompany = (company: CompanyCardType) => {
-    const apiCompany = companies.find(c => c.pk === company.pk);
-    if (apiCompany) {
-      setSelectedCompany(apiCompany);
-      console.log('View company:', apiCompany);
-    }
+    navigate(`/dashboard/companies/${company.pk}`);
   };
 
   const handleEditCompany = (company: CompanyCardType) => {
@@ -180,6 +241,10 @@ export const CompaniesPage: React.FC = () => {
         <CompanyForm
           company={selectedCompany || undefined}
           onSubmit={selectedCompany ? handleUpdateCompany : handleCreateCompany}
+          onProductAdd={selectedCompany ? handleAddProduct : undefined}
+          onProductUpdate={selectedCompany ? handleUpdateProduct : undefined}
+          onProductDelete={selectedCompany ? handleDeleteProduct : undefined}
+          products={products}
           loading={selectedCompany ? updateCompanyMutation.isPending : createCompanyMutation.isPending}
           onCancel={() => {
             setShowForm(false);
