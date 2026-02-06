@@ -15,7 +15,9 @@ import {
   X,
 } from 'lucide-react';
 import { useUIStore } from '@/lib/stores';
+import { useAuthStore } from '@/lib/stores/authStore';
 import { LazyImage } from '@/components/common/LazyImage';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -23,14 +25,14 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Events', href: '/dashboard/events', icon: Calendar },
-  { name: 'Members', href: '/dashboard/companies', icon: Building2 },
-  { name: 'Surveys (Coming Soon)', href: '/dashboard/surveys', icon: ClipboardList },
-  { name: 'Blog', href: '/dashboard/blog', icon: FileText },
-  { name: 'About', href: '/dashboard/about', icon: Info },
-  { name: 'Users', href: '/dashboard/members', icon: Users },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'PIC', 'member'] },
+  { name: 'Events', href: '/dashboard/events', icon: Calendar, roles: ['admin', 'member'] },
+  { name: 'Companies', href: '/dashboard/companies', icon: Building2, roles: ['admin', 'PIC'] },
+  { name: 'Surveys (Coming Soon)', href: '/dashboard/surveys', icon: ClipboardList, roles: ['admin'] },
+  { name: 'Blog', href: '/dashboard/blog', icon: FileText, roles: ['admin'] },
+  { name: 'About', href: '/dashboard/about', icon: Info, roles: ['admin'] },
+  { name: 'User Management', href: '/dashboard/members', icon: Users, roles: ['admin', 'PIC'] },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3, roles: ['admin'] },
 ];
 
 const secondaryNavigation = [
@@ -40,6 +42,8 @@ const secondaryNavigation = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { sidebarOpen: storeSidebarOpen, setSidebarOpen } = useUIStore();
+  const { user } = useAuthStore();
+  const { getUserCompanyId } = usePermissions();
   const isSidebarOpen = isOpen !== undefined ? isOpen : storeSidebarOpen;
 
   const handleClose = () => {
@@ -49,6 +53,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       setSidebarOpen(false);
     }
   };
+
+  const userRole = user?.role || '';
+  const companyId = getUserCompanyId();
+
+  const filteredNavigation = navigation
+    .filter(item => {
+      if (userRole === 'admin' || userRole === 'superadmin') return true;
+      if (!item.roles) return true;
+      return item.roles.includes(userRole);
+    })
+    .map(item => {
+      // Update Company link and name for PIC
+      if (item.name === 'Companies' && userRole === 'PIC') {
+        return {
+          ...item,
+          name: 'Company',
+          href: companyId ? `/dashboard/companies/${companyId}` : '/dashboard/companies'
+        };
+      }
+      return item;
+    });
+
   return (
     <>
       {/* Mobile sidebar */}
@@ -78,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Mobile Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
             <div className="space-y-1">
-              {navigation.map((item) => (
+              {filteredNavigation.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}
@@ -167,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Navigation */}
           <nav className="mt-8 flex-1 px-2 space-y-1">
             <div className="space-y-1">
-              {navigation.map((item) => (
+              {filteredNavigation.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}

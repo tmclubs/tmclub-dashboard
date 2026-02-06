@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
   };
   requireAdmin?: boolean;
   requireSuperAdmin?: boolean;
+  requireCompanyAdmin?: boolean;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -19,20 +20,25 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredPermission,
   requireAdmin = false,
   requireSuperAdmin = false,
+  requireCompanyAdmin = false,
 }) => {
   // Build permissions array based on requirements
   const permissions: string[] = [];
-  
+
   if (requiredPermission) {
     permissions.push(`${requiredPermission.resource}:${requiredPermission.action}`);
   }
-  
+
   if (requireAdmin) {
     permissions.push('admin');
   }
-  
+
   if (requireSuperAdmin) {
     permissions.push('super_admin');
+  }
+
+  if (requireCompanyAdmin) {
+    permissions.push('company_admin');
   }
 
   const options: UseAuthMiddlewareOptions = {
@@ -90,10 +96,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             {requireSuperAdmin
               ? "You need super admin privileges to access this page."
               : requireAdmin
-              ? "You need admin privileges to access this page."
-              : requiredPermission
-              ? `You don't have permission to ${requiredPermission.action} ${requiredPermission.resource}.`
-              : "You don't have permission to access this page."
+                ? "You need admin privileges to access this page."
+                : requireCompanyAdmin
+                  ? "You need company admin privileges to access this page."
+                  : requiredPermission
+                    ? `You don't have permission to ${requiredPermission.action} ${requiredPermission.resource}.`
+                    : "You don't have permission to access this page."
             }
           </p>
           <button

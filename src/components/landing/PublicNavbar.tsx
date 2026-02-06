@@ -13,7 +13,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 const PublicNavbar: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const logout = useLogout();
-  const { isAdmin } = usePermissions();
+  const { isCompanyAdmin } = usePermissions();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -186,7 +186,7 @@ const PublicNavbar: React.FC = () => {
                       <Calendar className="w-4 h-4 mr-2" />
                       Event Saya
                     </NavLink>
-                    {isAdmin() && (
+                    {isCompanyAdmin() && (
                       <NavLink
                         to="/dashboard"
                         className={({ isActive }) => `flex items-center px-4 py-2 text-sm ${isActive ? 'text-orange-600' : 'text-gray-700'} hover:bg-gray-100`}
@@ -266,7 +266,7 @@ const PublicNavbar: React.FC = () => {
                     <Link to="/member/events" className="inline-flex" onClick={() => setOpen(false)}>
                       <Button variant="outline" size="sm" className="w-full">Event Saya</Button>
                     </Link>
-                    {isAdmin() && (
+                    {isCompanyAdmin() && (
                       <Link to="/dashboard" className="inline-flex" onClick={() => setOpen(false)}>
                         <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">Dashboard</Button>
                       </Link>

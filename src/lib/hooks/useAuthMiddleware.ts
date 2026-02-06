@@ -36,16 +36,16 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
 
   const navigate = useNavigate();
   const tokenManager = getTokenManager();
-  
+
   // Use refs for stable references
   const navigateRef = useRef(navigate);
   const tokenManagerRef = useRef(tokenManager);
-  
+
   // Update refs when values change
   useEffect(() => {
     navigateRef.current = navigate;
   }, [navigate]);
-  
+
   useEffect(() => {
     tokenManagerRef.current = tokenManager;
   }, [tokenManager]);
@@ -82,6 +82,9 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
       if (p === 'super_admin') {
         return role === USER_ROLES.SUPER_ADMIN;
       }
+      if (p === 'company_admin') {
+        return role === USER_ROLES.COMPANY_ADMIN || role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN;
+      }
       const parts = p.split(':');
       if (parts.length !== 2) return false;
       const [resource, action] = parts as [string, typeof PERMISSION_LEVELS[keyof typeof PERMISSION_LEVELS]];
@@ -116,7 +119,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
       // Check token validity
       const isValidAuth = await checkAuthentication();
       console.debug('[AuthMiddleware] isValidAuth', isValidAuth);
-      
+
       if (!isValidAuth) {
         // Token is invalid or expired
         setState(prev => ({
@@ -147,7 +150,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
 
       // Check permissions
       const hasPermissions = checkPermissions(user, permissions);
-      
+
       if (!hasPermissions) {
         setState(prev => ({
           ...prev,
@@ -226,7 +229,7 @@ const useAuthMiddleware = (options: UseAuthMiddlewareOptions = {}): AuthMiddlewa
         hasRequiredPermissions: false,
         error: 'Session expired'
       }));
-      
+
       if (onTokenExpiry) onTokenExpiry();
       // Redirect to login
       const currentLocation = window.location.pathname + window.location.search;

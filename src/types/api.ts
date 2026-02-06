@@ -194,6 +194,8 @@ export interface Company {
   email: string;
   city: string;
   president_director?: string | null; // NEW: President Director field
+  president_director_image?: any;
+  president_director_image_url?: string | null;
   products_count?: number; // NEW: Products count field
   members_count?: number; // Computed field
   members?: CompanyMember[]; // Only in detail view

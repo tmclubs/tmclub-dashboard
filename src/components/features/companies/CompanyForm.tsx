@@ -39,6 +39,11 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
     president_director: company?.president_director || '',
   });
 
+  const [pdImagePreview, setPdImagePreview] = useState<string>(
+    company?.president_director_image_url || ''
+  );
+  const pdFileInputRef = useRef<HTMLInputElement>(null);
+
   const [logoPreview, setLogoPreview] = useState<string>(
     company?.main_image && typeof company.main_image === 'string'
       ? getBackendImageUrl(company.main_image) || ''
@@ -92,6 +97,26 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
     setFormData(prev => ({ ...prev, main_image: '', logo_file: undefined }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handlePdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPdImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setFormData(prev => ({ ...prev, president_director_image: file }));
+    }
+  };
+
+  const removePdImage = () => {
+    setPdImagePreview('');
+    setFormData(prev => ({ ...prev, president_director_image: undefined }));
+    if (pdFileInputRef.current) {
+      pdFileInputRef.current.value = '';
     }
   };
 
@@ -341,7 +366,55 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                     onChange={handleInputChange('president_director')}
                     leftIcon={<UserCog className="w-4 h-4" />}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Optional: Name of the President Director</p>
+
+                  {/* President Director Photo */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      President Director Photo
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {pdImagePreview ? (
+                        <div className="relative">
+                          <LazyImage
+                            src={pdImagePreview}
+                            alt="PD Preview"
+                            className="w-20 h-20 rounded-full object-cover border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={removePdImage}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
+                          <UserCog className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+
+                      <div>
+                        <input
+                          ref={pdFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePdImageUpload}
+                          className="hidden"
+                          id="pd-image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => pdFileInputRef.current?.click()}
+                          leftIcon={<Upload className="w-3 h-3" />}
+                        >
+                          {pdImagePreview ? 'Change Photo' : 'Upload Photo'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div>

@@ -6,21 +6,32 @@ import {
   MapPin,
   Mail,
   Phone,
-  Users,
   Package,
   Edit,
   Trash2,
   Plus,
-  UserCog,
 } from 'lucide-react';
 import { useCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/hooks/useCompanies';
 import { CompanyProductForm } from '@/components/features/companies';
-import { Button, Card, CardContent, CardHeader, CardTitle, ConfirmDialog, LoadingSpinner, EmptyState } from '@/components/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  ConfirmDialog,
+  LoadingSpinner,
+  EmptyState,
+  Avatar,
+  Badge
+} from '@/components/ui';
 import { LazyImage } from '@/components/common/LazyImage';
 import { CompanyProduct, CompanyProductFormData } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 export const CompanyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -144,226 +155,212 @@ export const CompanyDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-gray-50">
+    <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              {company.main_image_url && (
-                <LazyImage
-                  src={getBackendImageUrl(company.main_image_url)}
-                  alt={company.display_name}
-                  className="w-16 h-16 rounded-xl object-cover border-2 border-white shadow-lg"
-                />
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{company.display_name}</h1>
-                <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {company.city}
-                  </span>
-                  {company.members_count !== undefined && (
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {company.members_count} Members
-                    </span>
-                  )}
-                  {company.products_count !== undefined && (
-                    <span className="flex items-center gap-1">
-                      <Package className="w-4 h-4" />
-                      {company.products_count} Products
-                    </span>
-                  )}
-                </div>
+        <Button
+          variant="ghost"
+          onClick={handleBack}
+          className="hover:bg-transparent pl-0 hover:pl-0"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Companies
+        </Button>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column - President Director Profile */}
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="overflow-hidden border-orange-100 shadow-sm">
+              <div className="h-32 bg-gradient-to-br from-orange-400 to-orange-600 relative">
+                <div className="absolute inset-0 bg-transparent" />
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Company Info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* President Director */}
-            {company.president_director && (
-              <Card className="border-l-4 border-l-orange-500">
-                <CardContent className="py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                      <UserCog className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Presiden Direktur</p>
-                      <p className="text-lg font-semibold text-gray-900">{company.president_director}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 whitespace-pre-wrap">
-                  {company.description || 'No description available.'}
+              <div className="relative -mt-12 flex justify-center mb-4">
+                <Avatar
+                  className="w-24 h-24 border-4 border-white shadow-md text-2xl bg-white"
+                  name={company.president_director || 'PD'}
+                  size="xl"
+                />
+              </div>
+              <CardContent className="pb-8 pt-0 text-center space-y-2">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {company.president_director || 'Not Specified'}
+                </h3>
+                <p className="text-sm font-medium text-orange-600 uppercase tracking-wide">
+                  President Director
                 </p>
-              </CardContent>
-            </Card>
-
-            {/* Products Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="w-5 h-5 text-orange-600" />
-                    Products & Services
-                  </CardTitle>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setSelectedProduct(null);
-                      setShowProductForm(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Product
-                  </Button>
+                <div className="pt-4 border-t border-gray-100 w-full mt-4">
+                  <p className="text-sm text-gray-500">{company.display_name}</p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {productsLoading ? (
-                  <LoadingSpinner size="sm" />
-                ) : products && products.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {products.map((product) => (
-                      <div
-                        key={product.pk}
-                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex gap-4 p-4">
-                          {product.image_url && (
-                            <div className="flex-shrink-0">
-                              <LazyImage
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-20 h-20 rounded-lg object-cover"
-                              />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
-                            {product.category && (
-                              <p className="text-xs text-gray-500 mt-1">{product.category}</p>
-                            )}
-                            {product.description && (
-                              <p className="text-xs text-gray-600 mt-2 line-clamp-2">
-                                {product.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex-shrink-0 flex flex-col gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditProduct(product)}
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDeleteClick(product)}
-                              className="text-red-600 hover:text-red-700 hover:border-red-300"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    type="data"
-                    title="No Products"
-                    description="No products have been added yet."
-                    action={{
-                      text: 'Add First Product',
-                      onClick: () => {
-                        setSelectedProduct(null);
-                        setShowProductForm(true);
-                      },
-                      icon: <Plus className="w-4 h-4" />
-                    }}
-                  />
-                )}
               </CardContent>
             </Card>
-          </div>
 
-          {/* Right Column - Contact Info */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
+            {/* Quick Stats/Info */}
+            <Card className="shadow-sm">
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle className="text-base">Company Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {company.email && (
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-500">Email</p>
-                      <a
-                        href={`mailto:${company.email}`}
-                        className="text-sm font-medium text-gray-900 hover:text-orange-600 break-all"
-                      >
+                    <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Email</p>
+                      <a href={`mailto:${company.email}`} className="text-sm text-gray-600 hover:text-orange-600 break-all">
                         {company.email}
                       </a>
                     </div>
                   </div>
                 )}
-
                 {company.contact && (
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <a
-                        href={`tel:${company.contact}`}
-                        className="text-sm font-medium text-gray-900 hover:text-orange-600"
-                      >
+                    <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Phone</p>
+                      <a href={`tel:${company.contact}`} className="text-sm text-gray-600 hover:text-orange-600">
                         {company.contact}
                       </a>
                     </div>
                   </div>
                 )}
-
                 {company.address && (
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-500">Address</p>
-                      <p className="text-sm text-gray-900">{company.address}</p>
+                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Address</p>
+                      <p className="text-sm text-gray-600">{company.address}</p>
                       <p className="text-sm text-gray-500">{company.city}</p>
                     </div>
                   </div>
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          {/* Right Column - Description & Products */}
+          <div className="lg:col-span-8 space-y-8">
+            <div>
+              <div className="flex items-center gap-4 mb-6">
+                {company.main_image_url && (
+                  <LazyImage
+                    src={getBackendImageUrl(company.main_image_url)}
+                    alt={company.display_name}
+                    className="w-16 h-16 rounded-xl object-cover shadow-sm border border-gray-100"
+                  />
+                )}
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{company.display_name}</h1>
+                  <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {company.city}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description with Markdown Rendering */}
+              <div className="prose prose-orange max-w-none text-gray-700">
+                <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-gray-900">
+                  <Building2 className="w-5 h-5 text-orange-600" />
+                  About Company
+                </h2>
+                {company.description ? (
+                  <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                    {company.description}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-gray-500 italic">No description available.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
+                  <Package className="w-5 h-5 text-orange-600" />
+                  Products & Services
+                </h2>
+                <Button onClick={() => { setSelectedProduct(null); setShowProductForm(true); }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
+              </div>
+
+              {productsLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : products && products.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {products.map((product) => (
+                    <div
+                      key={product.pk}
+                      className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 group"
+                    >
+                      <div className="flex gap-4 p-4">
+                        {product.image_url ? (
+                          <div className="flex-shrink-0">
+                            <LazyImage
+                              src={product.image_url}
+                              alt={product.name}
+                              className="w-20 h-20 rounded-lg object-cover bg-gray-50"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex-shrink-0 w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center text-gray-300">
+                            <Package className="w-8 h-8" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
+                            {product.name}
+                          </h4>
+                          {product.category && (
+                            <Badge variant="secondary" className="mt-1 text-xs font-normal">
+                              {product.category}
+                            </Badge>
+                          )}
+                          {product.description && (
+                            <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditProduct(product)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteClick(product)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  type="data"
+                  title="No Products"
+                  description="No products have been added yet."
+                  action={{
+                    text: 'Add First Product',
+                    onClick: () => {
+                      setSelectedProduct(null);
+                      setShowProductForm(true);
+                    },
+                    icon: <Plus className="w-4 h-4" />
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

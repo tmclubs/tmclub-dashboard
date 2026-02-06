@@ -13,6 +13,8 @@ import { LazyImage } from '@/components/common/LazyImage';
 import { type Member } from './MemberCard';
 import { getBackendImageUrl } from '@/lib/utils/image';
 
+import { usePermissions } from '@/lib/hooks/usePermissions';
+
 export interface MemberFormData {
   firstName: string;
   lastName: string;
@@ -49,6 +51,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({
   onCancel,
   title = member ? 'Edit User' : 'Add New User',
 }) => {
+  const { isCompanyAdmin, isAdmin, getUserCompanyId } = usePermissions();
+  const isRestricted = isCompanyAdmin() && !isAdmin();
+  const userCompanyId = getUserCompanyId();
+
   const [formData, setFormData] = useState<MemberFormData>({
     firstName: member?.firstName || '',
     lastName: member?.lastName || '',
@@ -57,7 +63,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     avatar: member?.avatar || '',
     role: member?.role || 'member',
     status: member?.status || 'active',
-    companyId: member?.company?.id || '',
+    companyId: member?.company?.id || (isRestricted && userCompanyId ? String(userCompanyId) : ''),
     position: member?.company?.position || '',
     location: member?.location || '',
     membershipType: member?.membershipType || 'basic',
@@ -232,61 +238,63 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               </div>
             </div>
 
-            {/* Role and Status */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Role & Status</h3>
+            {/* Role and Status - Admin Only */}
+            {isAdmin() && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Role & Status</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Role *
-                  </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => handleInputChange('role', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="member">User</option>
-                    <option value="moderator">Moderator</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Role *
+                    </label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => handleInputChange('role', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="member">User</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status *
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => handleInputChange('status', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="pending">Pending</option>
+                      <option value="suspended">Suspended</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status *
+                    Membership Type *
                   </label>
                   <select
-                    value={formData.status}
-                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    value={formData.membershipType}
+                    onChange={(e) => handleInputChange('membershipType', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="pending">Pending</option>
-                    <option value="suspended">Suspended</option>
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="enterprise">Enterprise</option>
                   </select>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Membership Type *
-                </label>
-                <select
-                  value={formData.membershipType}
-                  onChange={(e) => handleInputChange('membershipType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  required
-                >
-                  <option value="basic">Basic</option>
-                  <option value="premium">Premium</option>
-                  <option value="enterprise">Enterprise</option>
-                </select>
-              </div>
-            </div>
+            )}
 
             {/* Member Information */}
             <div className="space-y-4">
@@ -297,18 +305,27 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Member
                   </label>
-                  <select
-                    value={formData.companyId}
-                    onChange={(e) => handleInputChange('companyId', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">Select company</option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
+                  {isCompanyAdmin() && !isAdmin() ? (
+                    <Input
+                      value={companies.find(c => String(c.id) === String(getUserCompanyId()))?.name || ''}
+                      disabled
+                      readOnly
+                      className="bg-gray-100"
+                    />
+                  ) : (
+                    <select
+                      value={formData.companyId}
+                      onChange={(e) => handleInputChange('companyId', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      <option value="">Select company</option>
+                      {companies.map((company) => (
+                        <option key={company.id} value={company.id}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <Input

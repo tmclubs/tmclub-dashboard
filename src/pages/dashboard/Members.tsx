@@ -9,6 +9,8 @@ import { toast } from 'react-hot-toast';
 
 import { useNavigate } from 'react-router-dom';
 
+import { usePermissions } from '@/lib/hooks/usePermissions';
+
 export const MembersPage: React.FC = () => {
   const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
@@ -19,6 +21,15 @@ export const MembersPage: React.FC = () => {
 
   // Fetch companies for the dropdown
   const { data: companies = [] } = useCompanies();
+  const { isCompanyAdmin, isAdmin, getUserCompanyId } = usePermissions();
+
+  const visibleCompanies = React.useMemo(() => {
+    if (isCompanyAdmin() && !isAdmin()) {
+      const userCompanyId = getUserCompanyId();
+      return companies.filter(c => c.pk === userCompanyId);
+    }
+    return companies;
+  }, [companies, isCompanyAdmin, isAdmin, getUserCompanyId]);
 
   const fetchMembers = async () => {
     setLoading(true);
@@ -68,7 +79,7 @@ export const MembersPage: React.FC = () => {
     }
   };
 
-  const filteredMembers = members.filter(member =>  
+  const filteredMembers = members.filter(member =>
     member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -76,9 +87,9 @@ export const MembersPage: React.FC = () => {
   if (showForm) {
     return (
       <div className="p-6">
-        <MemberForm 
+        <MemberForm
           member={selectedMember || undefined}
-          companies={companies.map(c => ({ id: String(c.pk), name: c.display_name }))}
+          companies={visibleCompanies.map(c => ({ id: String(c.pk), name: c.display_name }))}
           onSubmit={handleCreateMember}
           onCancel={() => {
             setShowForm(false);
@@ -109,9 +120,9 @@ export const MembersPage: React.FC = () => {
       <div className="flex items-center space-x-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search users..." 
-            className="pl-8" 
+          <Input
+            placeholder="Search users..."
+            className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -129,9 +140,9 @@ export const MembersPage: React.FC = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredMembers.map((member) => (
-            <MemberCard 
-              key={member.id} 
-              member={member} 
+            <MemberCard
+              key={member.id}
+              member={member}
               onEdit={() => handleEdit(member)}
               onView={() => handleViewProfile(member)}
             />

@@ -69,7 +69,7 @@ function App() {
           <Route path="events" element={<MemberMyEventsPage />} />
         </Route>
         <Route path="/dashboard" element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireCompanyAdmin>
             <Layout />
           </ProtectedRoute>
         }>

@@ -1,11 +1,23 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompany, useCompanyProducts } from '@/lib/hooks/useCompanies';
-import { Card, CardHeader, CardTitle, CardContent, LoadingSpinner, Button } from '@/components/ui';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+    LoadingSpinner,
+    Button,
+    Avatar,
+    Badge
+} from '@/components/ui';
 import { LazyImage } from '@/components/common/LazyImage';
-import { Building2, MapPin, Mail, Phone, ArrowLeft, Users, UserCog, Package } from 'lucide-react';
+import { Building2, MapPin, Mail, Phone, ArrowLeft, Users, Package } from 'lucide-react';
 import PublicNavbar from '@/components/landing/PublicNavbar';
 import PublicFooter from '@/components/landing/PublicFooter';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import { getBackendImageUrl } from '@/lib/utils/image';
 
 const CompanyDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -71,7 +83,7 @@ const CompanyDetail: React.FC = () => {
                             {companyWithData.main_image_url && (
                                 <div className="flex-shrink-0">
                                     <LazyImage
-                                        src={companyWithData.main_image_url}
+                                        src={getBackendImageUrl(companyWithData.main_image_url) || ''}
                                         alt={companyWithData.display_name}
                                         className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border-4 border-white shadow-lg"
                                     />
@@ -100,26 +112,91 @@ const CompanyDetail: React.FC = () => {
 
                 {/* Content */}
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-                    {/* President Director Card */}
-                    {companyWithData.president_director && (
-                        <Card className="mb-6 border-l-4 border-l-orange-500">
-                            <CardContent className="py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                                        <UserCog className="w-6 h-6 text-orange-600" />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Left Column - President Director Profile */}
+                        <div className="lg:col-span-4 space-y-6">
+                            {companyWithData.president_director && (
+                                <Card className="overflow-hidden border-orange-100 shadow-sm">
+                                    <div className="h-32 bg-gradient-to-br from-orange-400 to-orange-600 relative">
+                                        <div className="absolute inset-0 bg-transparent" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500 font-medium">Presiden Direktur</p>
-                                        <p className="text-lg font-semibold text-gray-900">{companyWithData.president_director}</p>
+                                    <div className="relative -mt-12 flex justify-center mb-4">
+                                        <Avatar
+                                            className="w-24 h-24 border-4 border-white shadow-md text-2xl bg-white"
+                                            name={companyWithData.president_director || 'PD'}
+                                            src={getBackendImageUrl(companyWithData.president_director_image_url) || undefined}
+                                            size="xl"
+                                        />
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                                    <CardContent className="pb-8 pt-0 text-center space-y-2">
+                                        <h3 className="text-xl font-bold text-gray-900">
+                                            {companyWithData.president_director}
+                                        </h3>
+                                        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200">
+                                            President Director
+                                        </Badge>
+                                    </CardContent>
+                                </Card>
+                            )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Contact Info Card - Moved to Left Column */}
+                            <Card className="sticky top-4">
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Informasi Kontak</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {companyWithData.email && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <Mail className="w-5 h-5 text-orange-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-gray-500">Email</p>
+                                                <a
+                                                    href={`mailto:${companyWithData.email}`}
+                                                    className="text-sm font-medium text-gray-900 hover:text-orange-600 break-all"
+                                                >
+                                                    {companyWithData.email}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {companyWithData.contact && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <Phone className="w-5 h-5 text-orange-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-gray-500">Telepon</p>
+                                                <a
+                                                    href={`tel:${companyWithData.contact}`}
+                                                    className="text-sm font-medium text-gray-900 hover:text-orange-600"
+                                                >
+                                                    {companyWithData.contact}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {companyWithData.address && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <MapPin className="w-5 h-5 text-orange-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-gray-500">Alamat</p>
+                                                <p className="text-sm font-medium text-gray-900">{companyWithData.address}</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">{companyWithData.city}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+
                         {/* Main Content */}
-                        <div className="lg:col-span-2 space-y-6">
+                        <div className="lg:col-span-8 space-y-8">
                             {/* Description */}
                             <Card>
                                 <CardHeader>
@@ -129,27 +206,15 @@ const CompanyDetail: React.FC = () => {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                        {companyWithData.description || 'Tidak ada deskripsi tersedia.'}
-                                    </p>
+                                    <div className="prose max-w-none text-gray-700">
+                                        <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                                            {companyWithData.description || 'Tidak ada deskripsi tersedia.'}
+                                        </ReactMarkdown>
+                                    </div>
                                 </CardContent>
                             </Card>
 
-                            {/* Address */}
-                            {companyWithData.address && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <MapPin className="w-5 h-5 text-orange-600" />
-                                            Alamat
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-gray-700">{companyWithData.address}</p>
-                                        <p className="text-gray-500 text-sm mt-1">{companyWithData.city}</p>
-                                    </CardContent>
-                                </Card>
-                            )}
+
 
                             {/* Products Gallery Section */}
                             {companyWithData.products && companyWithData.products.length > 0 && (
@@ -290,61 +355,6 @@ const CompanyDetail: React.FC = () => {
                             </Card>
                         </div>
 
-                        {/* Sidebar */}
-                        <div className="lg:col-span-1">
-                            <Card className="sticky top-4">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Informasi Kontak</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {companyWithData.email && (
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                                <Mail className="w-5 h-5 text-orange-600" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-gray-500">Email</p>
-                                                <a
-                                                    href={`mailto:${companyWithData.email}`}
-                                                    className="text-sm font-medium text-gray-900 hover:text-orange-600 break-all"
-                                                >
-                                                    {companyWithData.email}
-                                                </a>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {companyWithData.contact && (
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                                <Phone className="w-5 h-5 text-orange-600" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-gray-500">Telepon</p>
-                                                <a
-                                                    href={`tel:${companyWithData.contact}`}
-                                                    className="text-sm font-medium text-gray-900 hover:text-orange-600"
-                                                >
-                                                    {companyWithData.contact}
-                                                </a>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {companyWithData.city && (
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                                <MapPin className="w-5 h-5 text-orange-600" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-gray-500">Kota</p>
-                                                <p className="text-sm font-medium text-gray-900">{companyWithData.city}</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
                     </div>
                 </section>
 

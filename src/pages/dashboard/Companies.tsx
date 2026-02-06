@@ -8,10 +8,10 @@ import { CompanyList } from '@/components/features/companies/CompanyList';
 import { Button, ConfirmDialog, EmptyState, LoadingSpinner, Input, Badge } from '@/components/ui';
 import { Plus, Search, Filter, Grid3x3, List, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/hooks/useCompanies';
-import { useProfile } from '@/lib/hooks/useAuth';
-import { Company as APICompany, CompanyFormData, CompanyProductFormData } from '@/types/api';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { Company as APICompany, CompanyFormData, CompanyProductFormData } from '@/types/api';
 
 // Adapter function to convert API Company to CompanyCard format
 const adaptCompanyForCard = (apiCompany: APICompany): CompanyCardType => ({
@@ -38,7 +38,6 @@ const adaptCompanyForCard = (apiCompany: APICompany): CompanyCardType => ({
   website: undefined,
   logo: apiCompany.main_image,
 });
-
 export const CompaniesPage: React.FC = () => {
   const [view, setView] = useState<'list' | 'grid'>('grid');
   const [showForm, setShowForm] = useState(false);
@@ -48,8 +47,11 @@ export const CompaniesPage: React.FC = () => {
   const navigate = useNavigate();
 
   // API hooks
-  const { data: userProfile } = useProfile();
   const { data: companies = [], isLoading, error } = useCompanies();
+  const { isCompanyAdmin, isAdmin: isUserAdmin, getUserCompanyId } = usePermissions();
+  const isSystemAdmin = isUserAdmin();
+  const canEdit = isSystemAdmin || isCompanyAdmin();
+
   const createCompanyMutation = useCreateCompany();
   const updateCompanyMutation = useUpdateCompany();
   const deleteCompanyMutation = useDeleteCompany();
@@ -59,8 +61,6 @@ export const CompaniesPage: React.FC = () => {
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
   const deleteProductMutation = useDeleteProduct();
-
-  const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
   const handleCreateCompany = async (data: CompanyFormData) => {
     const { tempProducts, ...companyData } = data;
@@ -175,11 +175,20 @@ export const CompaniesPage: React.FC = () => {
     console.log('Exporting members...');
   };
 
-  const filteredCompanies = companies.filter(company =>
-    company.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.city?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCompanies = companies.filter(company => {
+    // Filter by search term
+    const matchSearch = company.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.city?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filter by permission (PIC only sees own company)
+    if (isCompanyAdmin() && !isUserAdmin()) {
+      const userCompanyId = getUserCompanyId();
+      return matchSearch && String(company.pk) === String(userCompanyId);
+    }
+
+    return matchSearch;
+  });
 
   const stats = [
     {
@@ -262,8 +271,8 @@ export const CompaniesPage: React.FC = () => {
         <EmptyState
           type="companies"
           title="No members yet"
-          description={isAdmin ? "Get started by adding your first member to the platform." : "No members found."}
-          action={isAdmin ? {
+          description={isSystemAdmin ? "Get started by adding your first member to the platform." : "No members found."}
+          action={isSystemAdmin ? {
             text: 'Add Member',
             onClick: () => setShowForm(true),
             icon: <Plus className="w-4 h-4" />
@@ -297,18 +306,18 @@ export const CompaniesPage: React.FC = () => {
                   Manage members, their profiles, and relationships
                 </p>
               </div>
-              {isAdmin && (
-              <Button
-                size="lg"
-                className="text-orange-700 hover:bg-orange-50 shadow-lg hover:shadow-xl transition-all font-semibold"
-                leftIcon={<Plus className="w-4 h-4" />}
-                onClick={() => {
-                  setSelectedCompany(null);
-                  setShowForm(true);
-                }}
-              >
-                Add Member
-              </Button>
+              {isSystemAdmin && (
+                <Button
+                  size="lg"
+                  className="text-orange-700 hover:bg-orange-50 shadow-lg hover:shadow-xl transition-all font-semibold"
+                  leftIcon={<Plus className="w-4 h-4" />}
+                  onClick={() => {
+                    setSelectedCompany(null);
+                    setShowForm(true);
+                  }}
+                >
+                  Add Member
+                </Button>
               )}
             </div>
           </div>
@@ -394,15 +403,15 @@ export const CompaniesPage: React.FC = () => {
                 setSelectedCompany(company);
                 console.log('View company:', company);
               }}
-              onEdit={isAdmin ? (company) => {
+              onEdit={canEdit ? (company) => {
                 setSelectedCompany(company);
                 setShowForm(true);
               } : undefined}
-              onDelete={isAdmin ? (company) => {
+              onDelete={isSystemAdmin ? (company) => {
                 setSelectedCompany(company);
                 setShowDeleteDialog(true);
               } : undefined}
-              onCreate={isAdmin ? () => {
+              onCreate={isSystemAdmin ? () => {
                 setSelectedCompany(null);
                 setShowForm(true);
               } : undefined}
@@ -417,8 +426,8 @@ export const CompaniesPage: React.FC = () => {
                 company={adaptCompanyForCard(company)}
                 variant="grid"
                 onView={handleViewCompany}
-                onEdit={isAdmin ? handleEditCompany : undefined}
-                onDelete={isAdmin ? handleDeleteClick : undefined}
+                onEdit={canEdit ? handleEditCompany : undefined}
+                onDelete={isSystemAdmin ? handleDeleteClick : undefined}
               />
             ))}
             {filteredCompanies.length === 0 && (
