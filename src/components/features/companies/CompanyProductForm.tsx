@@ -3,7 +3,7 @@ import { Upload, X, Package, FileText } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { LazyImage } from '@/components/common/LazyImage';
 import { CompanyProduct, CompanyProductFormData } from '@/types/api';
-import { getBackendImageUrl } from '@/lib/utils/image';
+
 
 export interface CompanyProductFormProps {
   product?: Partial<CompanyProduct>;
@@ -16,7 +16,7 @@ export interface CompanyProductFormProps {
 
 export const CompanyProductForm: React.FC<CompanyProductFormProps> = ({
   product,
-  companyId,
+
   onSubmit,
   loading = false,
   onCancel,

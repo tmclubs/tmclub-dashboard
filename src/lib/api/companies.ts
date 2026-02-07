@@ -79,7 +79,7 @@ export const companiesApi = {
 export const companyProductsApi = {
   // Get products for a company
   async getProducts(companyId: number): Promise<CompanyProduct[]> {
-    const response = await apiClient.get<{results: CompanyProduct[]}>(`/company/${companyId}/products/`);
+    const response = await apiClient.get<{ results: CompanyProduct[] }>(`/company/${companyId}/products/`);
     return response.results || response;
   },
 
@@ -97,7 +97,7 @@ export const companyProductsApi = {
           formData.append('image', value);
         } else if (key === 'images' && Array.isArray(value)) {
           // Handle multiple images
-          value.forEach((file, index) => {
+          value.forEach((file) => {
             if (file instanceof File) {
               formData.append(`images`, file);
             }
@@ -119,7 +119,7 @@ export const companyProductsApi = {
           formData.append('image', value);
         } else if (key === 'images' && Array.isArray(value)) {
           // Handle multiple images
-          value.forEach((file, index) => {
+          value.forEach((file) => {
             if (file instanceof File) {
               formData.append(`images`, file);
             }
