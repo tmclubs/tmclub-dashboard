@@ -27,7 +27,7 @@ interface SidebarProps {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'PIC', 'member'] },
   { name: 'Events', href: '/dashboard/events', icon: Calendar, roles: ['admin', 'member'] },
-  { name: 'Companies', href: '/dashboard/companies', icon: Building2, roles: ['admin', 'PIC'] },
+  { name: 'Members', href: '/dashboard/companies', icon: Building2, roles: ['admin', 'PIC'] },
   { name: 'Surveys (Coming Soon)', href: '/dashboard/surveys', icon: ClipboardList, roles: ['admin'] },
   { name: 'Blog', href: '/dashboard/blog', icon: FileText, roles: ['admin'] },
   { name: 'About', href: '/dashboard/about', icon: Info, roles: ['admin'] },
@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     })
     .map(item => {
       // Update Company link and name for PIC
-      if (item.name === 'Companies' && userRole === 'PIC') {
+      if (item.name === 'Members' && userRole === 'PIC') {
         return {
           ...item,
           name: 'Company',
