@@ -10,3 +10,6 @@ export type { CompanyListProps } from './CompanyList';
 
 export { CompanyProductForm } from './CompanyProductForm';
 export type { CompanyProductFormProps } from './CompanyProductForm';
+
+export { CompanyMembersSection } from './CompanyMembersSection';
+export type { CompanyMembersSectionProps } from './CompanyMembersSection';

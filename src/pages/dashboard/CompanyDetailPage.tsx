@@ -10,9 +10,11 @@ import {
   Edit,
   Trash2,
   Plus,
+  Users,
 } from 'lucide-react';
 import { useCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/hooks/useCompanies';
-import { CompanyProductForm } from '@/components/features/companies';
+import { usePermissions } from '@/lib/hooks/usePermissions';
+import { CompanyProductForm, CompanyMembersSection } from '@/components/features/companies';
 import {
   Button,
   Card,
@@ -41,6 +43,7 @@ export const CompanyDetailPage: React.FC = () => {
   const companyId = id ? parseInt(id, 10) : null;
   const { data: company, isLoading: companyLoading } = useCompany(companyId || 0);
   const { data: products = [], isLoading: productsLoading } = useCompanyProducts(companyId || 0);
+  const { isAdmin } = usePermissions();
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Partial<CompanyProduct> | null>(null);
@@ -271,6 +274,19 @@ export const CompanyDetailPage: React.FC = () => {
                   <p className="text-gray-500 italic">No description available.</p>
                 )}
               </div>
+            </div>
+
+            {/* Members & PIC Section */}
+            <div className="border-t border-gray-200 pt-8">
+              <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 mb-6">
+                <Users className="w-5 h-5 text-orange-600" />
+                Members & PIC
+              </h2>
+              <CompanyMembersSection
+                companyId={companyId}
+                members={company.members}
+                isAdmin={isAdmin()}
+              />
             </div>
 
             <div className="border-t border-gray-200 pt-8">
