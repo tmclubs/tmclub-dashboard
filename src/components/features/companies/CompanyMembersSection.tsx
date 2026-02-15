@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
     Users,
     UserPlus,
@@ -43,6 +43,17 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
     const [selectedCandidate, setSelectedCandidate] = useState<CompanyMember | null>(null);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [selectedMember, setSelectedMember] = useState<CompanyMember | null>(null);
+
+    const handleCloseInviteModal = useCallback(() => {
+        setShowInviteModal(false);
+        setSearchQuery('');
+        setSelectedCandidate(null);
+    }, []);
+
+    const handleCloseRemoveDialog = useCallback(() => {
+        setShowRemoveDialog(false);
+        setSelectedMember(null);
+    }, []);
 
     const invitePICMutation = useInviteCompanyPIC();
     const removePICMutation = useRemoveCompanyPIC();
@@ -259,11 +270,7 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
             {/* Invite PIC Modal */}
             <Modal
                 open={showInviteModal}
-                onClose={() => {
-                    setShowInviteModal(false);
-                    setSearchQuery('');
-                    setSelectedCandidate(null);
-                }}
+                onClose={handleCloseInviteModal}
                 title="Invite PIC"
                 description="Select a member to assign as Person In Charge"
                 size="sm"
@@ -272,11 +279,7 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                     <>
                         <Button
                             variant="outline"
-                            onClick={() => {
-                                setShowInviteModal(false);
-                                setSearchQuery('');
-                                setSelectedCandidate(null);
-                            }}
+                            onClick={handleCloseInviteModal}
                             disabled={invitePICMutation.isPending}
                             className="w-full sm:w-auto"
                         >
@@ -303,18 +306,15 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                     </div>
 
                     {/* Search input */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                            type="text"
-                            placeholder="Search by name or email..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                            disabled={invitePICMutation.isPending}
-                            autoFocus
-                        />
-                    </div>
+                    <Input
+                        type="text"
+                        placeholder="Search by name or email..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        leftIcon={<Search className="w-4 h-4" />}
+                        disabled={invitePICMutation.isPending}
+                        autoFocus
+                    />
 
                     {/* Member list */}
                     <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
@@ -383,10 +383,7 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
             {/* Remove PIC Confirm Dialog */}
             <ConfirmDialog
                 open={showRemoveDialog}
-                onClose={() => {
-                    setShowRemoveDialog(false);
-                    setSelectedMember(null);
-                }}
+                onClose={handleCloseRemoveDialog}
                 onConfirm={handleRemovePIC}
                 title="Remove PIC Status"
                 description={`Are you sure you want to remove PIC status from "${selectedMember?.name}"? They will become a regular member.`}
