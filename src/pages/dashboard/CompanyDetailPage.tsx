@@ -12,9 +12,9 @@ import {
   Plus,
   Users,
 } from 'lucide-react';
-import { useCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/hooks/useCompanies';
+import { useCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useUpdateCompany } from '@/lib/hooks/useCompanies';
 import { usePermissions } from '@/lib/hooks/usePermissions';
-import { CompanyProductForm, CompanyMembersSection } from '@/components/features/companies';
+import { CompanyProductForm, CompanyMembersSection, CompanyForm } from '@/components/features/companies';
 import {
   Button,
   Card,
@@ -28,7 +28,7 @@ import {
   Badge
 } from '@/components/ui';
 import { LazyImage } from '@/components/common/LazyImage';
-import { CompanyProduct, CompanyProductFormData } from '@/types/api';
+import { CompanyProduct, CompanyProductFormData, CompanyFormData } from '@/types/api';
 import { getBackendImageUrl } from '@/lib/utils/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -43,15 +43,32 @@ export const CompanyDetailPage: React.FC = () => {
   const companyId = id ? parseInt(id, 10) : null;
   const { data: company, isLoading: companyLoading } = useCompany(companyId || 0);
   const { data: products = [], isLoading: productsLoading } = useCompanyProducts(companyId || 0);
-  const { isAdmin } = usePermissions();
+  const { isAdmin, canManageCompany } = usePermissions();
+  const canEdit = companyId ? canManageCompany(companyId) : false;
 
   const [showProductForm, setShowProductForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Partial<CompanyProduct> | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
   const deleteProductMutation = useDeleteProduct();
+  const updateCompanyMutation = useUpdateCompany();
+
+  const handleUpdateCompany = async (data: CompanyFormData) => {
+    if (!companyId) return;
+    updateCompanyMutation.mutate(
+      { companyId, data },
+      {
+        onSuccess: () => {
+          setShowEditForm(false);
+          queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
+          toast.success('Company updated successfully!');
+        },
+      }
+    );
+  };
 
   const handleBack = () => {
     navigate('/dashboard/companies');
@@ -134,6 +151,43 @@ export const CompanyDetailPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Companies
         </Button>
+      </div>
+    );
+  }
+
+  // Show edit company form
+  if (showEditForm) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
+        <CompanyForm
+          company={company}
+          onSubmit={handleUpdateCompany}
+          onProductAdd={async (data) => {
+            if (!companyId) return;
+            createProductMutation.mutate(
+              { companyId, data },
+              { onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-products', companyId] }) }
+            );
+          }}
+          onProductUpdate={async (productId, data) => {
+            if (!companyId) return;
+            updateProductMutation.mutate(
+              { companyId, productId, data },
+              { onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-products', companyId] }) }
+            );
+          }}
+          onProductDelete={async (productId) => {
+            if (!companyId) return;
+            deleteProductMutation.mutate(
+              { companyId, productId },
+              { onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-products', companyId] }) }
+            );
+          }}
+          products={products}
+          loading={updateCompanyMutation.isPending}
+          onCancel={() => setShowEditForm(false)}
+          title="Edit Company"
+        />
       </div>
     );
   }
@@ -249,7 +303,7 @@ export const CompanyDetailPage: React.FC = () => {
                     className="w-16 h-16 rounded-xl object-cover shadow-sm border border-gray-100"
                   />
                 )}
-                <div>
+                <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900">{company.display_name}</h1>
                   <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
                     <span className="flex items-center gap-1">
@@ -258,6 +312,16 @@ export const CompanyDetailPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
+                {canEdit && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowEditForm(true)}
+                    className="flex-shrink-0"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Company
+                  </Button>
+                )}
               </div>
 
               {/* Description with Markdown Rendering */}
