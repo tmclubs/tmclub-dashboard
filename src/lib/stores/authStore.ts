@@ -34,8 +34,9 @@ export const useAuthStore = create<AuthState>()(
           // Clean any stale auth artifacts before new login
           try { clearTokens(); } catch { /* noop */ }
           // Use new endpoint format with username/password
+          const rawUsername = credentials.username || credentials.email || "";
           const loginData = {
-            username: credentials.username || credentials.email, // Support both email and username
+            username: rawUsername.trim(), // Support both email and username, trim to avoid copy-paste spaces
             password: credentials.password,
           };
 
@@ -80,31 +81,31 @@ export const useAuthStore = create<AuthState>()(
             console.error('AuthStore: Failed to parse successful response as JSON:', jsonError);
             throw new Error('Invalid response format from server');
           }
-          
+
           console.log('AuthStore: Response dari API:', {
             httpStatus: response.status,
             httpOk: response.ok,
             apiResponse: apiResponse
           });
-          
+
           // Check if HTTP request was successful
           if (!response.ok) {
             const errorMessage = apiResponse.message?.en || apiResponse.message?.id || `HTTP ${response.status}: ${response.statusText}`;
             throw new Error(errorMessage);
           }
-          
+
           // Handle new response format: { status_code, success_code, message, data }
           if (apiResponse.status_code === 200 && apiResponse.data) {
             const { token, login_method, role, user } = apiResponse.data;
-            
+
             console.log('AuthStore: Login berhasil, setting auth state...', { token, role, user });
-            
+
             // Use token manager to store tokens properly (this will set last_activity)
             setTokens({
               token: token,
               user: { ...user, role }
             });
-            
+
             // Set all data from response
             set({
               token: token,
@@ -139,7 +140,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         // Use token manager to clear tokens properly
         clearTokens();
-        
+
         // Clear Zustand state
         set({
           user: null,
