@@ -150,7 +150,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   const handleProductInputChange = (field: keyof CompanyProductFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    let value: string | number = e.target.value;
+    const value: string | number = e.target.value;
     setProductFormData(prev => ({
       ...prev,
       [field]: value

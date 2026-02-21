@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useCompany, useCompanyProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useUpdateCompany } from '@/lib/hooks/useCompanies';
 import { usePermissions } from '@/lib/hooks/usePermissions';
-import { CompanyProductForm, CompanyMembersSection, CompanyForm } from '@/components/features/companies';
+import { CompanyProductForm, CompanyPICSection, CompanyRegularMembersSection, CompanyForm } from '@/components/features/companies';
 import {
   Button,
   Card,
@@ -407,6 +407,13 @@ export const CompanyDetailPage: React.FC = () => {
                 )}
               </div>
             </Card>
+
+            {/* Regular Members Section (Below Products) */}
+            <CompanyRegularMembersSection
+              companyId={companyId || 0}
+              members={company.members}
+              isAdmin={isAdmin()}
+            />
           </div>
 
           {/* Sidebar / Right Column */}
@@ -493,20 +500,12 @@ export const CompanyDetailPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Members & PIC Section */}
-            <Card className="shadow-sm border-gray-200">
-              <div className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-orange-600" />
-                  Team & PIC
-                </h3>
-                <CompanyMembersSection
-                  companyId={companyId}
-                  members={company.members}
-                  isAdmin={isAdmin()}
-                />
-              </div>
-            </Card>
+            {/* PIC Section */}
+            <CompanyPICSection
+              companyId={companyId || 0}
+              members={company.members}
+              isAdmin={isAdmin()}
+            />
           </div>
         </div>
       </div>

@@ -32,7 +32,15 @@ export interface CompanyMembersSectionProps {
     isLoading?: boolean;
 }
 
-export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    });
+};
+
+export const CompanyPICSection: React.FC<CompanyMembersSectionProps> = ({
     companyId,
     members = [],
     isAdmin,
@@ -104,76 +112,6 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
         setShowRemoveDialog(true);
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
-
-    const MemberCard: React.FC<{ member: CompanyMember }> = ({ member }) => (
-        <div className="group relative bg-white border border-gray-100 rounded-xl p-4 hover:shadow-md hover:border-orange-100 transition-all duration-300">
-            <div className="flex items-center gap-3 sm:gap-4">
-                {/* Avatar */}
-                <div className="relative flex-shrink-0">
-                    <Avatar
-                        name={member.name}
-                        size="md"
-                        className={`border-2 ${member.is_pic
-                            ? 'border-orange-300 ring-2 ring-orange-100'
-                            : 'border-gray-100'
-                            }`}
-                    />
-                    {member.is_pic && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-sm">
-                            <Crown className="w-3 h-3 text-white" />
-                        </div>
-                    )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                            {member.name}
-                        </h4>
-                        {member.is_pic && (
-                            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs flex-shrink-0">
-                                <Shield className="w-3 h-3 mr-1" />
-                                PIC
-                            </Badge>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                        <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        <p className="text-xs sm:text-sm text-gray-500 truncate">{member.email}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                        <Clock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        <p className="text-xs text-gray-400">Joined {formatDate(member.invited_at)}</p>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                {isAdmin && member.is_pic && (
-                    <div className="flex-shrink-0">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveClick(member)}
-                            className="h-auto py-1.5 px-2.5 text-red-400 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition-all duration-200 group/btn"
-                            title="Remove PIC status"
-                        >
-                            <ShieldOff className="w-4 h-4 flex-shrink-0" />
-                            <span className="hidden sm:inline ml-1.5 text-xs font-medium">Remove PIC</span>
-                        </Button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
     if (isLoading) {
         return (
             <Card className="shadow-sm">
@@ -186,86 +124,81 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
 
     return (
         <>
-            <div className="space-y-6">
-                {/* PIC Section */}
-                <Card className="shadow-sm border-orange-100">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between flex-wrap gap-3">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
-                                    <Shield className="w-4 h-4 text-orange-600" />
-                                </div>
-                                <div>
-                                    <span className="text-gray-900">Person In Charge</span>
-                                    <p className="text-xs text-gray-500 font-normal mt-0.5">
-                                        Company representatives
-                                    </p>
-                                </div>
-                            </CardTitle>
-                            {isAdmin && (
-                                <Button
-                                    size="sm"
-                                    onClick={() => setShowInviteModal(true)}
-                                    className="bg-orange-600 hover:bg-orange-700 text-white shadow-sm"
-                                >
-                                    <UserPlus className="w-4 h-4 mr-1.5" />
-                                    <span className="hidden sm:inline">Invite PIC</span>
-                                    <span className="sm:hidden">Invite</span>
-                                </Button>
-                            )}
-                        </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                        {picMembers.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {picMembers.map((member) => (
-                                    <MemberCard key={member.id} member={member} />
-                                ))}
+            <Card className="shadow-sm border-orange-100">
+                <CardHeader className="pb-4">
+                    <div className="flex flex-col gap-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                                <Shield className="w-4 h-4 text-orange-600" />
                             </div>
-                        ) : (
-                            <div className="text-center py-8 px-4">
-                                <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
-                                    <Shield className="w-6 h-6 text-orange-300" />
-                                </div>
-                                <p className="text-sm text-gray-500">
-                                    No PIC assigned yet
+                            <div>
+                                <span className="text-gray-900 font-bold">Person In Charge</span>
+                                <p className="text-xs text-gray-500 font-normal mt-0.5">
+                                    Company representatives
                                 </p>
-                                {isAdmin && (
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Click "Invite PIC" to assign a person in charge
-                                    </p>
-                                )}
                             </div>
+                        </CardTitle>
+                        {isAdmin && (
+                            <Button
+                                size="sm"
+                                onClick={() => setShowInviteModal(true)}
+                                className="w-fit bg-orange-600 hover:bg-orange-700 text-white shadow-sm"
+                            >
+                                <UserPlus className="w-4 h-4 mr-1.5" />
+                                Invite PIC
+                            </Button>
                         )}
-                    </CardContent>
-                </Card>
-
-                {/* Regular Members Section */}
-                {regularMembers.length > 0 && (
-                    <Card className="shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                                    <Users className="w-4 h-4 text-gray-600" />
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                    {picMembers.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-3">
+                            {picMembers.map((member) => (
+                                <div key={member.id} className="relative bg-white border border-gray-100 rounded-xl p-4 hover:shadow-md transition-all duration-300">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="relative">
+                                            <Avatar name={member.name} size="md" className="border-2 border-orange-100 bg-orange-50 text-orange-700" />
+                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center shadow-sm">
+                                                <Crown className="w-2.5 h-2.5 text-white" />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 py-0">PIC</Badge>
+                                            {isAdmin && (
+                                                <button
+                                                    onClick={() => handleRemoveClick(member)}
+                                                    className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                                                    title="Remove PIC"
+                                                >
+                                                    <ShieldOff className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-gray-900 text-sm truncate">{member.name}</h4>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <Mail className="w-3 h-3 text-gray-400 shrink-0" />
+                                            <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <Clock className="w-3 h-3 text-gray-400 shrink-0" />
+                                            <p className="text-xs text-gray-400">Joined {formatDate(member.invited_at)}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <span className="text-gray-900">Members</span>
-                                    <Badge variant="secondary" className="ml-2 text-xs">
-                                        {regularMembers.length}
-                                    </Badge>
-                                </div>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {regularMembers.map((member) => (
-                                    <MemberCard key={member.id} member={member} />
-                                ))}
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 px-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-2">
+                                <Shield className="w-5 h-5 text-orange-300" />
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                            <p className="text-sm text-gray-500 font-medium">No PIC assigned</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Invite PIC Modal */}
             <Modal
@@ -305,7 +238,6 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                         </p>
                     </div>
 
-                    {/* Search input */}
                     <Input
                         type="text"
                         placeholder="Search by name or email..."
@@ -316,7 +248,6 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                         autoFocus
                     />
 
-                    {/* Member list */}
                     <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
                         {filteredCandidates.length > 0 ? (
                             filteredCandidates.map((member) => {
@@ -350,11 +281,6 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                                             </p>
                                             <p className="text-xs text-gray-500 truncate">{member.email}</p>
                                         </div>
-                                        {isSelected && (
-                                            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs flex-shrink-0">
-                                                Selected
-                                            </Badge>
-                                        )}
                                     </button>
                                 );
                             })
@@ -364,9 +290,6 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                                     <Users className="w-5 h-5 text-gray-300" />
                                 </div>
                                 <p className="text-sm text-gray-500">All members are already assigned as PIC</p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                    Add new members first
-                                </p>
                             </div>
                         ) : (
                             <div className="text-center py-6 px-4">
@@ -380,7 +303,6 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
                 </div>
             </Modal>
 
-            {/* Remove PIC Confirm Dialog */}
             <ConfirmDialog
                 open={showRemoveDialog}
                 onClose={handleCloseRemoveDialog}
@@ -396,4 +318,54 @@ export const CompanyMembersSection: React.FC<CompanyMembersSectionProps> = ({
     );
 };
 
-export default CompanyMembersSection;
+export const CompanyRegularMembersSection: React.FC<CompanyMembersSectionProps> = ({
+    members = [],
+    isLoading = false,
+}) => {
+    const regularMembers = members.filter((m) => !m.is_pic);
+
+    if (isLoading) {
+        return (
+            <Card className="shadow-sm">
+                <CardContent className="flex items-center justify-center py-12">
+                    <LoadingSpinner size="sm" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (regularMembers.length === 0) return null;
+
+    return (
+        <Card className="shadow-sm border-gray-200 mt-6 md:mt-8">
+            <CardHeader className="pb-4 border-b border-gray-50 mb-4 px-6 md:px-8">
+                <CardTitle className="text-lg flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <span className="text-gray-900">Members</span>
+                    <Badge variant="secondary" className="ml-1 text-xs px-2 bg-gray-100 text-gray-600">
+                        {regularMembers.length}
+                    </Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 md:px-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {regularMembers.map((member) => (
+                        <div key={member.id} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:bg-gray-50/50 transition-colors">
+                            <Avatar name={member.name} size="md" className="shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-gray-900 text-sm truncate">{member.name}</h4>
+                                <p className="text-[11px] text-gray-500 truncate mt-0.5">{member.email}</p>
+                            </div>
+                            <p className="text-[10px] border border-gray-100 rounded px-1.5 py-0.5 text-gray-400 bg-gray-50 shrink-0 whitespace-nowrap hidden sm:block">
+                                {formatDate(member.invited_at)}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
