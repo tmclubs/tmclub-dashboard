@@ -17,9 +17,10 @@ export const companiesApi = {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        if (key === 'logo_file' && value instanceof File) {
-          formData.append('logo_file', value);
-        } else {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else if (key !== 'tempProducts' && key !== 'employees' && key !== 'social_media') {
+          // Avoid stringifying arrays/complex objects that Backend might not expect as flattened strings
           formData.append(key, String(value));
         }
       }
@@ -32,9 +33,10 @@ export const companiesApi = {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        if (key === 'logo_file' && value instanceof File) {
-          formData.append('logo_file', value);
-        } else {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else if (key !== 'tempProducts' && key !== 'employees' && key !== 'social_media') {
+          // Ignore relations or handle them if needed, but definitely stringify primitives
           formData.append(key, String(value));
         }
       }

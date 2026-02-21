@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { companiesApi, companyProductsApi } from '@/lib/api/companies';
-import { CompanyFormData, CompanyInviteData, CompanyProductFormData } from '@/types/api';
+import { Company, CompanyFormData, CompanyInviteData, CompanyProduct, CompanyProductFormData } from '@/types/api';
 
 // Hook for getting all companies
 export const useCompanies = () => {
@@ -47,7 +47,13 @@ export const useUpdateCompany = () => {
   return useMutation({
     mutationFn: ({ companyId, data }: { companyId: number; data: Partial<CompanyFormData> }) =>
       companiesApi.updateCompany(companyId, data),
-    onSuccess: (_, { companyId }) => {
+    onSuccess: (updatedCompany, { companyId }) => {
+      // Optimistic cache injection for instant UI updates
+      queryClient.setQueryData<Company>(['companies', companyId], (oldData) => {
+        // Merge the old data with the newly updated fields
+        return oldData ? { ...oldData, ...updatedCompany } : updatedCompany;
+      });
+
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
       toast.success('Company berhasil diperbarui!');
@@ -177,7 +183,13 @@ export const useCreateProduct = () => {
   return useMutation({
     mutationFn: ({ companyId, data }: { companyId: number; data: CompanyProductFormData }) =>
       companyProductsApi.createProduct(companyId, data),
-    onSuccess: (_, { companyId }) => {
+    onSuccess: (newProduct, { companyId }) => {
+      // Optimistic cache injection for instant UI updates
+      queryClient.setQueryData<CompanyProduct[]>(['company-products', companyId], (oldData) => {
+        return oldData ? [newProduct, ...oldData] : [newProduct];
+      });
+
+      // Still invalidate for background remote sync
       queryClient.invalidateQueries({ queryKey: ['company-products', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
       toast.success('Produk berhasil dibuat!');
@@ -195,7 +207,16 @@ export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: ({ companyId, productId, data }: { companyId: number; productId: number; data: Partial<CompanyProductFormData> }) =>
       companyProductsApi.updateProduct(companyId, productId, data),
-    onSuccess: (_, { companyId }) => {
+    onSuccess: (updatedProduct, { companyId }) => {
+      // Optimistic cache injection for instant UI updates
+      queryClient.setQueryData<CompanyProduct[]>(['company-products', companyId], (oldData) => {
+        if (!oldData) return [updatedProduct];
+        return oldData.map(product =>
+          product.pk === updatedProduct.pk ? updatedProduct : product
+        );
+      });
+
+      // Still invalidate for background remote sync
       queryClient.invalidateQueries({ queryKey: ['company-products', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
       toast.success('Produk berhasil diperbarui!');

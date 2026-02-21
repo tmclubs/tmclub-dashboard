@@ -241,6 +241,7 @@ export interface CompanyFormData {
   email: string;
   city: string;
   president_director?: string;
+  president_director_image?: File;
   tempProducts?: CompanyProductFormData[];
 }
 

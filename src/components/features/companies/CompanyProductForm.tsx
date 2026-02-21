@@ -101,7 +101,8 @@ export const CompanyProductForm: React.FC<CompanyProductFormProps> = ({
                     <LazyImage
                       src={imagePreview}
                       alt="Product preview"
-                      className="w-32 h-32 rounded-lg object-cover border border-gray-200 bg-gray-50"
+                      className="rounded-lg object-cover border border-gray-200 bg-gray-50"
+                      containerClassName="w-32 h-32"
                     />
                     <button
                       type="button"

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, Building, MapPin, Phone, Mail, UserCog, Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, RichTextEditor, ConfirmDialog } from '@/components/ui';
 import { LazyImage } from '@/components/common/LazyImage';
@@ -67,6 +67,32 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   // Temporary products for new company (before company is created)
   const [tempProducts, setTempProducts] = useState<CompanyProductFormData[]>([]);
   const [displayProducts, setDisplayProducts] = useState<CompanyProduct[]>(products);
+
+  useEffect(() => {
+    // Convert temp products to display format
+    const tempDisplay = tempProducts.map((p, idx) => {
+      let imageUrl = null;
+      if (typeof p.image === 'string') {
+        imageUrl = getBackendImageUrl(p.image) || null;
+      } else if (p.image instanceof File) {
+        imageUrl = URL.createObjectURL(p.image);
+      }
+
+      return {
+        pk: -idx, // Negative pk to distinguish from real products
+        tempIndex: idx, // Store the actual index in tempProducts
+        name: p.name,
+        description: p.description,
+        category: p.category,
+        image_url: imageUrl,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as any;
+    });
+
+    setDisplayProducts([...tempDisplay, ...products]);
+  }, [tempProducts, products]);
 
   const handleInputChange = (field: keyof CompanyFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -198,7 +224,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             idx === (editingProduct as any).tempIndex ? productFormData : p
           )
         );
-        updateDisplayProducts();
       }
     } else {
       // Add mode
@@ -208,7 +233,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       } else {
         // Add to temp products (for new company)
         setTempProducts(prev => [...prev, productFormData]);
-        updateDisplayProducts();
       }
     }
     setShowProductForm(false);
@@ -236,38 +260,13 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         setTempProducts(prev =>
           prev.filter((_, idx) => idx !== (deletingProduct as any).tempIndex)
         );
-        updateDisplayProducts();
       }
       setShowDeleteProductDialog(false);
       setDeletingProduct(null);
     }
   };
 
-  const updateDisplayProducts = () => {
-    // Convert temp products to display format
-    const tempDisplay = tempProducts.map((p, idx) => {
-      let imageUrl = null;
-      if (typeof p.image === 'string') {
-        imageUrl = getBackendImageUrl(p.image) || null;
-      } else if (p.image instanceof File) {
-        imageUrl = URL.createObjectURL(p.image);
-      }
 
-      return {
-        pk: -idx, // Negative pk to distinguish from real products
-        tempIndex: idx, // Store the actual index in tempProducts
-        name: p.name,
-        description: p.description,
-        category: p.category,
-        image_url: imageUrl,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as any;
-    });
-
-    setDisplayProducts([...tempDisplay, ...products]);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,7 +302,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                     <LazyImage
                       src={logoPreview}
                       alt="Logo preview"
-                      className="w-32 h-32 rounded-lg object-contain border border-gray-200 bg-gray-50"
+                      className="rounded-lg object-contain border border-gray-200 bg-gray-50"
+                      containerClassName="w-32 h-32"
                     />
                     <button
                       type="button"
@@ -378,7 +378,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                           <LazyImage
                             src={pdImagePreview}
                             alt="PD Preview"
-                            className="w-20 h-20 rounded-full object-cover border border-gray-200"
+                            className="rounded-full object-cover border border-gray-200"
+                            containerClassName="w-20 h-20"
                           />
                           <button
                             type="button"
@@ -527,7 +528,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                           <LazyImage
                             src={productImagePreview}
                             alt="Product preview"
-                            className="w-24 h-24 rounded-lg object-cover border border-gray-200"
+                            className="rounded-lg object-cover border border-gray-200"
+                            containerClassName="w-24 h-24"
                           />
                           <button
                             type="button"
@@ -628,7 +630,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                           <LazyImage
                             src={product.image_url}
                             alt={product.name}
-                            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                            className="rounded-lg object-cover"
+                            containerClassName="w-16 h-16 flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
