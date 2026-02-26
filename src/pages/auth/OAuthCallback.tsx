@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 import { env } from '@/lib/config/env';
 import { authApi, getAuthData, setAuthData } from '@/lib/api/auth';
+import { useAuthStore } from '@/lib/stores/authStore';
 
 interface OAuthCallbackState {
   status: 'loading' | 'success' | 'error';
@@ -17,6 +18,7 @@ interface OAuthCallbackState {
 
 export const OAuthCallback: React.FC = () => {
   const navigate = useNavigate();
+  const { setUser, setToken } = useAuthStore();
   const [state, setState] = useState<OAuthCallbackState>({
     status: 'loading',
     message: 'Processing authentication...',
@@ -68,12 +70,17 @@ export const OAuthCallback: React.FC = () => {
           user = await authApi.getProfile();
           if (token && user) {
             setAuthData(token, user);
+            // Update Zustand auth store so sidebar/permissions detect the role
+            setToken(token);
+            setUser(user);
+            localStorage.setItem('user_role', user.role || '');
           }
         } catch (e) {
           console.warn('[OAuthCallback] profile fetch failed');
         } finally {
-          // Redirect berdasarkan role user
-          const redirectTarget = user?.role === 'admin' ? '/dashboard' : '/';
+          // Redirect berdasarkan role user — PIC juga diarahkan ke dashboard
+          const dashboardRoles = ['admin', 'super_admin', 'superadmin', 'PIC'];
+          const redirectTarget = user?.role && dashboardRoles.includes(user.role) ? '/dashboard' : '/';
           setTimeout(() => navigate(redirectTarget, { replace: true }), 200);
         }
       })();
